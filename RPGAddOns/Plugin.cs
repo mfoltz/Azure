@@ -25,23 +25,23 @@ namespace RPGAddOns
         public static readonly string PlayerResetCountsBuffsJson = Path.Combine(ConfigPath, "player_resets.json");
         public static readonly string PlayerPrestigeJson = Path.Combine(ConfigPath, "player_prestige.json");
 
-        
 
-        public static ManualLogSource Logger;
-        
-        public static ConfigEntry<int> ExtraHealth;
-        public static ConfigEntry<int> ExtraPhysicalPower;
-        public static ConfigEntry<int> ExtraSpellPower;
-        public static ConfigEntry<int> ExtraPhysicalResistance;
-        public static ConfigEntry<int> ExtraSpellResistance;
-        public static ConfigEntry<int> MaxResets;
-        public static ConfigEntry<bool> ItemReward;
-        public static ConfigEntry<int> ItemPrefab;
-        public static ConfigEntry<int> ItemQuantity;
-        public static ConfigEntry<bool> BuffRewardsReset;
-        public static ConfigEntry<bool> BuffRewardsPrestige;
-        public static ConfigEntry<string> BuffPrefabsReset;
-        public static ConfigEntry<string> BuffPrefabsPrestige;
+
+        public static ManualLogSource? Logger;
+
+        public static ConfigEntry<int>? ExtraHealth;
+        public static ConfigEntry<int>? ExtraPhysicalPower;
+        public static ConfigEntry<int>? ExtraSpellPower;
+        public static ConfigEntry<int>? ExtraPhysicalResistance;
+        public static ConfigEntry<int>? ExtraSpellResistance;
+        public static ConfigEntry<int>? MaxResets;
+        public static ConfigEntry<bool>? ItemReward;
+        public static ConfigEntry<int>? ItemPrefab;
+        public static ConfigEntry<int>? ItemQuantity;
+        public static ConfigEntry<bool>? BuffRewardsReset;
+        public static ConfigEntry<bool>? BuffRewardsPrestige;
+        public static ConfigEntry<string>? BuffPrefabsReset;
+        public static ConfigEntry<string>? BuffPrefabsPrestige;
 
         public override void Load()
         {
@@ -81,7 +81,6 @@ namespace RPGAddOns
         public void InitConfig()
         {
 
-            WaypointLimit = Config.Bind("Config", "Waypoint Limit", 0, "Set a waypoint limit per user.");
 
             //configuration options for BloodyPointTesting
             //ResetLevel options
