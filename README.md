@@ -9,9 +9,13 @@ https://github.com/oscarpedrero/BloodyPoints is a great mod to start poking arou
 **Commands**
 
 Command: .rpg resetlevel or .rpg rl
+
 Admin: false
+
 Usage: Use this command to reset your level to 1 after reaching max level to receive configured extras.
+
 Description: This command allows you to reset your level for rewards once you've reached the maximum level.
+
 
 Command: .rpg getresets or .rpg gr
 Admin: false
