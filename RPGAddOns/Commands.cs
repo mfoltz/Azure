@@ -74,7 +74,7 @@ namespace RPGAddOns
                 ctx.Reply("You have not received any buffs yet.");
             }
         }
-        [Command(name: "wiperesets", shortHand: "wr", adminOnly: true, usage: "Wipe a user's progress.", description: "Resets the specified user's reset count and buffs to the initial state. Does not wipe any buffs they already have but that would probably be good to add here")]
+        [Command(name: "wiperesets", shortHand: "wr", adminOnly: true, usage: ".rpg wr <PlayerName>", description: "Resets the specified user's reset count and buffs to the initial state. Does not wipe any buffs they already have but that would probably be good to add here")]
         public static void WipeProgressCommand(ChatCommandContext ctx, string playerName)
         {
             // Find the user's SteamID based on the playerName
@@ -93,6 +93,21 @@ namespace RPGAddOns
             else
             {
                 ctx.Reply($"Player {playerName} not found or no progress to wipe.");
+            }
+        }
+        [Command(name: "getresetdata", shortHand: "grd", adminOnly: true, usage: ".rpg grd <Name>", description: "Retrieves the reset count and buffs for a specified player.")]
+        public static void GetPlayerResetDataCommand(ChatCommandContext ctx, string playerName)
+        {
+            ulong SteamID = FindSteamIDByName(playerName); // Use the FindSteamIDByName method from previous examples
+
+            if (SteamID != 0 && Databases.playerResetCountsBuffs.TryGetValue(SteamID, out ResetData data))
+            {
+                var buffsList = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
+                ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Reset Count: {data.ResetCount}, Buffs: {buffsList}");
+            }
+            else
+            {
+                ctx.Reply($"Player {playerName} not found or no reset data available.");
             }
         }
         private static EntityManager entityManager = VWorld.Server.EntityManager;
