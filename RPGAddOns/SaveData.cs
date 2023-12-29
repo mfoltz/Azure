@@ -1,15 +1,14 @@
-﻿using BloodyPoints.Command;
+﻿
 using HarmonyLib;
 using ProjectM;
 
-namespace BloodyPoints.Patch
+namespace RPGAddOns
 {
     [HarmonyPatch(typeof(GameBootstrap), nameof(GameBootstrap.OnApplicationQuit))]
     public static class GameBootstrapQuit_Patch
     {
         public static void Prefix()
         {
-            Commands.SaveWaypoints();
             Commands.SavePlayerPrestige();
             Commands.SavePlayerResets();
         }
@@ -20,7 +19,6 @@ namespace BloodyPoints.Patch
     {
         public static void Prefix()
         {
-            Commands.SaveWaypoints();
             Commands.SavePlayerPrestige();
             Commands.SavePlayerResets();
         }
