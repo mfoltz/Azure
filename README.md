@@ -5,3 +5,5 @@ RPGAddOns interfaces with existing RPGMod systems to provide a way for players t
 .rpg resetlevel
 
 Example config: https://github.com/mfoltz/BlueBuilds/blob/master/RPGAddOns.cfg
+
+https://github.com/oscarpedrero/BloodyPoints is a great mod to start poking around in if you're new to this.
