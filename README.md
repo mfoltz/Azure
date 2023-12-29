@@ -61,12 +61,12 @@ Setting type: Boolean
 Default value: false
 BuffRewardsPrestige = false
 
-## Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 'placeholder'
+## Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to 0
 Setting type: String
 Default value: []
 BuffPrefabsReset = [476186894,-1591883586,-1591827622,2099221856,-706770454]
 
-## Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige (5) if enabled to skip buff for a level set it to be 'placeholder'
+## Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige if enabled to skip buff for a level set it to 0
 Setting type: String
 Default value: []
 BuffPrefabsPrestige = []
