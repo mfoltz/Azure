@@ -95,10 +95,11 @@ namespace RPGAddOns
                 ctx.Reply($"Player {playerName} not found or no progress to wipe.");
             }
         }
-        [Command(name: "getresetdata", shortHand: "grd", adminOnly: true, usage: ".rpg grd <Name>", description: "Retrieves the reset count and buffs for a specified player.")]
+        [Command(name: "getresetdata", shortHand: "grd", adminOnly: true, usage: "", description: "Retrieves the reset count and buffs for a specified player.")]
         public static void GetPlayerResetDataCommand(ChatCommandContext ctx, string playerName)
         {
-            ulong SteamID = FindSteamIDByName(playerName); // Use the FindSteamIDByName method from previous examples
+            RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
+            ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
 
             if (SteamID != 0 && Databases.playerResetCountsBuffs.TryGetValue(SteamID, out ResetData data))
             {
