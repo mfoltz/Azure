@@ -28,9 +28,15 @@ namespace RPGAddOns
                 // check for null reference
                 if (Databases.playerResetCountsBuffs != null)
                 {
+                    
                     // check for player data and reset level if below max resets else create data and reset level
                     if (Databases.playerResetCountsBuffs.TryGetValue(SteamID, out ResetData data))
                     {
+                        if (data.ResetCount >= Plugin.MaxResets)
+                        {
+                            ctx.Reply("You have reached the maximum number of resets.");
+                            return;
+                        }
                         ResetLevelFunctions.PlayerReset(ctx, playerName, SteamID, data);
                         return;
                     }
@@ -64,7 +70,7 @@ namespace RPGAddOns
                 
                 List<int> playerBuffs = data.Buffs;
 
-                var buffList = Regex.Matches(Plugin.BuffPrefabsReset, @"\d+")
+                var buffList = Regex.Matches(Plugin.BuffPrefabsReset, @"-?\d+")
                                    .Cast<Match>()
                                    .Select(m => int.Parse(m.Value))
                                    .ToList();
@@ -108,7 +114,7 @@ namespace RPGAddOns
                 List<int> playerBuffs = data.Buffs;
                 var buffstring = Plugin.BuffPrefabsReset;
 
-                var intList = Regex.Matches(buffstring, @"\d+")
+                var intList = Regex.Matches(buffstring, @"-?\d+")
                                    .Cast<Match>()
                                    .Select(m => int.Parse(m.Value))
                                    .ToList();
@@ -147,7 +153,7 @@ namespace RPGAddOns
                 // Use the PowerUpAdd command to apply the stats and inform the player
 
 
-                PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
+                
 
                 ctx.Reply($"Your level has been reset! You've gained: MaxHealth {Plugin.ExtraHealth}, PAtk {Plugin.ExtraPhysicalPower}, SAtk {Plugin.ExtraSpellPower}, PDef {Plugin.ExtraPhysicalResistance}, SDef {Plugin.ExtraSpellResistance}");
 
@@ -159,12 +165,11 @@ namespace RPGAddOns
                         ctx.Reply("Unable to parse buffs, make sure number of buff prefabs equals the number of max resets in configuration.");
                         return;
                     }
-                    if (buffname != "string")
+                    if (buffname != "string") // this is a hacky way to skip a buff, leave buffs you want skipped as 0s in config
                     {
-                        WillisCore.Helper.BuffPlayerByName(playerName, buffguid, -1, true);
+                        WillisCore.Helper.BuffPlayerByName(playerName, buffguid, 0, true);
                         ctx.Reply($"You've been granted a permanent buff: {buffname}");
                     }
-                    
                 }
                 if (Plugin.ItemReward)
                 {
@@ -173,6 +178,7 @@ namespace RPGAddOns
                     ctx.Reply($"You've been awarded with: {Plugin.ItemQuantity} {itemName}");
                 }
                 // log player ResetData and save, take away exp
+                PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
                 Experience.setXP(ctx, playerName, 0);
                 data.ResetCount++; data.Buffs = playerBuffs;
                 Commands.SavePlayerResets();
