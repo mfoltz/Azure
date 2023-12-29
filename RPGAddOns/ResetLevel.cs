@@ -21,7 +21,7 @@ namespace RPGAddOns
     }
     public class ResetLevel
     {
-        public static void ResetPlayerLevel(ChatCommandContext ctx, string playerName, ulong SteamID, string StringID)
+        public static void ResetPlayerLevel(ChatCommandContext ctx, string playerName, ulong SteamID)
         {
 
             if (ExperienceSystem.getLevel(SteamID) >= ExperienceSystem.MaxLevel)

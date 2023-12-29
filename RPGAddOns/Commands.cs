@@ -38,7 +38,7 @@ namespace RPGAddOns
             // Call the ResetLevel method from ResetLevelRPG
 
             //EntityManager entityManager = default;
-            //ResetLevelRPG.ResetLevel(ctx, name, SteamID, StringID);
+            ResetLevel.ResetPlayerLevel(ctx, name, SteamID);
 
 
         }
@@ -56,7 +56,7 @@ namespace RPGAddOns
             string json = File.ReadAllText(Plugin.PlayerPrestigeJson);
             try
             {
-                Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<string, PrestigeData>>(json);
+                Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json);
                 Plugin.Logger.LogWarning("Player Prestige Populated");
             }
             catch
@@ -73,7 +73,7 @@ namespace RPGAddOns
             json = File.ReadAllText(Plugin.PlayerResetCountsBuffsJson);
             try
             {
-                Databases.playerResetCountsBuffs = JsonSerializer.Deserialize<Dictionary<string, ResetData>>(json);
+                Databases.playerResetCountsBuffs = JsonSerializer.Deserialize<Dictionary<ulong, ResetData>>(json);
                 Plugin.Logger.LogWarning("Player ResetCountsBuffs Populated");
             }
             catch
