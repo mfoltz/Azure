@@ -10,7 +10,7 @@ RPGAddOns interfaces with existing RPGMod systems to provide a way for players t
 [Config]
 
 ## Extra health on reset
-# Setting type: Int32
+Setting type: Int32
 # Default value: 50
 ExtraHealth = 50
 
