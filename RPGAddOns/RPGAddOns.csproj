@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Core" Version="6.0.0-be.668" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />
+    <PackageReference Include="BepInEx.Unity.Common" Version="6.0.0-be.668" />
+    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.668" />
+    <PackageReference Include="Fody" Version="6.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="HarmonyX" Version="2.10.1" />
+    <PackageReference Include="ILMerge.Fody" Version="1.24.0" />
+    <PackageReference Include="VRising.Bloodstone" Version="0.1.6" />
+    <PackageReference Include="VRising.Unhollowed.Client" Version="0.6.5.57575090" />
+    <PackageReference Include="VRising.VampireCommandFramework" Version="0.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AdminCommands">
+      <HintPath>..\..\..\..\Downloads\AdminCommands.dll</HintPath>
+    </Reference>
+    <Reference Include="RPGMods">
+      <HintPath>..\..\..\..\Downloads\RPGMods.dll</HintPath>
+    </Reference>
+    <Reference Include="VRising.GameData">
+      <HintPath>..\..\BloodyPointsTesting\VRising.GameData.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
