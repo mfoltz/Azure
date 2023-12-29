@@ -30,7 +30,7 @@ namespace RPGAddOns
         {
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
-            var SteamID = user.PlatformId;
+            ulong SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
 
 

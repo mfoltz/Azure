@@ -3,8 +3,6 @@ using RPGMods.Commands;
 using RPGMods.Systems;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
-using BindingFlags = System.Reflection.BindingFlags;
-using FieldInfo = System.Reflection.FieldInfo;
 
 namespace RPGAddOns
 {
@@ -21,6 +19,7 @@ namespace RPGAddOns
     }
     public class ResetLevel
     {
+
         public static void ResetPlayerLevel(ChatCommandContext ctx, string playerName, ulong SteamID)
         {
 
@@ -58,164 +57,86 @@ namespace RPGAddOns
         public class ResetLevelFunctions
 
         {
-            public static string FindPrefabName(PrefabGUID targetPrefabGUID)
+            public static (string, PrefabGUID, bool) BuffCheck(ResetData data)
             {
-                Type type = typeof(AdminCommands.Data.Prefabs);
+                bool buffFlag = false;
+                string buffname = "placeholder";
+                
+                List<int> playerBuffs = data.Buffs;
 
-                foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
+                var buffList = Regex.Matches(Plugin.BuffPrefabsReset, @"\d+")
+                                   .Cast<Match>()
+                                   .Select(m => int.Parse(m.Value))
+                                   .ToList();
+                playerBuffs.Add(buffList[data.ResetCount]);
+                PrefabGUID buffguid = new(buffList[data.ResetCount]);
+                buffname = AdminCommands.ECSExtensions.LookupName(buffguid);
+                if (buffList[data.ResetCount] == 0)
                 {
-                    if (field.FieldType == typeof(PrefabGUID))
-                    {
-                        PrefabGUID prefabGuid = (PrefabGUID)field.GetValue(null);
-
-                        if (prefabGuid == targetPrefabGUID)
-                        {
-                            return field.Name;
-                        }
-                    }
+                    buffname = "string";
                 }
-
-                // If no matching PrefabGUID is found, return null or an appropriate default value.
-                return "Prefab name not found.";
-            }
-            public static List<string> BuffFlag(ResetData data, List<int> intList)
-            {
-
-                List<string> buffinfo = new List<string>();
-                if (intList.Count == Plugin.MaxResets)
+                if (buffList.Count == Plugin.MaxResets)
                 {
-                    List<int> playerBuffs = data.Buffs;
-                    playerBuffs.Add(intList[data.ResetCount]);
-                    int buffint = intList[data.ResetCount];
-                    PrefabGUID buffguid = new PrefabGUID(buffint);
-                    // probably don't want to generate mappings every time, do this somewhere else once and store it
-                    // guess I need several mappings generated then need to check them all for the buff and handle it if not found
-
-                    if (FindPrefabName(buffguid) != "Prefab name not found.")
-                    {
-                        string buffname = FindPrefabName(buffguid);
-
-                        buffinfo.Add(buffname); buffinfo.Add(buffint.ToString());
-                        return buffinfo;
-                        // can't grant rewards until the end if checks in between can fail to prevent edge cases, set flag to true or something
-                    }
-                    else
-                    {
-
-                        return buffinfo;
-                    }
+                    
+                    buffFlag = true;
+                    return (buffname, buffguid, buffFlag);
                 }
                 else
                 {
-                    return buffinfo;
+                    
+                    return (buffname, buffguid, buffFlag);
                 }
-
 
 
             }
-            public static List<string> ItemFlag()
+            public static (string, PrefabGUID) ItemCheck()
             {
-                List<string> iteminfo = new List<string>();
-                PrefabGUID itemguid = new PrefabGUID(Plugin.ItemPrefab);
-                if (AdminCommands.ECSExtensions.LookupName(itemguid) != "GUID Not Found")
-                {
-                    string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
+                // need to return a tuple with itemname and itemguid
+                PrefabGUID itemguid = new(Plugin.ItemPrefab);
+                //string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
+                string itemName = AdminCommands.ECSExtensions.LookupName(itemguid);
+                
 
-                    if (Plugin.ItemQuantity > 1)
-                    {
-                        if (itemName.Last() == 's')
-                        {
-                            itemName += "'";
-                        }
-                        else
-                        {
-                            itemName += "s";
-                        }
-                    }
-                    // same with buffs up there, cant grant rewards until the end if checks in between can fail to prevent edge cases
-                    iteminfo.Add(itemName); iteminfo.Add(itemguid.ToString());
-                    return iteminfo;
-                }
-                else
-                {
-                    return iteminfo;
-                }
+                    
+                return (itemName, itemguid);
+                
+                
             }
             public static void PlayerReset(ChatCommandContext ctx, string playerName, ulong SteamID, ResetData data)
             {
-                List<int> intList = new List<int>();
-
+                // fallback to prefab if name not found, tired of dealing with this
                 List<int> playerBuffs = data.Buffs;
                 var buffstring = Plugin.BuffPrefabsReset;
 
-                List<string> buffList = ConvertStringToList(buffstring);
-
-                static List<string> ConvertStringToList(string buffstring)
-                {
-                    var matches = Regex.Matches(buffstring, @"\d+");
-                    return (from Match match in matches.Cast<Match>() select match.Value).ToList();
-                }
-                intList = buffList.Select(s => int.Parse(s)).ToList();
+                var intList = Regex.Matches(buffstring, @"\d+")
+                                   .Cast<Match>()
+                                   .Select(m => int.Parse(m.Value))
+                                   .ToList();
 
                 int preHealth = 0;
                 int prePhysicalPower = 0;
                 int preSpellPower = 0;
                 int prePhysicalResistance = 0;
                 int preSpellResistance = 0;
-                PrefabGUID buffguid = new PrefabGUID(intList[data.ResetCount]);
-                string buffname = FindPrefabName(buffguid);
-                string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
-                PrefabGUID itemguid = new PrefabGUID(Plugin.ItemPrefab);
-                if (RPGMods.Utils.Database.PowerUpList.ContainsKey(SteamID))
+
+                //PrefabGUID buffguid = new PrefabGUID(0);
+                //string buffname = FindPrefabName(buffguid);
+                //string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
+                //PrefabGUID itemguid = new PrefabGUID(Plugin.ItemPrefab);
+                //ctx.Reply("1");
+                if (RPGMods.Utils.Database.PowerUpList.ContainsKey(SteamID) != null)
                 {
-                    var preStats = RPGMods.Utils.Database.PowerUpList[SteamID];
-                    preHealth = (int)preStats.MaxHP;
-                    prePhysicalPower = (int)preStats.PATK;
-                    preSpellPower = (int)preStats.SATK;
-                    prePhysicalResistance = (int)preStats.PDEF;
-                    preSpellResistance = (int)preStats.SDEF;
-                }
-
-
-                bool buffFlag = false;
-                bool itemFlag = false;
-
-
-                if (Plugin.BuffRewardsReset)
-                {
-
-                    var buffinfo = BuffFlag(data, intList);
-                    if (buffinfo.Count > 0)
+                    if (RPGMods.Utils.Database.PowerUpList.TryGetValue(SteamID, out RPGMods.Utils.PowerUpData preStats))
                     {
-                        buffFlag = true;
-                        buffname = buffinfo[0];
-                        int buffint = int.Parse(buffinfo[1]);
-                        buffguid = new PrefabGUID(buffint);
-                    }
-                    else
-                    {
-                        ctx.Reply($"Unable to parse buff, check BuffPrefabResets configuration.");
-                        return;
+                        preHealth = (int)preStats.MaxHP;
+                        prePhysicalPower = (int)preStats.PATK;
+                        preSpellPower = (int)preStats.SATK;
+                        prePhysicalResistance = (int)preStats.PDEF;
+                        preSpellResistance = (int)preStats.SDEF;
                     }
 
                 }
-                if (Plugin.ItemReward)
-                {
-                    var iteminfo = ItemFlag();
-                    if (iteminfo.Count > 0)
-                    {
-                        itemFlag = true;
-                        itemName = iteminfo[0];
-                        int itemint = int.Parse(iteminfo[1]);
-                        itemguid = new PrefabGUID(itemint);
-                    }
-                    else
-                    {
-                        ctx.Reply($"Unable to parse item, check ItemPrefab configuration.");
-                        return;
-                    }
 
-                }
                 // set stat bonus values
                 int extraHealth = Plugin.ExtraHealth + preHealth;
                 int extraPhysicalPower = Plugin.ExtraPhysicalPower + prePhysicalPower;
@@ -224,16 +145,30 @@ namespace RPGAddOns
                 int extraSpellResistance = Plugin.ExtraSpellResistance + preSpellResistance;
 
                 // Use the PowerUpAdd command to apply the stats and inform the player
+
+
                 PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
 
                 ctx.Reply($"Your level has been reset! You've gained: MaxHealth {Plugin.ExtraHealth}, PAtk {Plugin.ExtraPhysicalPower}, SAtk {Plugin.ExtraSpellPower}, PDef {Plugin.ExtraPhysicalResistance}, SDef {Plugin.ExtraSpellResistance}");
-                if (buffFlag)
+
+                if (Plugin.BuffRewardsReset)
                 {
-                    WillisCore.Helper.BuffPlayerByName(playerName, buffguid, -1, true);
-                    ctx.Reply($"You've been granted a permanent buff: {buffname}");
+                    var (buffname, buffguid, buffFlag) = BuffCheck(data);
+                    if (!buffFlag)
+                    {
+                        ctx.Reply("Unable to parse buffs, make sure number of buff prefabs equals the number of max resets in configuration.");
+                        return;
+                    }
+                    if (buffname != "string")
+                    {
+                        WillisCore.Helper.BuffPlayerByName(playerName, buffguid, -1, true);
+                        ctx.Reply($"You've been granted a permanent buff: {buffname}");
+                    }
+                    
                 }
-                if (itemFlag)
+                if (Plugin.ItemReward)
                 {
+                    var (itemName, itemguid) = ItemCheck();
                     RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, Plugin.ItemQuantity);
                     ctx.Reply($"You've been awarded with: {Plugin.ItemQuantity} {itemName}");
                 }
