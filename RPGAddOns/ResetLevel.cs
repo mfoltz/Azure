@@ -82,7 +82,7 @@ namespace RPGAddOns
             {
 
                 List<string> buffinfo = new List<string>();
-                if (intList.Count == Plugin.MaxResets.Value)
+                if (intList.Count == Plugin.MaxResets)
                 {
                     List<int> playerBuffs = data.Buffs;
                     playerBuffs.Add(intList[data.ResetCount]);
@@ -116,12 +116,12 @@ namespace RPGAddOns
             public static List<string> ItemFlag()
             {
                 List<string> iteminfo = new List<string>();
-                PrefabGUID itemguid = new PrefabGUID(Plugin.ItemPrefab.Value);
+                PrefabGUID itemguid = new PrefabGUID(Plugin.ItemPrefab);
                 if (AdminCommands.ECSExtensions.LookupName(itemguid) != "GUID Not Found")
                 {
                     string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
 
-                    if (Plugin.ItemQuantity.Value > 1)
+                    if (Plugin.ItemQuantity > 1)
                     {
                         if (itemName.Last() == 's')
                         {
@@ -146,7 +146,7 @@ namespace RPGAddOns
                 List<int> intList = new List<int>();
 
                 List<int> playerBuffs = data.Buffs;
-                var buffstring = Plugin.BuffPrefabsReset.Value;
+                var buffstring = Plugin.BuffPrefabsReset;
 
                 List<string> buffList = ConvertStringToList(buffstring);
 
@@ -165,7 +165,7 @@ namespace RPGAddOns
                 PrefabGUID buffguid = new PrefabGUID(intList[data.ResetCount]);
                 string buffname = FindPrefabName(buffguid);
                 string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
-                PrefabGUID itemguid = new PrefabGUID(Plugin.ItemPrefab.Value);
+                PrefabGUID itemguid = new PrefabGUID(Plugin.ItemPrefab);
                 if (RPGMods.Utils.Database.PowerUpList.ContainsKey(SteamID))
                 {
                     var preStats = RPGMods.Utils.Database.PowerUpList[SteamID];
@@ -181,7 +181,7 @@ namespace RPGAddOns
                 bool itemFlag = false;
 
 
-                if (Plugin.BuffRewardsReset.Value)
+                if (Plugin.BuffRewardsReset)
                 {
 
                     var buffinfo = BuffFlag(data, intList);
@@ -199,7 +199,7 @@ namespace RPGAddOns
                     }
 
                 }
-                if (Plugin.ItemReward.Value)
+                if (Plugin.ItemReward)
                 {
                     var iteminfo = ItemFlag();
                     if (iteminfo.Count > 0)
@@ -217,11 +217,11 @@ namespace RPGAddOns
 
                 }
                 // set stat bonus values
-                int extraHealth = Plugin.ExtraHealth.Value + preHealth;
-                int extraPhysicalPower = Plugin.ExtraPhysicalPower.Value + prePhysicalPower;
-                int extraSpellPower = Plugin.ExtraSpellPower.Value + preSpellPower;
-                int extraPhysicalResistance = Plugin.ExtraPhysicalResistance.Value + prePhysicalResistance;
-                int extraSpellResistance = Plugin.ExtraSpellResistance.Value + preSpellResistance;
+                int extraHealth = Plugin.ExtraHealth + preHealth;
+                int extraPhysicalPower = Plugin.ExtraPhysicalPower + prePhysicalPower;
+                int extraSpellPower = Plugin.ExtraSpellPower + preSpellPower;
+                int extraPhysicalResistance = Plugin.ExtraPhysicalResistance + prePhysicalResistance;
+                int extraSpellResistance = Plugin.ExtraSpellResistance + preSpellResistance;
 
                 // Use the PowerUpAdd command to apply the stats and inform the player
                 PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
@@ -234,7 +234,7 @@ namespace RPGAddOns
                 }
                 if (itemFlag)
                 {
-                    RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, Plugin.ItemQuantity.Value);
+                    RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, Plugin.ItemQuantity);
                     ctx.Reply($"You've been awarded with: {Plugin.ItemQuantity} {itemName}");
                 }
                 // log player ResetData and save, take away exp

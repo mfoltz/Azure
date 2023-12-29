@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
@@ -29,19 +28,19 @@ namespace RPGAddOns
 
         public static ManualLogSource? Logger;
 
-        public static ConfigEntry<int>? ExtraHealth;
-        public static ConfigEntry<int>? ExtraPhysicalPower;
-        public static ConfigEntry<int>? ExtraSpellPower;
-        public static ConfigEntry<int>? ExtraPhysicalResistance;
-        public static ConfigEntry<int>? ExtraSpellResistance;
-        public static ConfigEntry<int>? MaxResets;
-        public static ConfigEntry<bool>? ItemReward;
-        public static ConfigEntry<int>? ItemPrefab;
-        public static ConfigEntry<int>? ItemQuantity;
-        public static ConfigEntry<bool>? BuffRewardsReset;
-        public static ConfigEntry<bool>? BuffRewardsPrestige;
-        public static ConfigEntry<string>? BuffPrefabsReset;
-        public static ConfigEntry<string>? BuffPrefabsPrestige;
+        public static int ExtraHealth;
+        public static int ExtraPhysicalPower;
+        public static int ExtraSpellPower;
+        public static int ExtraPhysicalResistance;
+        public static int ExtraSpellResistance;
+        public static int MaxResets;
+        public static bool ItemReward;
+        public static int ItemPrefab;
+        public static int ItemQuantity;
+        public static bool BuffRewardsReset;
+        public static bool BuffRewardsPrestige;
+        public static string BuffPrefabsReset;
+        public static string BuffPrefabsPrestige;
 
         public override void Load()
         {
@@ -85,19 +84,19 @@ namespace RPGAddOns
             //configuration options for BloodyPointTesting
             //ResetLevel options
             //Prestige options
-            ExtraHealth = Config.Bind("Config", "ExtraHealth", 50, "Extra health on reset");
-            ExtraPhysicalPower = Config.Bind("Config", "ExtraPhysicalPower", 5, "Extra physical power awarded on reset");
-            ExtraSpellPower = Config.Bind("Config", "ExtraSpellPower", 5, "Extra spell power awarded on reset");
-            ExtraPhysicalResistance = Config.Bind("Config", "ExtraPhysicalResistance", 0, "Extra physical resistance awarded on reset");
-            ExtraSpellResistance = Config.Bind("Config", "ExtraSpellResistance", 0, "Extra spell resistance awarded on reset");
-            MaxResets = Config.Bind("Config", "MaxResetCount", 5, "Maximum number of times players can reset their level.");
-            ItemReward = Config.Bind("Config", "ItemRewards", false, "Gives specified item/quantity to players when resetting if enabled.");
-            ItemPrefab = Config.Bind("Config", "ItemPrefab", -651878258, "Item prefab to give players when resetting. Onyx tears default");
-            ItemQuantity = Config.Bind("Config", "ItemQuantity", 3, "Item quantity to give players when resetting.");
-            BuffRewardsReset = Config.Bind("Config", "BuffRewardsReset", false, "Grants permanent buff to players when resetting if enabled.");
-            BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsPrestige", false, "Grants permanent buff to players when prestiging if enabled.");
-            BuffPrefabsReset = Config.Bind("Config", "BuffPrefabsReset", "[]", "Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 'placeholder'");
-            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsPrestige", "[]", "Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige (5) if enabled to skip buff for a level set it to be 'placeholder'");
+            ExtraHealth = Config.Bind("Config", "ExtraHealth", 50, "Extra health on reset").Value;
+            ExtraPhysicalPower = Config.Bind("Config", "ExtraPhysicalPower", 5, "Extra physical power awarded on reset").Value;
+            ExtraSpellPower = Config.Bind("Config", "ExtraSpellPower", 5, "Extra spell power awarded on reset").Value;
+            ExtraPhysicalResistance = Config.Bind("Config", "ExtraPhysicalResistance", 0, "Extra physical resistance awarded on reset").Value;
+            ExtraSpellResistance = Config.Bind("Config", "ExtraSpellResistance", 0, "Extra spell resistance awarded on reset").Value;
+            MaxResets = Config.Bind("Config", "MaxResetCount", 5, "Maximum number of times players can reset their level.").Value;
+            ItemReward = Config.Bind("Config", "ItemRewards", false, "Gives specified item/quantity to players when resetting if enabled.").Value;
+            ItemPrefab = Config.Bind("Config", "ItemPrefab", -651878258, "Item prefab to give players when resetting. Onyx tears default").Value;
+            ItemQuantity = Config.Bind("Config", "ItemQuantity", 3, "Item quantity to give players when resetting.").Value;
+            BuffRewardsReset = Config.Bind("Config", "BuffRewardsReset", false, "Grants permanent buff to players when resetting if enabled.").Value;
+            BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsPrestige", false, "Grants permanent buff to players when prestiging if enabled.").Value;
+            BuffPrefabsReset = Config.Bind("Config", "BuffPrefabsReset", "[]", "Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 'placeholder'").Value;
+            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsPrestige", "[]", "Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige (5) if enabled to skip buff for a level set it to be 'placeholder'").Value;
 
             if (!Directory.Exists(ConfigPath)) Directory.CreateDirectory(ConfigPath);
         }

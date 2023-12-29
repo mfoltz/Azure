@@ -61,7 +61,7 @@ namespace RPGAddOns
             }
             catch
             {
-                Databases.playerPrestige = [];
+                Databases.playerPrestige = new Dictionary<ulong, PrestigeData>();
                 Plugin.Logger.LogWarning("Player Prestige Created");
             }
             if (!File.Exists(Plugin.PlayerResetCountsBuffsJson))
@@ -78,7 +78,7 @@ namespace RPGAddOns
             }
             catch
             {
-                Databases.playerResetCountsBuffs = [];
+                Databases.playerResetCountsBuffs = new Dictionary<ulong, ResetData>();
                 Plugin.Logger.LogWarning("Player ResetCountsBuffs Created");
             }
 
