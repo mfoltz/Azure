@@ -17,10 +17,10 @@ namespace RPGAddOns
         [HarmonyPrefix]
         public static void OnUpdate(VBloodSystem __instance)
         {
-            Plugin.Logger.LogInfo("VBloodSystem OnUpdate called"); // Log when method is called
-
+            //Plugin.Logger.LogInfo("VBloodSystem OnUpdate called"); // Log when method is called
+            // the OnUpdate method seems to happen quite a bit so no need for checks up here
             EntityManager entityManager = __instance.EntityManager;
-            ServerChatUtils.SendSystemMessageToAllClients(entityManager, "VBLOOD KILL DETECTED");
+            //ServerChatUtils.SendSystemMessageToAllClients(entityManager, "VBLOOD KILL DETECTED");
 
             if (!__instance.EventList.IsEmpty)
             {
@@ -59,7 +59,7 @@ namespace RPGAddOns
             }
             else
             {
-                Plugin.Logger.LogInfo("EventList is empty"); // Log if EventList is empty
+                //Plugin.Logger.LogInfo("EventList is empty"); // Log if EventList is empty
             }
         }
 

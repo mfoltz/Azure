@@ -15,7 +15,7 @@ namespace RPGAddOns
     [BepInDependency("gg.deca.VampireCommandFramework")]
     public class Plugin : BasePlugin, IRunOnInitialized
     {
-        public static Harmony _harmony;
+        private Harmony _harmony;
 
         internal static Plugin Instance { get; private set; }
 
@@ -44,8 +44,8 @@ namespace RPGAddOns
             Instance = this;
             Logger = Log;
             CommandRegistry.RegisterAll();
-            _harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
-            _harmony.PatchAll(Assembly.GetExecutingAssembly());
+            //_harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
+            _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             GameData.OnInitialize += GameDataOnInitialize;
             GameData.OnDestroy += GameDataOnDestroy;
 
