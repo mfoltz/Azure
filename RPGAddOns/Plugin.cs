@@ -15,7 +15,7 @@ namespace RPGAddOns
     [BepInDependency("gg.deca.VampireCommandFramework")]
     public class Plugin : BasePlugin, IRunOnInitialized
     {
-        public static Harmony harmony;
+        public static Harmony _harmony;
 
         internal static Plugin Instance { get; private set; }
 
@@ -23,7 +23,7 @@ namespace RPGAddOns
         public static readonly string PlayerResetCountsBuffsJson = Path.Combine(ConfigPath, "player_resets.json");
         public static readonly string PlayerPrestigeJson = Path.Combine(ConfigPath, "player_prestige.json");
 
-        public static ManualLogSource? Logger;
+        public static ManualLogSource Logger;
 
         public static int ExtraHealth;
         public static int ExtraPhysicalPower;
@@ -44,8 +44,8 @@ namespace RPGAddOns
             Instance = this;
             Logger = Log;
             CommandRegistry.RegisterAll();
-            harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
+            _harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
+            _harmony.PatchAll(Assembly.GetExecutingAssembly());
             GameData.OnInitialize += GameDataOnInitialize;
             GameData.OnDestroy += GameDataOnDestroy;
 
@@ -102,7 +102,7 @@ namespace RPGAddOns
             Commands.SavePlayerResets();
             Commands.SavePlayerPrestige();
             Config.Clear();
-            harmony.UnpatchSelf();
+            _harmony.UnpatchSelf();
             return true;
         }
 

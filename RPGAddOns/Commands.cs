@@ -2,7 +2,6 @@
 using System.Text.Json;
 using Unity.Entities;
 using VampireCommandFramework;
-using RPGMods;
 
 namespace RPGAddOns
 {
