@@ -46,6 +46,9 @@ namespace RPGAddOns
                                 int delta = playerLevel - unitLevel;
 
                                 // if delta < 0 player is lower level than unit, if abs(delta) > 5 player should not get any points
+                                // but first maybe I should check if this can detect vblood kills
+
+                                ServerChatUtils.SendSystemMessageToClient(entityManager, entityManager.GetComponentData<User>(targetEntity), "You killed a unit with a level difference of " + delta.ToString());
                             }
                         }
                     }
