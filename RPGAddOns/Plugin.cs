@@ -3,10 +3,10 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
+using RPGAddOns.Patch;
 using System.Reflection;
 using Unity.Entities;
 using VampireCommandFramework;
-using VRising.GameData;
 
 namespace RPGAddOns
 {
@@ -50,8 +50,7 @@ namespace RPGAddOns
             CommandRegistry.RegisterAll();
             harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
-            GameData.OnInitialize += GameDataOnInitialize;
-            GameData.OnDestroy += GameDataOnDestroy;
+            ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
 
             if (!VWorld.IsServer)
             {
@@ -63,11 +62,6 @@ namespace RPGAddOns
 
             // Plugin startup logic
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
-        }
-
-        private void GameDataOnDestroy()
-        {
-
         }
 
         private void GameDataOnInitialize(World world)
