@@ -15,7 +15,6 @@ namespace RPGAddOns
     [BepInDependency("gg.deca.VampireCommandFramework")]
     public class Plugin : BasePlugin, IRunOnInitialized
     {
-
         public static Harmony harmony;
 
         internal static Plugin Instance { get; private set; }
@@ -23,8 +22,6 @@ namespace RPGAddOns
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns");
         public static readonly string PlayerResetCountsBuffsJson = Path.Combine(ConfigPath, "player_resets.json");
         public static readonly string PlayerPrestigeJson = Path.Combine(ConfigPath, "player_prestige.json");
-
-
 
         public static ManualLogSource? Logger;
 
@@ -44,7 +41,6 @@ namespace RPGAddOns
 
         public override void Load()
         {
-
             Instance = this;
             Logger = Log;
             CommandRegistry.RegisterAll();
@@ -67,7 +63,6 @@ namespace RPGAddOns
 
         private void GameDataOnDestroy()
         {
-
         }
 
         private void GameDataOnInitialize(World world)
@@ -76,11 +71,8 @@ namespace RPGAddOns
             Commands.LoadData();
         }
 
-
         public void InitConfig()
         {
-
-
             //configuration options for BloodyPointTesting
             //ResetLevel options
             //Prestige options
@@ -103,7 +95,6 @@ namespace RPGAddOns
 
         public static void Initialize()
         {
-
         }
 
         public override bool Unload()
@@ -117,19 +108,6 @@ namespace RPGAddOns
 
         public void OnGameInitialized()
         {
-
         }
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

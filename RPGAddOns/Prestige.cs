@@ -13,6 +13,7 @@
             Buffs = buffs;
         }
     }
+
     internal class Prestige
     {
         // WIP

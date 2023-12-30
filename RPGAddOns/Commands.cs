@@ -6,7 +6,6 @@ using RPGMods;
 
 namespace RPGAddOns
 {
-
     [CommandGroup(name: "rpg", shortHand: "rpg")]
     internal class Commands
     {
@@ -18,15 +17,12 @@ namespace RPGAddOns
             var SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
 
-
-
             // Call the ResetPoints method from Prestige
-
 
             //PrestigeCommands.ResetPoints(ctx, name, SteamID, StringID);
         }
-        [Command(name: "resetlevel", shortHand: "rl", adminOnly: false, usage: "Use this command to reset your level to 1 after reaching max level to receive extra stats.", description: "Reset your level for extra stats.")]
 
+        [Command(name: "resetlevel", shortHand: "rl", adminOnly: false, usage: "Use this command to reset your level to 1 after reaching max level to receive extra stats.", description: "Reset your level for extra stats.")]
         public static void ResetLevelCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -34,15 +30,12 @@ namespace RPGAddOns
             ulong SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
 
-
-
             // Call the ResetLevel method from ResetLevelRPG
 
             //EntityManager entityManager = default;
             ResetLevel.ResetPlayerLevel(ctx, name, SteamID);
-
-
         }
+
         [Command(name: "getresets", shortHand: "gr", adminOnly: false, usage: "Check your current reset count.", description: "Displays the number of times you have reset your level.")]
         public static void CheckResetsCommand(ChatCommandContext ctx)
         {
@@ -58,6 +51,7 @@ namespace RPGAddOns
                 ctx.Reply("You have not reset your level yet.");
             }
         }
+
         [Command(name: "getbuffs", shortHand: "gb", adminOnly: false, usage: "Check your current permanent buffs.", description: "Displays the buffs you have received from resets.")]
         public static void CheckBuffsCommand(ChatCommandContext ctx)
         {
@@ -74,12 +68,12 @@ namespace RPGAddOns
                 ctx.Reply("You have not received any buffs yet.");
             }
         }
+
         [Command(name: "wiperesets", shortHand: "wr", adminOnly: true, usage: ".rpg wr <PlayerName>", description: "Resets the specified user's reset count and buffs to the initial state. Does not wipe any buffs they already have but that would probably be good to add here")]
         public static void WipeProgressCommand(ChatCommandContext ctx, string playerName)
         {
             // Find the user's SteamID based on the playerName
-            
-            
+
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
             if (Databases.playerResetCountsBuffs.ContainsKey(SteamID))
@@ -95,6 +89,7 @@ namespace RPGAddOns
                 ctx.Reply($"Player {playerName} not found or no progress to wipe.");
             }
         }
+
         [Command(name: "getresetdata", shortHand: "grd", adminOnly: true, usage: "", description: "Retrieves the reset count and buffs for a specified player.")]
         public static void GetPlayerResetDataCommand(ChatCommandContext ctx, string playerName)
         {
@@ -111,10 +106,11 @@ namespace RPGAddOns
                 ctx.Reply($"Player {playerName} not found or no reset data available.");
             }
         }
+
         private static EntityManager entityManager = VWorld.Server.EntityManager;
+
         public static void LoadData()
         {
-
             if (!File.Exists(Plugin.PlayerPrestigeJson))
             {
                 var stream = File.Create(Plugin.PlayerPrestigeJson);
@@ -149,19 +145,16 @@ namespace RPGAddOns
                 Databases.playerResetCountsBuffs = new Dictionary<ulong, ResetData>();
                 Plugin.Logger.LogWarning("Player ResetCountsBuffs Created");
             }
-
-
         }
 
         public static void SavePlayerResets()
         {
             File.WriteAllText(Plugin.PlayerResetCountsBuffsJson, JsonSerializer.Serialize(Databases.playerResetCountsBuffs));
-
         }
+
         public static void SavePlayerPrestige()
         {
             File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(Databases.playerPrestige));
-
         }
     }
 }

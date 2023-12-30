@@ -17,18 +17,16 @@ namespace RPGAddOns
             Buffs = buffs;
         }
     }
+
     public class ResetLevel
     {
-
         public static void ResetPlayerLevel(ChatCommandContext ctx, string playerName, ulong SteamID)
         {
-
             if (ExperienceSystem.getLevel(SteamID) >= ExperienceSystem.MaxLevel)
             {
                 // check for null reference
                 if (Databases.playerResetCountsBuffs != null)
                 {
-                    
                     // check for player data and reset level if below max resets else create data and reset level
                     if (Databases.playerResetCountsBuffs.TryGetValue(SteamID, out ResetData data))
                     {
@@ -58,8 +56,8 @@ namespace RPGAddOns
                 ctx.Reply("You have not reached the maximum level yet.");
                 return;
             }
-
         }
+
         public class ResetLevelFunctions
 
         {
@@ -67,7 +65,7 @@ namespace RPGAddOns
             {
                 bool buffFlag = false;
                 string buffname = "placeholder";
-                
+
                 List<int> playerBuffs = data.Buffs;
 
                 var buffList = Regex.Matches(Plugin.BuffPrefabsReset, @"-?\d+")
@@ -83,31 +81,25 @@ namespace RPGAddOns
                 }
                 if (buffList.Count == Plugin.MaxResets)
                 {
-                    
                     buffFlag = true;
                     return (buffname, buffguid, buffFlag);
                 }
                 else
                 {
-                    
                     return (buffname, buffguid, buffFlag);
                 }
-
-
             }
+
             public static (string, PrefabGUID) ItemCheck()
             {
                 // need to return a tuple with itemname and itemguid
                 PrefabGUID itemguid = new(Plugin.ItemPrefab);
                 //string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
                 string itemName = AdminCommands.ECSExtensions.LookupName(itemguid);
-                
 
-                    
                 return (itemName, itemguid);
-                
-                
             }
+
             public static void PlayerReset(ChatCommandContext ctx, string playerName, ulong SteamID, ResetData data)
             {
                 // fallback to prefab if name not found, tired of dealing with this
@@ -140,7 +132,6 @@ namespace RPGAddOns
                         prePhysicalResistance = (int)preStats.PDEF;
                         preSpellResistance = (int)preStats.SDEF;
                     }
-
                 }
 
                 // set stat bonus values
@@ -151,9 +142,6 @@ namespace RPGAddOns
                 int extraSpellResistance = Plugin.ExtraSpellResistance + preSpellResistance;
 
                 // Use the PowerUpAdd command to apply the stats and inform the player
-
-
-                
 
                 ctx.Reply($"Your level has been reset! You've gained: MaxHealth {Plugin.ExtraHealth}, PAtk {Plugin.ExtraPhysicalPower}, SAtk {Plugin.ExtraSpellPower}, PDef {Plugin.ExtraPhysicalResistance}, SDef {Plugin.ExtraSpellResistance}");
 
