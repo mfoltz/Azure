@@ -6,7 +6,6 @@ using HarmonyLib;
 using System.Reflection;
 using Unity.Entities;
 using VampireCommandFramework;
-using VRising.GameData;
 
 namespace RPGAddOns
 {
@@ -48,7 +47,6 @@ namespace RPGAddOns
             CommandRegistry.RegisterAll();
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-
 
             if (!VWorld.IsServer)
             {
