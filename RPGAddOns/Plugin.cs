@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
+using RPGAddOns.Patch;
 using System.Reflection;
 using Unity.Entities;
 using VampireCommandFramework;
@@ -58,6 +59,7 @@ namespace RPGAddOns
 
             // Plugin startup logic
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+            ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
         }
 
         private void GameDataOnDestroy()
