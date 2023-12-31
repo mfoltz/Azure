@@ -9,7 +9,7 @@ namespace RPGAddOns
     internal class Commands
     {
         [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: "Resets your rank points and increases your rank.", description: "Resets your rank points and grants a buff.")]
-        public static void ResetPointsCommand(ChatCommandContext ctx)
+        public static void ResetPointsCommand(ChatCommandContext ctx, RankData data)
         {
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
@@ -18,7 +18,7 @@ namespace RPGAddOns
 
             // Call the ResetPoints method from Prestige
 
-            //PrestigeCommands.ResetPoints(ctx, name, SteamID, StringID);
+            PvERankSystem.RankUp(ctx, name, SteamID, data);
         }
 
         [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: "Use this command to reset your level to 1 after reaching max level to receive extra perks.", description: "Reset your level for extras.")]
@@ -41,11 +41,11 @@ namespace RPGAddOns
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (Databases.playerRank.TryGetValue(SteamID, out RankData data))
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
-                double percentage = 100 * ((double)data.Points / ((data.Level * 1000) + 1000));
+                double percentage = 100 * ((double)data.Points / ((data.Rank * 1000) + 1000));
                 string integer = ((int)percentage).ToString();
-                ctx.Reply($"You have {data.Points} out of the {(data.Level * 1000) + 1000} points required to increase your rank. ({integer}%)");
+                ctx.Reply($"You have {data.Points} out of the {(data.Rank * 1000) + 1000} points required to increase your rank. ({integer}%)");
             }
             else
             {
@@ -59,9 +59,9 @@ namespace RPGAddOns
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (Databases.playerRank.TryGetValue(SteamID, out RankData data))
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
-                ctx.Reply($"You are rank {data.Level}.");
+                ctx.Reply($"You are rank {data.Rank}.");
             }
             else
             {
@@ -75,7 +75,7 @@ namespace RPGAddOns
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (Databases.playerResetCountsBuffs.TryGetValue(SteamID, out ResetData data))
+            if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
             {
                 ctx.Reply($"Your current reset count is: {data.ResetCount}");
             }
@@ -91,7 +91,7 @@ namespace RPGAddOns
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (Databases.playerResetCountsBuffs.TryGetValue(SteamID, out ResetData data))
+            if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
             {
                 var buffs = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
                 ctx.Reply($"Your current buffs are: {buffs}");
@@ -109,11 +109,11 @@ namespace RPGAddOns
 
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
-            if (Databases.playerResetCountsBuffs.ContainsKey(SteamID))
+            if (Databases.playerPrestiges.ContainsKey(SteamID))
             {
                 // Reset the user's progress
-                Databases.playerResetCountsBuffs[SteamID] = new ResetData(0, []);
-                Commands.SavePlayerResets();  // Assuming this method saves the data to a persistent storage
+                Databases.playerPrestiges[SteamID] = new PrestigeData(0, []);
+                Commands.SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
 
                 ctx.Reply($"Progress for player {playerName} has been wiped.");
             }
@@ -129,7 +129,7 @@ namespace RPGAddOns
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
 
-            if (SteamID != 0 && Databases.playerResetCountsBuffs.TryGetValue(SteamID, out ResetData data))
+            if (SteamID != 0 && Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
             {
                 var buffsList = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
                 ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Reset Count: {data.ResetCount}, Buffs: {buffsList}");
@@ -144,50 +144,50 @@ namespace RPGAddOns
 
         public static void LoadData()
         {
-            if (!File.Exists(Plugin.PlayerPrestigeJson))
+            if (!File.Exists(Plugin.PlayerPrestigesJson))
             {
-                var stream = File.Create(Plugin.PlayerPrestigeJson);
+                var stream = File.Create(Plugin.PlayerPrestigesJson);
                 stream.Dispose();
             }
 
-            string json = File.ReadAllText(Plugin.PlayerPrestigeJson);
+            string json = File.ReadAllText(Plugin.PlayerPrestigesJson);
             try
             {
-                Databases.playerRank = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json);
+                Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json);
                 Plugin.Logger.LogWarning("Player Prestige Populated");
             }
             catch
             {
-                Databases.playerRank = new Dictionary<ulong, RankData>();
+                Databases.playerRanks = new Dictionary<ulong, RankData>();
                 Plugin.Logger.LogWarning("Player Prestige Created");
             }
-            if (!File.Exists(Plugin.PlayerResetCountsBuffsJson))
+            if (!File.Exists(Plugin.PlayerRanksJson))
             {
-                var stream = File.Create(Plugin.PlayerResetCountsBuffsJson);
+                var stream = File.Create(Plugin.PlayerRanksJson);
                 stream.Dispose();
             }
 
-            json = File.ReadAllText(Plugin.PlayerResetCountsBuffsJson);
+            json = File.ReadAllText(Plugin.PlayerRanksJson);
             try
             {
-                Databases.playerResetCountsBuffs = JsonSerializer.Deserialize<Dictionary<ulong, ResetData>>(json);
+                Databases.playerPrestiges = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json);
                 Plugin.Logger.LogWarning("Player ResetCountsBuffs Populated");
             }
             catch
             {
-                Databases.playerResetCountsBuffs = new Dictionary<ulong, ResetData>();
+                Databases.playerPrestiges = new Dictionary<ulong, PrestigeData>();
                 Plugin.Logger.LogWarning("Player ResetCountsBuffs Created");
             }
         }
 
-        public static void SavePlayerResets()
+        public static void SavePlayerPrestiges()
         {
-            File.WriteAllText(Plugin.PlayerResetCountsBuffsJson, JsonSerializer.Serialize(Databases.playerResetCountsBuffs));
+            File.WriteAllText(Plugin.PlayerPrestigesJson, JsonSerializer.Serialize(Databases.playerPrestiges));
         }
 
-        public static void SavePlayerPrestige()
+        public static void SavePlayerRanks()
         {
-            File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(Databases.playerRank));
+            File.WriteAllText(Plugin.PlayerRanksJson, JsonSerializer.Serialize(Databases.playerRanks));
         }
     }
 }

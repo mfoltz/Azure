@@ -3,7 +3,6 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
-using ProjectM;
 using System.Reflection;
 using Unity.Entities;
 using VampireCommandFramework;
@@ -21,8 +20,8 @@ namespace RPGAddOns
         internal static Plugin Instance { get; private set; }
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns");
-        public static readonly string PlayerResetCountsBuffsJson = Path.Combine(ConfigPath, "player_resets.json");
-        public static readonly string PlayerPrestigeJson = Path.Combine(ConfigPath, "player_prestige.json");
+        public static readonly string PlayerRanksJson = Path.Combine(ConfigPath, "player_resets.json");
+        public static readonly string PlayerPrestigesJson = Path.Combine(ConfigPath, "player_prestige.json");
 
         public static ManualLogSource Logger;
 
@@ -31,14 +30,16 @@ namespace RPGAddOns
         public static int ExtraSpellPower;
         public static int ExtraPhysicalResistance;
         public static int ExtraSpellResistance;
-        public static int MaxResets;
+        public static int MaxPrestiges;
+        public static int MaxRanks;
+
         public static bool ItemReward;
         public static int ItemPrefab;
         public static int ItemQuantity;
-        public static bool BuffRewardsReset;
         public static bool BuffRewardsPrestige;
-        public static string BuffPrefabsReset;
+        public static bool BuffRewardsRankUp;
         public static string BuffPrefabsPrestige;
+        public static string BuffPrefabsRankUp;
 
         public override void Load()
         {
@@ -60,7 +61,6 @@ namespace RPGAddOns
 
             // Plugin startup logic
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
-            AOTCompilationHelpers.AOTCompileEntityManagerGetComponentData();
         }
 
         private void GameDataOnDestroy()
@@ -83,14 +83,16 @@ namespace RPGAddOns
             ExtraSpellPower = Config.Bind("Config", "ExtraSpellPower", 5, "Extra spell power awarded on reset").Value;
             ExtraPhysicalResistance = Config.Bind("Config", "ExtraPhysicalResistance", 0, "Extra physical resistance awarded on reset").Value;
             ExtraSpellResistance = Config.Bind("Config", "ExtraSpellResistance", 0, "Extra spell resistance awarded on reset").Value;
-            MaxResets = Config.Bind("Config", "MaxResetCount", 5, "Maximum number of times players can reset their level.").Value;
+            MaxPrestiges = Config.Bind("Config", "MaxPrestiges", 5, "Maximum number of times players can prestige their level.").Value;
+
+            MaxRanks = Config.Bind("Config", "MaxRanks", 5, "Maximum number of times players can rank up.").Value;
             ItemReward = Config.Bind("Config", "ItemRewards", false, "Gives specified item/quantity to players when resetting if enabled.").Value;
             ItemPrefab = Config.Bind("Config", "ItemPrefab", -651878258, "Item prefab to give players when resetting. Onyx tears default").Value;
             ItemQuantity = Config.Bind("Config", "ItemQuantity", 3, "Item quantity to give players when resetting.").Value;
-            BuffRewardsReset = Config.Bind("Config", "BuffRewardsReset", false, "Grants permanent buff to players when resetting if enabled.").Value;
-            BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsPrestige", false, "Grants permanent buff to players when prestiging if enabled.").Value;
-            BuffPrefabsReset = Config.Bind("Config", "BuffPrefabsReset", "[]", "Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 'placeholder'").Value;
-            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsPrestige", "[]", "Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige (5) if enabled to skip buff for a level set it to be 'placeholder'").Value;
+            BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsReset", false, "Grants permanent buff to players when resetting if enabled.").Value;
+            BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", false, "Grants permanent buff to players when prestiging if enabled.").Value;
+            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsReset", "[]", "Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 'placeholder'").Value;
+            BuffPrefabsRankUp = Config.Bind("Config", "BuffPrefabsPrestige", "[]", "Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige (5) if enabled to skip buff for a level set it to be 'placeholder'").Value;
 
             if (!Directory.Exists(ConfigPath)) Directory.CreateDirectory(ConfigPath);
         }
@@ -101,8 +103,8 @@ namespace RPGAddOns
 
         public override bool Unload()
         {
-            Commands.SavePlayerResets();
-            Commands.SavePlayerPrestige();
+            Commands.SavePlayerPrestiges();
+            Commands.SavePlayerRanks();
             Config.Clear();
             _harmony.UnpatchSelf();
             return true;
@@ -110,21 +112,6 @@ namespace RPGAddOns
 
         public void OnGameInitialized()
         {
-        }
-
-        public class AOTCompilationHelpers
-        {
-            // This method is never called, but its existence ensures that the AOT compiler
-            // generates code for EntityManager.GetComponentData<PrefabGuidComponent>().
-            public static void AOTCompileEntityManagerGetComponentData()
-            {
-                if (false)
-                {
-                    var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-                    var entity = Entity.Null;
-                    entityManager.GetComponentData<PrefabGuidComponent>(entity);
-                }
-            }
         }
     }
 }

@@ -1,12 +1,8 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
-using MS.Internal.Xml.XPath;
 using ProjectM;
 using ProjectM.Network;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Physics;
-using System;
 using Math = System.Math;
 
 namespace RPGAddOns
@@ -58,28 +54,28 @@ namespace RPGAddOns
                             else
                             {
                                 // check for database existence just in case. if it exists, and the player key can be found, check for points < max points before adding points. if not, create new database and add points
-                                if (Databases.playerRank != null)
+                                if (Databases.playerRanks != null)
                                 {
-                                    if (Databases.playerRank.TryGetValue(SteamID, out RankData data))
+                                    if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                                     {
                                         // this is where max points is derived and checked. level 0 max is 1000, level 1 max is 2000, etc
-                                        if (data.Points < ((data.Level * 1000) + 1000))
+                                        if (data.Points < ((data.Rank * 1000) + 1000))
                                         {
                                             // calculate points, should probably make this a method
                                             data.Points += GetPoints(playerLevel, unitLevel);
-                                            if (data.Points >= ((data.Level * 1000) + 1000))
+                                            if (data.Points >= ((data.Rank * 1000) + 1000))
                                             {
-                                                data.Points = ((data.Level * 1000) + 1000);
+                                                data.Points = ((data.Rank * 1000) + 1000);
                                             }
-                                            Commands.SavePlayerPrestige();
+                                            Commands.SavePlayerRanks();
                                         }
                                     }
                                     else
                                     {
                                         // create new data then add points
                                         RankData rankData = new(0, GetPoints(playerLevel, unitLevel), []);
-                                        Databases.playerRank.Add(SteamID, rankData);
-                                        Commands.SavePlayerPrestige();
+                                        Databases.playerRanks.Add(SteamID, rankData);
+                                        Commands.SavePlayerRanks();
                                     }
                                 }
                             }
