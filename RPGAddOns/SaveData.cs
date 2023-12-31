@@ -1,5 +1,4 @@
-﻿
-using HarmonyLib;
+﻿using HarmonyLib;
 using ProjectM;
 
 namespace RPGAddOns
@@ -9,8 +8,8 @@ namespace RPGAddOns
     {
         public static void Prefix()
         {
-            Commands.SavePlayerPrestige();
-            Commands.SavePlayerResets();
+            Commands.SavePlayerRanks();
+            Commands.SavePlayerPrestiges();
         }
     }
 
@@ -19,8 +18,8 @@ namespace RPGAddOns
     {
         public static void Prefix()
         {
-            Commands.SavePlayerPrestige();
-            Commands.SavePlayerResets();
+            Commands.SavePlayerRanks();
+            Commands.SavePlayerPrestiges();
         }
     }
 }
