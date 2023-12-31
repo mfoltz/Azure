@@ -14,7 +14,7 @@ namespace RPGAddOns
     }
 
     [HarmonyPatch(typeof(TriggerPersistenceSaveSystem), nameof(TriggerPersistenceSaveSystem.TriggerSave))]
-    public class TriggerPersistenceSaveSystem_Patch
+    public static class TriggerPersistenceSaveSystem_Patch
     {
         public static void Prefix()
         {
