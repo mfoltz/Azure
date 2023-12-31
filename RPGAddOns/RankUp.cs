@@ -25,7 +25,7 @@ namespace RPGAddOns
             List<int> playerBuffs = data.Buffs;
 
             // reset points, increment rank level, grant buff, save data
-            if (Plugin.BuffRewardsPrestige)
+            if (Plugin.BuffRewardsRankUp)
             {
                 var (buffname, buffguid, buffFlag) = BuffCheck(data);
                 if (!buffFlag)

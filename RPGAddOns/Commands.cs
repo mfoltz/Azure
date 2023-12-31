@@ -8,6 +8,27 @@ namespace RPGAddOns
     [CommandGroup(name: "rpg", shortHand: "rpg")]
     internal class Commands
     {
+        [Command(name: "setrankpoints", shortHand: "sp", adminOnly: true, usage: ".rpg srp <PlayerName> <Points>", description: "Sets the rank points of the specified user to a given value.")]
+        public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
+        {
+            RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
+            ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
+
+            if (SteamID != 0 && Databases.playerRanks.TryGetValue(SteamID, out RankData data))
+            {
+                // Set the user's rank points
+                data.Points = points;
+                Databases.playerRanks[SteamID] = data;
+                Commands.SavePlayerRanks();  // Save the updated rank data
+
+                ctx.Reply($"Rank points for player {playerName} have been set to {points}.");
+            }
+            else
+            {
+                ctx.Reply($"Player {playerName} not found or no rank data available.");
+            }
+        }
+
         [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: "Resets your rank points and increases your rank.", description: "Resets your rank points and grants a buff.")]
         public static void ResetPointsCommand(ChatCommandContext ctx)
         {
