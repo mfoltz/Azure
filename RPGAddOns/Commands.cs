@@ -9,16 +9,23 @@ namespace RPGAddOns
     internal class Commands
     {
         [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: "Resets your rank points and increases your rank.", description: "Resets your rank points and grants a buff.")]
-        public static void ResetPointsCommand(ChatCommandContext ctx, RankData data)
+        public static void ResetPointsCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
             var SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
-
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
+            {
+                PvERankSystem.RankUp(ctx, name, SteamID, data);
+            }
+            else
+            {
+                double percentage = 100 * ((double)data.Points / ((data.Rank * 1000) + 1000));
+                string integer = ((int)percentage).ToString();
+                ctx.Reply($"You have {data.Points} out of the {(data.Rank * 1000) + 1000} points required to increase your rank. ({integer}%)");
+            }
             // Call the ResetPoints method from Prestige
-
-            PvERankSystem.RankUp(ctx, name, SteamID, data);
         }
 
         [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: "Use this command to reset your level to 1 after reaching max level to receive extra perks.", description: "Reset your level for extras.")]
@@ -154,12 +161,12 @@ namespace RPGAddOns
             try
             {
                 Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json);
-                Plugin.Logger.LogWarning("Player Prestige Populated");
+                Plugin.Logger.LogWarning("PlayerRanks Created");
             }
             catch
             {
                 Databases.playerRanks = new Dictionary<ulong, RankData>();
-                Plugin.Logger.LogWarning("Player Prestige Created");
+                Plugin.Logger.LogWarning("PlayerRanks Created");
             }
             if (!File.Exists(Plugin.PlayerRanksJson))
             {
@@ -171,12 +178,12 @@ namespace RPGAddOns
             try
             {
                 Databases.playerPrestiges = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json);
-                Plugin.Logger.LogWarning("Player ResetCountsBuffs Populated");
+                Plugin.Logger.LogWarning("PlayerPrestiges Populated");
             }
             catch
             {
                 Databases.playerPrestiges = new Dictionary<ulong, PrestigeData>();
-                Plugin.Logger.LogWarning("Player ResetCountsBuffs Created");
+                Plugin.Logger.LogWarning("PlayerPrestiges Created");
             }
         }
 
