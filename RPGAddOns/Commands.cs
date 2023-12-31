@@ -8,7 +8,7 @@ namespace RPGAddOns
     [CommandGroup(name: "rpg", shortHand: "rpg")]
     internal class Commands
     {
-        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: "Resets your prestige and grants a buff if eligible.", description: "Resets your prestige and grants a buff if eligible.")]
+        [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: "Resets your rank points and increases your rank.", description: "Resets your rank points and grants a buff.")]
         public static void ResetPointsCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -21,7 +21,7 @@ namespace RPGAddOns
             //PrestigeCommands.ResetPoints(ctx, name, SteamID, StringID);
         }
 
-        [Command(name: "resetlevel", shortHand: "rl", adminOnly: false, usage: "Use this command to reset your level to 1 after reaching max level to receive extra stats.", description: "Reset your level for extra stats.")]
+        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: "Use this command to reset your level to 1 after reaching max level to receive extra perks.", description: "Reset your level for extras.")]
         public static void ResetLevelCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -35,7 +35,41 @@ namespace RPGAddOns
             ResetLevel.ResetPlayerLevel(ctx, name, SteamID);
         }
 
-        [Command(name: "getresets", shortHand: "gr", adminOnly: false, usage: "Check your current reset count.", description: "Displays the number of times you have reset your level.")]
+        [Command(name: "getpoints", shortHand: "gp", adminOnly: false, usage: "Check your current rank points.", description: "Displays the number of points possessed by the player.")]
+        public static void CheckPointsCommand(ChatCommandContext ctx)
+        {
+            var user = ctx.Event.User;
+            ulong SteamID = user.PlatformId;
+
+            if (Databases.playerRank.TryGetValue(SteamID, out RankData data))
+            {
+                double percentage = 100 * ((double)data.Points / ((data.Level * 1000) + 1000));
+                string integer = ((int)percentage).ToString();
+                ctx.Reply($"You have {data.Points} out of the {(data.Level * 1000) + 1000} points required to increase your rank. ({integer}%)");
+            }
+            else
+            {
+                ctx.Reply("You don't have any points yet.");
+            }
+        }
+
+        [Command(name: "getrank", shortHand: "gr", adminOnly: false, usage: "Check your current rank level.", description: "Displays the level of rank possessed by the player.")]
+        public static void CheckRankCommand(ChatCommandContext ctx)
+        {
+            var user = ctx.Event.User;
+            ulong SteamID = user.PlatformId;
+
+            if (Databases.playerRank.TryGetValue(SteamID, out RankData data))
+            {
+                ctx.Reply($"You are rank {data.Level}.");
+            }
+            else
+            {
+                ctx.Reply("You don't have a rank yet.");
+            }
+        }
+
+        [Command(name: "getprestiges", shortHand: "gpr", adminOnly: false, usage: "Check your current prestige count.", description: "Displays the number of times you have reset your level.")]
         public static void CheckResetsCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
