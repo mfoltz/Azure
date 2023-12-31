@@ -8,7 +8,7 @@ namespace RPGAddOns
     [CommandGroup(name: "rpg", shortHand: "rpg")]
     internal class Commands
     {
-        [Command(name: "setrankpoints", shortHand: "sp", adminOnly: true, usage: ".rpg srp <PlayerName> <Points>", description: "Sets the rank points of the specified user to a given value.")]
+        [Command(name: "setrankpoints", shortHand: "sp", adminOnly: true, usage: ".rpg sp <PlayerName> <Points>", description: "Sets the rank points for a specified player.")]
         public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
@@ -16,8 +16,17 @@ namespace RPGAddOns
 
             if (SteamID != 0 && Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
-                // Set the user's rank points
+                // Set the user's rank points, prevent more points than rank allows
                 data.Points = points;
+                if (points < 0)
+                {
+                    ctx.Reply("Points cannot be negative.");
+                    return;
+                }
+                if (data.Points > (data.Rank * 1000) + 1000)
+                {
+                    data.Points = (data.Rank * 1000) + 1000;
+                }
                 Databases.playerRanks[SteamID] = data;
                 Commands.SavePlayerRanks();  // Save the updated rank data
 
@@ -29,7 +38,7 @@ namespace RPGAddOns
             }
         }
 
-        [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: "Resets your rank points and increases your rank.", description: "Resets your rank points and grants a buff.")]
+        [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: ".rpg ru", description: "Resets your rank points and increases your rank, granting a buff if applicable.")]
         public static void ResetPointsCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -49,7 +58,7 @@ namespace RPGAddOns
             // Call the ResetPoints method from Prestige
         }
 
-        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: "Use this command to reset your level to 1 after reaching max level to receive extra perks.", description: "Reset your level for extras.")]
+        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: ".rpg pr", description: "Resets your level to 1 after reaching max level, offering extra perks.")]
         public static void ResetLevelCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -63,7 +72,7 @@ namespace RPGAddOns
             ResetLevel.ResetPlayerLevel(ctx, name, SteamID);
         }
 
-        [Command(name: "getpoints", shortHand: "gp", adminOnly: false, usage: "Check your current rank points.", description: "Displays the number of points possessed by the player.")]
+        [Command(name: "getpoints", shortHand: "gp", adminOnly: false, usage: ".rpg gp", description: "Displays your current rank points and progress towards the next rank.")]
         public static void CheckPointsCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -81,7 +90,7 @@ namespace RPGAddOns
             }
         }
 
-        [Command(name: "getrank", shortHand: "gr", adminOnly: false, usage: "Check your current rank level.", description: "Displays the level of rank possessed by the player.")]
+        [Command(name: "getranks", shortHand: "gr", adminOnly: false, usage: ".rpg gr", description: "Shows your current rank level.")]
         public static void CheckRankCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -97,7 +106,7 @@ namespace RPGAddOns
             }
         }
 
-        [Command(name: "getprestiges", shortHand: "gpr", adminOnly: false, usage: "Check your current prestige count.", description: "Displays the number of times you have reset your level.")]
+        [Command(name: "getprestiges", shortHand: "gpr", adminOnly: false, usage: ".rpg gpr", description: "Displays the number of times you've reset your level (prestige count).")]
         public static void CheckResetsCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -113,7 +122,25 @@ namespace RPGAddOns
             }
         }
 
-        [Command(name: "getbuffs", shortHand: "gb", adminOnly: false, usage: "Check your current permanent buffs.", description: "Displays the buffs you have received from resets.")]
+        [Command(name: "getrankbuffs", shortHand: "grb", adminOnly: false, usage: ".rpg grb", description: "Checks and displays the buffs received from your current rank.")]
+        public static void CheckRankBuffsCommand(ChatCommandContext ctx)
+
+        {
+            var user = ctx.Event.User;
+            ulong SteamID = user.PlatformId;
+
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
+            {
+                var buffs = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
+                ctx.Reply($"Your current rank buffs are: {buffs}");
+            }
+            else
+            {
+                ctx.Reply("You have not received any rank buffs yet.");
+            }
+        }
+
+        [Command(name: "getprestigebuffs", shortHand: "gpb", adminOnly: false, usage: ".rpg gpb", description: "Shows the permanent buffs you've gained from prestige resets.")]
         public static void CheckBuffsCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
@@ -130,7 +157,7 @@ namespace RPGAddOns
             }
         }
 
-        [Command(name: "wiperesets", shortHand: "wr", adminOnly: true, usage: ".rpg wr <PlayerName>", description: "Resets the specified user's reset count and buffs to the initial state. Does not wipe any buffs they already have but that would probably be good to add here")]
+        [Command(name: "wiperesets", shortHand: "wr", adminOnly: true, usage: ".rpg wr <PlayerName>", description: "Resets a player's reset count and buffs to their initial state.")]
         public static void WipeProgressCommand(ChatCommandContext ctx, string playerName)
         {
             // Find the user's SteamID based on the playerName
@@ -151,7 +178,7 @@ namespace RPGAddOns
             }
         }
 
-        [Command(name: "getresetdata", shortHand: "grd", adminOnly: true, usage: "", description: "Retrieves the reset count and buffs for a specified player.")]
+        [Command(name: "getresetdata", shortHand: "grd", adminOnly: true, usage: ".rpg grd <PlayerName>", description: "Retrieves the reset count and buffs for a specified player.")]
         public static void GetPlayerResetDataCommand(ChatCommandContext ctx, string playerName)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
