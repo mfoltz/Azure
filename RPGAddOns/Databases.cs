@@ -17,6 +17,6 @@ namespace RPGAddOns
         };
 
         public static Dictionary<ulong, ResetData> playerResetCountsBuffs = new Dictionary<ulong, ResetData>();
-        public static Dictionary<ulong, PrestigeData> playerPrestige = new Dictionary<ulong, PrestigeData>();
+        public static Dictionary<ulong, RankData> playerRank = new Dictionary<ulong, RankData>();
     }
 }

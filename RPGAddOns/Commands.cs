@@ -119,12 +119,12 @@ namespace RPGAddOns
             string json = File.ReadAllText(Plugin.PlayerPrestigeJson);
             try
             {
-                Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json);
+                Databases.playerRank = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json);
                 Plugin.Logger.LogWarning("Player Prestige Populated");
             }
             catch
             {
-                Databases.playerPrestige = new Dictionary<ulong, PrestigeData>();
+                Databases.playerRank = new Dictionary<ulong, RankData>();
                 Plugin.Logger.LogWarning("Player Prestige Created");
             }
             if (!File.Exists(Plugin.PlayerResetCountsBuffsJson))
@@ -153,7 +153,7 @@ namespace RPGAddOns
 
         public static void SavePlayerPrestige()
         {
-            File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(Databases.playerPrestige));
+            File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(Databases.playerRank));
         }
     }
 }

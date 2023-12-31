@@ -143,8 +143,6 @@ namespace RPGAddOns
 
                 // Use the PowerUpAdd command to apply the stats and inform the player
 
-                ctx.Reply($"Your level has been reset! You've gained: MaxHealth {Plugin.ExtraHealth}, PAtk {Plugin.ExtraPhysicalPower}, SAtk {Plugin.ExtraSpellPower}, PDef {Plugin.ExtraPhysicalResistance}, SDef {Plugin.ExtraSpellResistance}");
-
                 if (Plugin.BuffRewardsReset)
                 {
                     var (buffname, buffguid, buffFlag) = BuffCheck(data);
@@ -166,8 +164,12 @@ namespace RPGAddOns
                     ctx.Reply($"You've been awarded with: {Plugin.ItemQuantity} {itemName}");
                 }
                 // log player ResetData and save, take away exp
-                PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
+
                 Experience.setXP(ctx, playerName, 0);
+
+                PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
+                ctx.Reply($"Your level has been reset! You've gained: MaxHealth {Plugin.ExtraHealth}, PAtk {Plugin.ExtraPhysicalPower}, SAtk {Plugin.ExtraSpellPower}, PDef {Plugin.ExtraPhysicalResistance}, SDef {Plugin.ExtraSpellResistance}");
+
                 data.ResetCount++; data.Buffs = playerBuffs;
                 Commands.SavePlayerResets();
                 return;

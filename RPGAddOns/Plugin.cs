@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
+using ProjectM;
 using System.Reflection;
 using Unity.Entities;
 using VampireCommandFramework;
@@ -59,6 +60,7 @@ namespace RPGAddOns
 
             // Plugin startup logic
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+            AOTCompilationHelpers.AOTCompileEntityManagerGetComponentData();
         }
 
         private void GameDataOnDestroy()
@@ -108,6 +110,21 @@ namespace RPGAddOns
 
         public void OnGameInitialized()
         {
+        }
+
+        public class AOTCompilationHelpers
+        {
+            // This method is never called, but its existence ensures that the AOT compiler
+            // generates code for EntityManager.GetComponentData<PrefabGuidComponent>().
+            public static void AOTCompileEntityManagerGetComponentData()
+            {
+                if (false)
+                {
+                    var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+                    var entity = Entity.Null;
+                    entityManager.GetComponentData<PrefabGuidComponent>(entity);
+                }
+            }
         }
     }
 }

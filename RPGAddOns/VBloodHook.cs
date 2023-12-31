@@ -1,12 +1,11 @@
-﻿using HarmonyLib;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
+﻿using Bloodstone.API;
+using HarmonyLib;
+using MS.Internal.Xml.XPath;
 using ProjectM;
-using ProjectM.Gameplay.Scripting;
 using ProjectM.Network;
-using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
+using Unity.Physics;
 
 namespace RPGAddOns
 {
@@ -17,55 +16,58 @@ namespace RPGAddOns
         [HarmonyPrefix]
         public static void OnUpdate(VBloodSystem __instance)
         {
-            //Plugin.Logger.LogInfo("VBloodSystem OnUpdate called"); // Log when method is called
-            // the OnUpdate method seems to happen quite a bit so no need for checks up here
-            EntityManager entityManager = __instance.EntityManager;
-            //ServerChatUtils.SendSystemMessageToAllClients(entityManager, "VBLOOD KILL DETECTED");
-
             if (!__instance.EventList.IsEmpty)
             {
+                var check = __instance.EventList.Length.ToString();
+                //Plugin.Logger.LogInfo($"EventList events: {check}"); // Log details about each event
+
+                //EntityManager entityManager = __instance.EntityManager;
+                EntityManager entityManager = VWorld.Server.EntityManager;
                 foreach (var _event in __instance.EventList)
                 {
+                    if (!VWorld.Server.EntityManager.TryGetComponentData<PlayerCharacter>(_event.Target, out PlayerCharacter playerData)) continue;
+
+                    // there were 2 events from 1 kill, what does this imply?
                     Plugin.Logger.LogInfo($"Processing event: {_event}"); // Log details about each event
 
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, entityManager.GetComponentData<User>(_event.Target), "VBLOOD KILL DETECTED");
+                    //EntityQuery query = __instance.__ConsumeBloodJob_entityQuery; //this seems to be the player entity as it did not have a unit level component
+                    //NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
 
-                    Il2CppStructArray<ComponentType> componentTypes = new(1L);
-                    componentTypes[0] = ComponentType.ReadOnly<PrefabGuidComponent>();
-                    EntityQuery query = entityManager.CreateEntityQuery(componentTypes);
-                    NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
-                    //should return all entities that have a PrefabGuidComponent in this context
+                    Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
+                    string playerName = playerData.Name.ToString();
+                    Entity user = playerData.UserEntity;
+
                     try
                     {
-                        foreach (var entity in entities)
+                        if (entityManager.TryGetComponentData(user, out User component))
                         {
-                            PrefabGuidComponent prefabComponent = entityManager.GetComponentData<PrefabGuidComponent>(entity);
-                            if (prefabComponent.GetPrefabGUID() == _event.Source)
+                            ulong SteamID = component.PlatformId;
+                            //Plugin.Logger.LogInfo($"SteamID: {SteamID}"); // Log details about each event
+                            //Plugin.Logger.LogInfo($"Player Level: {RPGMods.Systems.ExperienceSystem.getLevel(SteamID)}"); // Log details about each event
+                            //Plugin.Logger.LogInfo($"Unit Level: {entityManager.GetComponentData<UnitLevel>(_vblood).Level}"); // Log details about each event
+                            int playerLevel = RPGMods.Systems.ExperienceSystem.getLevel(SteamID);
+                            int unitLevel = entityManager.GetComponentData<UnitLevel>(_vblood).Level;
+                            int delta = playerLevel - unitLevel;
+                            if (delta > 10)
                             {
-                                // Found an entity with the matching PrefabGUID
-                                // Perform your logic here
-                                Entity targetEntity = _event.Target;
+                                return;
+                            }
+                            else
+                            {
+                                // check for database existence just in case. if it exists, and the player key can be found, check for points < max points before adding points. if not, create new database and add points
+                                if (Databases.playerRank != null)
+                                {
+                                    if (Databases.playerRank.TryGetValue(SteamID, out ResetData data))
+                                }
                             }
                         }
                     }
-                    finally
+                    catch (Exception e)
                     {
-                        if (entities.IsCreated)
-                        {
-                            entities.Dispose();
-                        }
+                        Plugin.Logger.LogError($"Error: {e}");
                     }
                 }
             }
-            else
-            {
-                //Plugin.Logger.LogInfo("EventList is empty"); // Log if EventList is empty
-            }
-        }
-
-        private string GetDebuggerDisplay()
-        {
-            return ToString();
         }
     }
 }
