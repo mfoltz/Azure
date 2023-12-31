@@ -15,8 +15,8 @@ namespace RPGAddOns
             WriteIndented = true,
             IncludeFields = true
         };
-        public static Dictionary<ulong, ResetData> playerResetCountsBuffs = new Dictionary<ulong, ResetData>();
-        public static Dictionary<ulong, PrestigeData> playerPrestige = new Dictionary<ulong, PrestigeData>();
 
+        public static Dictionary<ulong, PrestigeData> playerPrestiges = new Dictionary<ulong, PrestigeData>();
+        public static Dictionary<ulong, RankData> playerRanks = new Dictionary<ulong, RankData>();
     }
 }
