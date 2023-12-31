@@ -20,8 +20,8 @@ namespace RPGAddOns
         internal static Plugin Instance { get; private set; }
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns");
-        public static readonly string PlayerRanksJson = Path.Combine(ConfigPath, "player_resets.json");
-        public static readonly string PlayerPrestigesJson = Path.Combine(ConfigPath, "player_prestige.json");
+        public static readonly string PlayerRanksJson = Path.Combine(ConfigPath, "player_ranks.json");
+        public static readonly string PlayerPrestigesJson = Path.Combine(ConfigPath, "player_prestiges.json");
 
         public static ManualLogSource Logger;
 
@@ -46,10 +46,9 @@ namespace RPGAddOns
             Instance = this;
             Logger = Log;
             CommandRegistry.RegisterAll();
-            //_harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
+
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-            GameData.OnInitialize += GameDataOnInitialize;
-            GameData.OnDestroy += GameDataOnDestroy;
+
 
             if (!VWorld.IsServer)
             {
