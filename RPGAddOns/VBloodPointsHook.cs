@@ -1,12 +1,8 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
-using MS.Internal.Xml.XPath;
 using ProjectM;
 using ProjectM.Network;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Physics;
-using System;
 using Math = System.Math;
 
 namespace RPGAddOns
@@ -18,19 +14,19 @@ namespace RPGAddOns
         [HarmonyPrefix]
         public static void OnUpdate(VBloodSystem __instance)
         {
-            // for whatever reason one vblood kill triggers 2 events so make a cooldown or something
+            // for whatever reason one vblood kill triggers 2 events, idk if thats this code or the game itself or what the significance of that is
             if (!__instance.EventList.IsEmpty)
             {
-                var check = __instance.EventList.Length.ToString();
+                //var check = __instance.EventList.Length.ToString();
                 //Plugin.Logger.LogInfo($"EventList events: {check}"); // Log details about each event
-
                 //EntityManager entityManager = __instance.EntityManager;
+
                 EntityManager entityManager = VWorld.Server.EntityManager;
+
                 foreach (var _event in __instance.EventList)
                 {
                     if (!VWorld.Server.EntityManager.TryGetComponentData<PlayerCharacter>(_event.Target, out PlayerCharacter playerData)) continue;
 
-                    // there were 2 events from 1 kill, what does this imply?
                     Plugin.Logger.LogInfo($"Processing event: {_event}"); // Log details about each event
 
                     //EntityQuery query = __instance.__ConsumeBloodJob_entityQuery; //this seems to be the player entity as it did not have a unit level component
