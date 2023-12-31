@@ -1,5 +1,4 @@
-﻿
-using HarmonyLib;
+﻿using HarmonyLib;
 using ProjectM;
 
 namespace RPGAddOns
@@ -9,18 +8,18 @@ namespace RPGAddOns
     {
         public static void Prefix()
         {
-            Commands.SavePlayerPrestige();
-            Commands.SavePlayerResets();
+            Commands.SavePlayerRanks();
+            Commands.SavePlayerPrestiges();
         }
     }
 
     [HarmonyPatch(typeof(TriggerPersistenceSaveSystem), nameof(TriggerPersistenceSaveSystem.TriggerSave))]
-    public class TriggerPersistenceSaveSystem_Patch
+    public static class TriggerPersistenceSaveSystem_Patch
     {
         public static void Prefix()
         {
-            Commands.SavePlayerPrestige();
-            Commands.SavePlayerResets();
+            Commands.SavePlayerRanks();
+            Commands.SavePlayerPrestiges();
         }
     }
 }
