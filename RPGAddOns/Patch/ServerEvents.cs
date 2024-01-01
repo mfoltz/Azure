@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using ProjectM;
+using RPGAddOns.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

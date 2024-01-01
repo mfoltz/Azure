@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using ProjectM;
 
-namespace RPGAddOns
+namespace RPGAddOns.Core
 {
     [HarmonyPatch(typeof(GameBootstrap), nameof(GameBootstrap.OnApplicationQuit))]
     public static class GameBootstrapQuit_Patch

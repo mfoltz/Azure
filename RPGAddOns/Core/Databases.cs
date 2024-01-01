@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
+using RPGAddOns.Prestige;
+using RPGAddOns.PvERank;
 
-namespace RPGAddOns
+namespace RPGAddOns.Core
 {
     public class Databases
     {

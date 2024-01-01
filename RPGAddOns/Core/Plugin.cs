@@ -12,9 +12,9 @@ using Unity.Entities;
 using UnityEngine;
 using VampireCommandFramework;
 using static RootMotion.FinalIK.InteractionObject;
-using static RPGAddOns.CastCommands;
+using static RPGAddOns.Divinity.CastCommands;
 
-namespace RPGAddOns
+namespace RPGAddOns.Core
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]
@@ -128,7 +128,7 @@ namespace RPGAddOns
         {
             Commands.SavePlayerPrestiges();
             Commands.SavePlayerRanks();
-            KeybindManager.Unregister(Plugin.configKeybinding);
+            KeybindManager.Unregister(configKeybinding);
 
             Config.Clear();
             _harmony.UnpatchSelf();

@@ -2,13 +2,14 @@
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
+using RPGAddOns.Core;
 using Unity.Entities;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
 using Math = System.Math;
 
-namespace RPGAddOns
+namespace RPGAddOns.PvERank
 {
     [HarmonyPatch]
     internal class VBloodPointsHook
@@ -27,7 +28,7 @@ namespace RPGAddOns
                 EntityManager entityManager = VWorld.Server.EntityManager;
                 foreach (var _event in __instance.EventList)
                 {
-                    if (!VWorld.Server.EntityManager.TryGetComponentData<PlayerCharacter>(_event.Target, out PlayerCharacter playerData)) continue;
+                    if (!VWorld.Server.EntityManager.TryGetComponentData(_event.Target, out PlayerCharacter playerData)) continue;
 
                     // there were 2 events from 1 kill, what does this imply?
                     Plugin.Logger.LogInfo($"Processing event: {_event}"); // Log details about each event
@@ -74,13 +75,13 @@ namespace RPGAddOns
                                     if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                                     {
                                         // this is where max points is derived and checked. level 0 max is 1000, level 1 max is 2000, etc
-                                        if (data.Points < ((data.Rank * 1000) + 1000))
+                                        if (data.Points < data.Rank * 1000 + 1000)
                                         {
                                             // calculate points, should probably make this a method
                                             data.Points += GetPoints(playerLevel, unitLevel);
-                                            if (data.Points >= ((data.Rank * 1000) + 1000))
+                                            if (data.Points >= data.Rank * 1000 + 1000)
                                             {
-                                                data.Points = ((data.Rank * 1000) + 1000);
+                                                data.Points = data.Rank * 1000 + 1000;
                                             }
                                             Commands.SavePlayerRanks();
                                         }
@@ -148,7 +149,7 @@ namespace RPGAddOns
                 points += 1;
             }
             //I could probably make a cooldown timer or something but instead since there are two events happening Im just gonna divide the points by 2 and call it a day
-            return (points / 2);
+            return points / 2;
         }
 
         public static void AddItemToInventory(PrefabGUID guid, int amount, UserModel user)

@@ -1,10 +1,11 @@
 ﻿using ProjectM;
+using RPGAddOns.Core;
 using RPGMods.Commands;
 using RPGMods.Systems;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
 
-namespace RPGAddOns
+namespace RPGAddOns.Prestige
 {
     public class PrestigeData
     {

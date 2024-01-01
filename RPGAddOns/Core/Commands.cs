@@ -1,9 +1,11 @@
 ﻿using Bloodstone.API;
+using RPGAddOns.Prestige;
+using RPGAddOns.PvERank;
 using System.Text.Json;
 using Unity.Entities;
 using VampireCommandFramework;
 
-namespace RPGAddOns
+namespace RPGAddOns.Core
 {
     [CommandGroup(name: "rpg", shortHand: "rpg")]
     internal class Commands
@@ -23,12 +25,12 @@ namespace RPGAddOns
                     ctx.Reply("Points cannot be negative.");
                     return;
                 }
-                if (data.Points > (data.Rank * 1000) + 1000)
+                if (data.Points > data.Rank * 1000 + 1000)
                 {
-                    data.Points = (data.Rank * 1000) + 1000;
+                    data.Points = data.Rank * 1000 + 1000;
                 }
                 Databases.playerRanks[SteamID] = data;
-                Commands.SavePlayerRanks();  // Save the updated rank data
+                SavePlayerRanks();  // Save the updated rank data
 
                 ctx.Reply($"Rank points for player {playerName} have been set to {points}.");
             }
@@ -37,7 +39,7 @@ namespace RPGAddOns
                 // make data for them if none found
                 RankData rankData = new(0, points, []);
                 Databases.playerRanks.Add(SteamID, rankData);
-                Commands.SavePlayerRanks();
+                SavePlayerRanks();
                 ctx.Reply($"Player {playerName} not found or no rank data available. Empty player data has been created, please try again.");
             }
         }
@@ -60,9 +62,9 @@ namespace RPGAddOns
             }
             else
             {
-                double percentage = 100 * ((double)data.Points / ((data.Rank * 1000) + 1000));
+                double percentage = 100 * ((double)data.Points / (data.Rank * 1000 + 1000));
                 string integer = ((int)percentage).ToString();
-                ctx.Reply($"You have {data.Points} out of the {(data.Rank * 1000) + 1000} points required to increase your rank. ({integer}%)");
+                ctx.Reply($"You have {data.Points} out of the {data.Rank * 1000 + 1000} points required to increase your rank. ({integer}%)");
             }
             // Call the ResetPoints method from Prestige
         }
@@ -89,9 +91,9 @@ namespace RPGAddOns
 
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
-                double percentage = 100 * ((double)data.Points / ((data.Rank * 1000) + 1000));
+                double percentage = 100 * ((double)data.Points / (data.Rank * 1000 + 1000));
                 string integer = ((int)percentage).ToString();
-                ctx.Reply($"You have {data.Points} out of the {(data.Rank * 1000) + 1000} points required to increase your rank. ({integer}%)");
+                ctx.Reply($"You have {data.Points} out of the {data.Rank * 1000 + 1000} points required to increase your rank. ({integer}%)");
             }
             else
             {
@@ -177,7 +179,7 @@ namespace RPGAddOns
             {
                 // Reset the user's progress
                 Databases.playerPrestiges[SteamID] = new PrestigeData(0, []);
-                Commands.SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
+                SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
 
                 ctx.Reply($"Progress for player {playerName} has been wiped.");
             }
@@ -198,7 +200,7 @@ namespace RPGAddOns
             {
                 // Reset the user's progress
                 Databases.playerPrestiges[SteamID] = new PrestigeData(0, []);
-                Commands.SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
+                SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
 
                 ctx.Reply($"Progress for player {playerName} has been wiped.");
             }

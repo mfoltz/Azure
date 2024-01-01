@@ -1,4 +1,4 @@
-﻿namespace RPGAddOns
+﻿namespace RPGAddOns.Core
 {
     internal class FontColors
     {

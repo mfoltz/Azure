@@ -1,8 +1,9 @@
 ﻿using ProjectM;
+using RPGAddOns.Core;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
 
-namespace RPGAddOns
+namespace RPGAddOns.PvERank
 {
     public class RankData
     {

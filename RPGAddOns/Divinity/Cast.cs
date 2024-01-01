@@ -4,6 +4,8 @@ using Bloodstone.API;
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
+using RPGAddOns.Core;
+using RPGAddOns.PvERank;
 using System.Diagnostics;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -11,7 +13,7 @@ using VampireCommandFramework;
 
 #nullable disable
 
-namespace RPGAddOns
+namespace RPGAddOns.Divinity
 {
     [CommandGroup(name: "casting", shortHand: "c")]
     internal class CastCommands
