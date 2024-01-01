@@ -12,9 +12,9 @@ namespace RPGAddOns
         public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
-            ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
+            ulong SteamID = ctx.User.PlatformId;
 
-            if (SteamID != 0 && Databases.playerRanks.TryGetValue(SteamID, out RankData data))
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
                 // Set the user's rank points, prevent more points than rank allows
                 data.Points = points;
@@ -114,7 +114,7 @@ namespace RPGAddOns
 
             if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
             {
-                ctx.Reply($"Your current reset count is: {data.ResetCount}");
+                ctx.Reply($"Your current reset count is: {data.Prestiges}");
             }
             else
             {
@@ -184,10 +184,9 @@ namespace RPGAddOns
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
 
-            if (SteamID != 0 && Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
+            if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
             {
-                var buffsList = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
-                ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Reset Count: {data.ResetCount}, Buffs: {buffsList}");
+                ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Reset Count: {data.Prestiges}, Buffs: {data.Buffs}");
             }
             else
             {

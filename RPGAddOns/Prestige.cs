@@ -8,12 +8,12 @@ namespace RPGAddOns
 {
     public class PrestigeData
     {
-        public int ResetCount { get; set; }
+        public int Prestiges { get; set; }
         public List<int> Buffs { get; set; }
 
         public PrestigeData(int count, List<int> buffs)
         {
-            ResetCount = count;
+            Prestiges = count;
             Buffs = buffs;
         }
     }
@@ -30,7 +30,7 @@ namespace RPGAddOns
                     // check for player data and reset level if below max resets else create data and reset level
                     if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
                     {
-                        if (data.ResetCount >= Plugin.MaxPrestiges)
+                        if (data.Prestiges >= Plugin.MaxPrestiges)
                         {
                             ctx.Reply("You have reached the maximum number of resets.");
                             return;
@@ -72,10 +72,10 @@ namespace RPGAddOns
                                    .Cast<Match>()
                                    .Select(m => int.Parse(m.Value))
                                    .ToList();
-                playerBuffs.Add(buffList[data.ResetCount]);
-                PrefabGUID buffguid = new(buffList[data.ResetCount]);
+                playerBuffs.Add(buffList[data.Prestiges]);
+                PrefabGUID buffguid = new(buffList[data.Prestiges]);
                 buffname = AdminCommands.ECSExtensions.LookupName(buffguid);
-                if (buffList[data.ResetCount] == 0)
+                if (buffList[data.Prestiges] == 0)
                 {
                     buffname = "string";
                 }
@@ -170,7 +170,7 @@ namespace RPGAddOns
                 PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
                 ctx.Reply($"Your level has been reset! You've gained: MaxHealth {Plugin.ExtraHealth}, PAtk {Plugin.ExtraPhysicalPower}, SAtk {Plugin.ExtraSpellPower}, PDef {Plugin.ExtraPhysicalResistance}, SDef {Plugin.ExtraSpellResistance}");
 
-                data.ResetCount++; data.Buffs = playerBuffs;
+                data.Prestiges++; data.Buffs = playerBuffs;
                 Commands.SavePlayerPrestiges();
                 return;
             }
