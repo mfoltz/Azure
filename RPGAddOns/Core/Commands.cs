@@ -228,7 +228,7 @@ namespace RPGAddOns.Core
 
         private static EntityManager entityManager = VWorld.Server.EntityManager;
 
-        public static void LoadData()
+        public static void LoadDataOld()
         {
             if (!File.Exists(Plugin.PlayerPrestigesJson))
             {
@@ -240,7 +240,7 @@ namespace RPGAddOns.Core
             try
             {
                 Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json);
-                Plugin.Logger.LogWarning("PlayerRanks Created");
+                Plugin.Logger.LogWarning("PlayerRanks Populated");
             }
             catch
             {
@@ -263,6 +263,37 @@ namespace RPGAddOns.Core
             {
                 Databases.playerPrestiges = new Dictionary<ulong, PrestigeData>();
                 Plugin.Logger.LogWarning("PlayerPrestiges Created");
+            }
+        }
+
+        public static void LoadData()
+        {
+            Databases.playerRanks = LoadDataFromFile<Dictionary<ulong, RankData>>(Plugin.PlayerRanksJson);
+            Databases.playerPrestiges = LoadDataFromFile<Dictionary<ulong, PrestigeData>>(Plugin.PlayerPrestigesJson);
+        }
+
+        private static T LoadDataFromFile<T>(string filePath) where T : new()
+        {
+            if (!File.Exists(filePath))
+            {
+                File.Create(filePath).Dispose();
+                return new T();
+            }
+
+            string json = File.ReadAllText(filePath);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return new T();
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<T>(json) ?? new T();
+            }
+            catch (JsonException ex)
+            {
+                Plugin.Logger.LogError($"Error deserializing file {filePath}: {ex.Message}");
+                return new T();
             }
         }
 

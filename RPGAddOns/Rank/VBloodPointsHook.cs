@@ -38,19 +38,24 @@ namespace RPGAddOns.PvERank
 
                     Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
                     string vbloodName = __instance._PrefabCollectionSystem._PrefabDataLookup[_event.Source].AssetName.ToString();
+                    Plugin.Logger.LogInfo($"VBlood name format: {vbloodName}"); // Log details about each event
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
                     string immaculate = AdminCommands.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood.ToString();
                     try
                     {
-                        if (immaculate == vbloodName)
+                        if (vbloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
                         {
                             // dont forget to try adding his ability as a castable ability
                             //add solarus shard to player inventory
+                            Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
 
                             PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
+
                             UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
+
+                            ProjectM.InventoryUtilitiesServer.TryRemoveItem(entityManager, user, shard, 1);
                             AddItemToInventory(shard, 1, usermodel);
                         }
                         // check for solarus and give shard if found?

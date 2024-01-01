@@ -84,6 +84,11 @@ namespace RPGAddOns.Divinity
                         // give player virtual point once per X that caps at Y that the casting costs to simulate cooldown
                     }
                 }
+                else
+                {
+                    ctx.Reply("You must be rank 5 to use this ability.");
+                    return;
+                }
             }
 
             [Command(name: "chaosquake", shortHand: "cq", adminOnly: false, usage: "", description: "Unleash the devastating power of chaos. Only the worthy can control it.")]

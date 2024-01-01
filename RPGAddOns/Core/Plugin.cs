@@ -11,6 +11,8 @@ using System.Reflection;
 using Unity.Entities;
 using UnityEngine;
 using VampireCommandFramework;
+using VRising.GameData;
+using static ProjectM.VivoxEvents;
 using static RootMotion.FinalIK.InteractionObject;
 using static RPGAddOns.Divinity.CastCommands;
 
@@ -69,6 +71,7 @@ namespace RPGAddOns.Core
             // Plugin startup logic
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
             ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
+            GameData.OnInitialize += GameDataOnInitialize;
         }
 
         private void GameDataOnDestroy()
@@ -78,6 +81,7 @@ namespace RPGAddOns.Core
         private void GameDataOnInitialize(World world)
         {
             Initialize();
+
             Commands.LoadData();
         }
 
@@ -126,8 +130,8 @@ namespace RPGAddOns.Core
 
         public override bool Unload()
         {
-            Commands.SavePlayerPrestiges();
-            Commands.SavePlayerRanks();
+            //Commands.SavePlayerPrestiges();
+            //Commands.SavePlayerRanks();
             KeybindManager.Unregister(configKeybinding);
 
             Config.Clear();
