@@ -43,7 +43,7 @@ namespace RPGAddOns
         }
 
         [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: ".rpg ru", description: "Resets your rank points and increases your rank, granting a buff if applicable.")]
-        public static void ResetPointsCommand(ChatCommandContext ctx)
+        public static void RankUpCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
@@ -51,6 +51,11 @@ namespace RPGAddOns
             string StringID = SteamID.ToString();
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
+                if (data.Rank >= Plugin.MaxRanks)
+                {
+                    ctx.Reply("You have reached the maximum rank.");
+                    return;
+                }
                 PvERankSystem.RankUp(ctx, name, SteamID, data);
             }
             else
@@ -161,8 +166,29 @@ namespace RPGAddOns
             }
         }
 
-        [Command(name: "wiperesets", shortHand: "wr", adminOnly: true, usage: ".rpg wr <PlayerName>", description: "Resets a player's reset count and buffs to their initial state.")]
-        public static void WipeProgressCommand(ChatCommandContext ctx, string playerName)
+        [Command(name: "wipeprestiges", shortHand: "wpr", adminOnly: true, usage: ".rpg wpr <PlayerName>", description: "Resets a player's prestige count.")]
+        public static void WipePrestigeCommand(ChatCommandContext ctx, string playerName)
+        {
+            // Find the user's SteamID based on the playerName
+
+            RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
+            ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
+            if (Databases.playerPrestiges.ContainsKey(SteamID))
+            {
+                // Reset the user's progress
+                Databases.playerPrestiges[SteamID] = new PrestigeData(0, []);
+                Commands.SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
+
+                ctx.Reply($"Progress for player {playerName} has been wiped.");
+            }
+            else
+            {
+                ctx.Reply($"Player {playerName} not found or no progress to wipe.");
+            }
+        }
+
+        [Command(name: "wiperanks", shortHand: "wr", adminOnly: true, usage: ".rpg wr <PlayerName>", description: "Resets a player's rank count.")]
+        public static void WipeRanksCommand(ChatCommandContext ctx, string playerName)
         {
             // Find the user's SteamID based on the playerName
 

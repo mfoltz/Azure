@@ -2,11 +2,17 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
+using Bloodstone.Hooks;
 using HarmonyLib;
+using LibCpp2IL.BinaryStructures;
+using ProjectM.Network;
 using RPGAddOns.Patch;
 using System.Reflection;
 using Unity.Entities;
+using UnityEngine;
 using VampireCommandFramework;
+using static RootMotion.FinalIK.InteractionObject;
+using static RPGAddOns.CastCommands;
 
 namespace RPGAddOns
 {
@@ -16,7 +22,7 @@ namespace RPGAddOns
     public class Plugin : BasePlugin, IRunOnInitialized
     {
         private Harmony _harmony;
-
+        public static Keybinding configKeybinding;
         internal static Plugin Instance { get; private set; }
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns");
@@ -40,6 +46,9 @@ namespace RPGAddOns
         public static bool BuffRewardsRankUp;
         public static string BuffPrefabsPrestige;
         public static string BuffPrefabsRankUp;
+
+        public static Keybinding DivineAngelKeybinding;
+        public static Keybinding ChaosQuakeKeybinding;
 
         public override void Load()
         {
@@ -93,6 +102,21 @@ namespace RPGAddOns
             BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsReset", "[]", "Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 'placeholder'").Value;
             BuffPrefabsRankUp = Config.Bind("Config", "BuffPrefabsPrestige", "[]", "Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige (5) if enabled to skip buff for a level set it to be 'placeholder'").Value;
 
+            DivineAngelKeybinding = KeybindManager.Register(new KeybindingDescription()
+            {
+                Id = "RPGAddOns.divineangel",
+                Category = "configKeybinding",
+                Name = "Divine Angel Cast",
+                DefaultKeybinding = KeyCode.G // Choose an appropriate default key
+            });
+
+            ChaosQuakeKeybinding = KeybindManager.Register(new KeybindingDescription()
+            {
+                Id = "RPGAddOns.chaosquake",
+                Category = "configKeybinding",
+                Name = "Chaos Quake Cast",
+                DefaultKeybinding = KeyCode.G // Choose an appropriate default key
+            });
             if (!Directory.Exists(ConfigPath)) Directory.CreateDirectory(ConfigPath);
         }
 
@@ -104,6 +128,8 @@ namespace RPGAddOns
         {
             Commands.SavePlayerPrestiges();
             Commands.SavePlayerRanks();
+            KeybindManager.Unregister(Plugin.configKeybinding);
+
             Config.Clear();
             _harmony.UnpatchSelf();
             return true;

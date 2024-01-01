@@ -59,7 +59,7 @@ namespace RPGAddOns
 
         public class VBloodSpells
         {
-            [Command(name: "risenangel", shortHand: "ra", adminOnly: false, usage: "Useable once per day.", description: "Summon the divine angel that once aided Solarus. It serves a new master now...")]
+            [Command(name: "risenangel", shortHand: "ra", adminOnly: false, usage: "", description: "Summon the divine angel that once aided Solarus. It serves a new master now...")]
             public static void DivineAngelCast(ChatCommandContext ctx)
             {
                 // going to use Rank for now until the ascension system is created
@@ -76,8 +76,33 @@ namespace RPGAddOns
                     }
                     else
                     {
-                        PrefabGUID angel_cast = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_Cast;
+                        PrefabGUID angel_cast = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_AbilityGroup;
                         FoundPrefabGuid foundPrefabGuid = new(angel_cast);
+                        CastCommand(ctx, foundPrefabGuid, null);
+                        // give player virtual point once per X that caps at Y that the casting costs to simulate cooldown
+                    }
+                }
+            }
+
+            [Command(name: "chaosquake", shortHand: "cq", adminOnly: false, usage: "", description: "Unleash the devastating power of chaos. Only the worthy can control it.")]
+            public static void ChaosQuakeCast(ChatCommandContext ctx)
+            {
+                // going to use Rank for now until the ascension system is created
+                // might also cost something expensive to cast
+
+                Entity character = ctx.Event.SenderCharacterEntity;
+                ulong SteamID = ctx.Event.User.PlatformId;
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
+                {
+                    if (data.Rank < 5)
+                    {
+                        ctx.Reply("You must be rank 5 to use this ability.");
+                        return;
+                    }
+                    else
+                    {
+                        PrefabGUID quake_cast = AdminCommands.Data.Prefabs.AB_Purifier_ChaosQuake_AbilityGroup;
+                        FoundPrefabGuid foundPrefabGuid = new(quake_cast);
                         CastCommand(ctx, foundPrefabGuid, null);
                         // give player virtual point once per X that caps at Y that the casting costs to simulate cooldown
                     }
