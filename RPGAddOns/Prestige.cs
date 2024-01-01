@@ -168,7 +168,7 @@ namespace RPGAddOns
                 Experience.setXP(ctx, playerName, 0);
 
                 PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
-                ctx.Reply($"Your level has been reset! You've gained: MaxHealth {Plugin.ExtraHealth}, PAtk {Plugin.ExtraPhysicalPower}, SAtk {Plugin.ExtraSpellPower}, PDef {Plugin.ExtraPhysicalResistance}, SDef {Plugin.ExtraSpellResistance}");
+                ctx.Reply($"Your level has been reset! You've gained: MaxHealth {FontColors.Red(Plugin.ExtraHealth.ToString())}, PAtk {FontColors.Orange(Plugin.ExtraPhysicalPower.ToString())}, SAtk {FontColors.Purple(Plugin.ExtraSpellPower.ToString())}, PDef {FontColors.Green(Plugin.ExtraPhysicalResistance.ToString())}, SDef {FontColors.Blue(Plugin.ExtraSpellResistance.ToString())}");
 
                 data.Prestiges++; data.Buffs = playerBuffs;
                 Commands.SavePlayerPrestiges();

@@ -3,6 +3,9 @@ using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
 using Unity.Entities;
+using VRising.GameData;
+using VRising.GameData.Methods;
+using VRising.GameData.Models;
 using Math = System.Math;
 
 namespace RPGAddOns
@@ -33,11 +36,23 @@ namespace RPGAddOns
                     //NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
 
                     Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
+                    string vbloodName = __instance._PrefabCollectionSystem._PrefabDataLookup[_event.Source].AssetName.ToString();
+
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
-
+                    string immaculate = AdminCommands.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood.ToString();
                     try
                     {
+                        if (immaculate == vbloodName)
+                        {
+                            // dont forget to try adding his ability as a castable ability
+                            //add solarus shard to player inventory
+
+                            PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
+                            UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
+                            AddItemToInventory(shard, 1, usermodel);
+                        }
+                        // check for solarus and give shard if found?
                         if (entityManager.TryGetComponentData(user, out User component))
                         {
                             ulong SteamID = component.PlatformId;
@@ -134,6 +149,15 @@ namespace RPGAddOns
             }
             //I could probably make a cooldown timer or something but instead since there are two events happening Im just gonna divide the points by 2 and call it a day
             return (points / 2);
+        }
+
+        public static void AddItemToInventory(PrefabGUID guid, int amount, UserModel user)
+        {
+            unsafe
+            {
+                user.TryGiveItem(guid, 1, out Entity itemEntity);
+                return;
+            }
         }
 
         public class RandomUtil

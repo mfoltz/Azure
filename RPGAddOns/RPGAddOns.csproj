@@ -31,6 +31,9 @@
     <Reference Include="RPGMods">
       <HintPath>..\..\..\..\Downloads\RPGMods.dll</HintPath>
     </Reference>
+    <Reference Include="VRising.GameData">
+      <HintPath>..\..\BloodyEncounters\VRising.GameData.dll</HintPath>
+    </Reference>
   </ItemGroup>
 	<Target Name="CopyDLLsServer" AfterTargets="Build">
 		<Message Text="DLL to V Rising Server" Importance="High" />

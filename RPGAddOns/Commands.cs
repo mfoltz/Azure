@@ -34,7 +34,11 @@ namespace RPGAddOns
             }
             else
             {
-                ctx.Reply($"Player {playerName} not found or no rank data available.");
+                // make data for them if none found
+                RankData rankData = new(0, points, []);
+                Databases.playerRanks.Add(SteamID, rankData);
+                Commands.SavePlayerRanks();
+                ctx.Reply($"Player {playerName} not found or no rank data available. Empty player data has been created, please try again.");
             }
         }
 
