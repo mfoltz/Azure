@@ -163,7 +163,7 @@ namespace RPGAddOns.Core
         }
         */
 
-        [Command(name: "wipeprestiges", shortHand: "wpr", adminOnly: true, usage: ".rpg wpr <PlayerName>", description: "Resets a player's prestige count.")]
+        [Command(name: "wipeprestige", shortHand: "wpr", adminOnly: true, usage: ".rpg wpr <PlayerName>", description: "Resets a player's prestige count.")]
         public static void WipePrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             // Find the user's SteamID based on the playerName
@@ -191,10 +191,10 @@ namespace RPGAddOns.Core
 
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
-            if (Databases.playerPrestige.ContainsKey(SteamID))
+            if (Databases.playerRanks.ContainsKey(SteamID))
             {
                 // Reset the user's progress
-                Databases.playerPrestige[SteamID] = new PrestigeData(0, []);
+                Databases.playerRanks[SteamID] = new RankData(0, 0, []);
                 SavePlayerPrestige();  // Assuming this method saves the data to a persistent storage
 
                 ctx.Reply($"Progress for player {playerName} has been wiped.");
@@ -205,7 +205,7 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "getresetdata", shortHand: "grd", adminOnly: true, usage: ".rpg grd <PlayerName>", description: "Retrieves the reset count and buffs for a specified player.")]
+        [Command(name: "getplayerprestige", shortHand: "grd", adminOnly: true, usage: ".rpg grd <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
         public static void GetPlayerResetDataCommand(ChatCommandContext ctx, string playerName)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
@@ -232,14 +232,15 @@ namespace RPGAddOns.Core
             }
 
             string json1 = File.ReadAllText(Plugin.PlayerPrestigeJson);
-            Plugin.Logger.LogWarning($"PlayerPrestige Populated {json1}");
+            Plugin.Logger.LogWarning($"PlayerPrestige found: {json1}");
             try
             {
                 Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json1);
                 Plugin.Logger.LogWarning("PlayerPrestige Populated");
             }
-            catch
+            catch (Exception ex)
             {
+                Plugin.Logger.LogError($"Error deserializing data: {ex}");
                 Databases.playerPrestige = new Dictionary<ulong, PrestigeData>();
                 Plugin.Logger.LogWarning("PlayerPrestige Created");
             }
@@ -250,14 +251,16 @@ namespace RPGAddOns.Core
             }
 
             string json2 = File.ReadAllText(Plugin.PlayerRanksJson);
+            Plugin.Logger.LogWarning($"PlayerRanks found: {json2}");
+
             try
             {
                 Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json2);
                 Plugin.Logger.LogWarning("PlayerRanks Populated");
-                Plugin.Logger.LogWarning($"PlayerRanks Populated {json2}");
             }
-            catch
+            catch (Exception ex)
             {
+                Plugin.Logger.LogError($"Error deserializing data: {ex}");
                 Databases.playerRanks = new Dictionary<ulong, RankData>();
                 Plugin.Logger.LogWarning("PlayerRanks Created");
             }

@@ -9,7 +9,7 @@ namespace RPGAddOns.Core
         public static JsonSerializerOptions JSON_options = new()
         {
             WriteIndented = false,
-            IncludeFields = false
+            IncludeFields = true
         };
 
         public static JsonSerializerOptions Pretty_JSON_options = new()

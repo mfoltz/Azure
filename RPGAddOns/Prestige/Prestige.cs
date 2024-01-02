@@ -14,9 +14,9 @@ namespace RPGAddOns.Prestige
         public int Prestiges { get; set; }
         public List<int> Buffs { get; set; } = new List<int>();
 
-        public PrestigeData(int level, List<int> buffs)
+        public PrestigeData(int prestiges, List<int> buffs)
         {
-            Prestiges = level;
+            Prestiges = prestiges;
             Buffs = buffs;
         }
     }
@@ -45,7 +45,7 @@ namespace RPGAddOns.Prestige
                     {
                         // create new data then call reset level function
                         List<int> playerBuffs = new List<int>();
-                        var prestigeData = new PrestigeData(0, playerBuffs);
+                        PrestigeData prestigeData = new PrestigeData(0, playerBuffs);
                         Databases.playerPrestige.Add(SteamID, prestigeData);
                         Commands.SavePlayerPrestige();
                         data = Databases.playerPrestige[SteamID];
