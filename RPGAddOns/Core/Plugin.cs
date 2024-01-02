@@ -27,9 +27,10 @@ namespace RPGAddOns.Core
         public static Keybinding configKeybinding;
         internal static Plugin Instance { get; private set; }
 
-        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns");
+        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns/player_data");
+        public static readonly string PlayerPrestigeJson = Path.Combine(ConfigPath, "player_prestige.json");
+
         public static readonly string PlayerRanksJson = Path.Combine(ConfigPath, "player_ranks.json");
-        public static readonly string PlayerPrestigesJson = Path.Combine(ConfigPath, "player_prestiges.json");
 
         public static ManualLogSource Logger;
 
@@ -41,6 +42,8 @@ namespace RPGAddOns.Core
         public static int MaxPrestiges;
         public static int MaxRanks;
 
+        public static bool PrestigeStats;
+        public static bool AscensionStats;
         public static bool ItemReward;
         public static int ItemPrefab;
         public static int ItemQuantity;
@@ -72,6 +75,8 @@ namespace RPGAddOns.Core
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
             ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
             GameData.OnInitialize += GameDataOnInitialize;
+            //GameData.OnDestroy += GameDataOnDestroy;
+            Commands.LoadData();
         }
 
         private void GameDataOnDestroy()
@@ -80,9 +85,6 @@ namespace RPGAddOns.Core
 
         private void GameDataOnInitialize(World world)
         {
-            Initialize();
-
-            Commands.LoadData();
         }
 
         public void InitConfig()
@@ -90,6 +92,9 @@ namespace RPGAddOns.Core
             //configuration options for BloodyPointTesting
             //ResetLevel options
             //Prestige options
+            //need more config options
+            PrestigeStats = Config.Bind("Config", "PrestigeStats", false, "Enables stat bonuses on prestige").Value;
+            AscensionStats = Config.Bind("Config", "AscensionStats", false, "Enables stat bonuses on ascension").Value;
             ExtraHealth = Config.Bind("Config", "ExtraHealth", 50, "Extra health on reset").Value;
             ExtraPhysicalPower = Config.Bind("Config", "ExtraPhysicalPower", 5, "Extra physical power awarded on reset").Value;
             ExtraSpellPower = Config.Bind("Config", "ExtraSpellPower", 5, "Extra spell power awarded on reset").Value;
@@ -130,8 +135,8 @@ namespace RPGAddOns.Core
 
         public override bool Unload()
         {
-            //Commands.SavePlayerPrestiges();
-            //Commands.SavePlayerRanks();
+            Commands.SavePlayerPrestige();
+            Commands.SavePlayerRanks();
             KeybindManager.Unregister(configKeybinding);
 
             Config.Clear();

@@ -38,7 +38,7 @@ namespace RPGAddOns.Patch
         {
             public static void Prefix()
             {
-                Commands.SavePlayerPrestiges();
+                Commands.SavePlayerPrestige();
                 Commands.SavePlayerRanks();
             }
         }
@@ -48,7 +48,7 @@ namespace RPGAddOns.Patch
         {
             public static void Prefix()
             {
-                Commands.SavePlayerPrestiges();
+                Commands.SavePlayerPrestige();
                 Commands.SavePlayerRanks();
             }
         }

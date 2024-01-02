@@ -36,11 +36,20 @@ namespace RPGAddOns.Core
             }
             else
             {
+                if (points < 0)
+                {
+                    ctx.Reply("Points cannot be negative.");
+                    return;
+                }
                 // make data for them if none found
                 RankData rankData = new(0, points, []);
+                if (rankData.Points > (rankData.Rank * 1000) + 1000)
+                {
+                    rankData.Points = rankData.Rank * 1000 + 1000;
+                }
                 Databases.playerRanks.Add(SteamID, rankData);
                 SavePlayerRanks();
-                ctx.Reply($"Player {playerName} not found or no rank data available. Empty player data has been created, please try again.");
+                ctx.Reply($"Rank points for player {playerName} have been set to {points}.");
             }
         }
 
@@ -83,8 +92,8 @@ namespace RPGAddOns.Core
             ResetLevel.ResetPlayerLevel(ctx, name, SteamID);
         }
 
-        [Command(name: "getpoints", shortHand: "gp", adminOnly: false, usage: ".rpg gp", description: "Displays your current rank points and progress towards the next rank.")]
-        public static void CheckPointsCommand(ChatCommandContext ctx)
+        [Command(name: "getrank", shortHand: "gr", adminOnly: false, usage: ".rpg gr", description: "Displays your current rank points and progress towards the next rank along with current rank.")]
+        public static void GetRankCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
@@ -101,38 +110,23 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "getranks", shortHand: "gr", adminOnly: false, usage: ".rpg gr", description: "Shows your current rank level.")]
-        public static void CheckRankCommand(ChatCommandContext ctx)
+        [Command(name: "getprestige", shortHand: "gp", adminOnly: false, usage: ".rpg gp", description: "Displays the number of times you've prestiged.")]
+        public static void GetPrestigeCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
+            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
             {
-                ctx.Reply($"You are rank {data.Rank}.");
+                ctx.Reply($"Your current prestige count is: {data.Prestiges}");
             }
             else
             {
-                ctx.Reply("You don't have a rank yet.");
+                ctx.Reply("You have not prestiged yet.");
             }
         }
 
-        [Command(name: "getprestiges", shortHand: "gpr", adminOnly: false, usage: ".rpg gpr", description: "Displays the number of times you've reset your level (prestige count).")]
-        public static void CheckResetsCommand(ChatCommandContext ctx)
-        {
-            var user = ctx.Event.User;
-            ulong SteamID = user.PlatformId;
-
-            if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
-            {
-                ctx.Reply($"Your current reset count is: {data.Prestiges}");
-            }
-            else
-            {
-                ctx.Reply("You have not reset your level yet.");
-            }
-        }
-
+        /*
         [Command(name: "getrankbuffs", shortHand: "grb", adminOnly: false, usage: ".rpg grb", description: "Checks and displays the buffs received from your current rank.")]
         public static void CheckRankBuffsCommand(ChatCommandContext ctx)
 
@@ -157,7 +151,7 @@ namespace RPGAddOns.Core
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
+            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
             {
                 var buffs = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
                 ctx.Reply($"Your current buffs are: {buffs}");
@@ -167,6 +161,7 @@ namespace RPGAddOns.Core
                 ctx.Reply("You have not received any buffs yet.");
             }
         }
+        */
 
         [Command(name: "wipeprestiges", shortHand: "wpr", adminOnly: true, usage: ".rpg wpr <PlayerName>", description: "Resets a player's prestige count.")]
         public static void WipePrestigeCommand(ChatCommandContext ctx, string playerName)
@@ -175,11 +170,11 @@ namespace RPGAddOns.Core
 
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
-            if (Databases.playerPrestiges.ContainsKey(SteamID))
+            if (Databases.playerPrestige.ContainsKey(SteamID))
             {
                 // Reset the user's progress
-                Databases.playerPrestiges[SteamID] = new PrestigeData(0, []);
-                SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
+                Databases.playerPrestige[SteamID] = new PrestigeData(0, []);
+                SavePlayerPrestige();  // Assuming this method saves the data to a persistent storage
 
                 ctx.Reply($"Progress for player {playerName} has been wiped.");
             }
@@ -196,11 +191,11 @@ namespace RPGAddOns.Core
 
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
-            if (Databases.playerPrestiges.ContainsKey(SteamID))
+            if (Databases.playerPrestige.ContainsKey(SteamID))
             {
                 // Reset the user's progress
-                Databases.playerPrestiges[SteamID] = new PrestigeData(0, []);
-                SavePlayerPrestiges();  // Assuming this method saves the data to a persistent storage
+                Databases.playerPrestige[SteamID] = new PrestigeData(0, []);
+                SavePlayerPrestige();  // Assuming this method saves the data to a persistent storage
 
                 ctx.Reply($"Progress for player {playerName} has been wiped.");
             }
@@ -216,7 +211,7 @@ namespace RPGAddOns.Core
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
 
-            if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
+            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
             {
                 ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Reset Count: {data.Prestiges}, Buffs: {data.Buffs}");
             }
@@ -228,24 +223,25 @@ namespace RPGAddOns.Core
 
         private static EntityManager entityManager = VWorld.Server.EntityManager;
 
-        public static void LoadDataOld()
+        public static void LoadData()
         {
-            if (!File.Exists(Plugin.PlayerPrestigesJson))
+            if (!File.Exists(Plugin.PlayerPrestigeJson))
             {
-                var stream = File.Create(Plugin.PlayerPrestigesJson);
+                var stream = File.Create(Plugin.PlayerPrestigeJson);
                 stream.Dispose();
             }
 
-            string json = File.ReadAllText(Plugin.PlayerPrestigesJson);
+            string json1 = File.ReadAllText(Plugin.PlayerPrestigeJson);
+            Plugin.Logger.LogWarning($"PlayerPrestige Populated {json1}");
             try
             {
-                Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json);
-                Plugin.Logger.LogWarning("PlayerRanks Populated");
+                Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json1);
+                Plugin.Logger.LogWarning("PlayerPrestige Populated");
             }
             catch
             {
-                Databases.playerRanks = new Dictionary<ulong, RankData>();
-                Plugin.Logger.LogWarning("PlayerRanks Created");
+                Databases.playerPrestige = new Dictionary<ulong, PrestigeData>();
+                Plugin.Logger.LogWarning("PlayerPrestige Created");
             }
             if (!File.Exists(Plugin.PlayerRanksJson))
             {
@@ -253,53 +249,23 @@ namespace RPGAddOns.Core
                 stream.Dispose();
             }
 
-            json = File.ReadAllText(Plugin.PlayerRanksJson);
+            string json2 = File.ReadAllText(Plugin.PlayerRanksJson);
             try
             {
-                Databases.playerPrestiges = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json);
-                Plugin.Logger.LogWarning("PlayerPrestiges Populated");
+                Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json2);
+                Plugin.Logger.LogWarning("PlayerRanks Populated");
+                Plugin.Logger.LogWarning($"PlayerRanks Populated {json2}");
             }
             catch
             {
-                Databases.playerPrestiges = new Dictionary<ulong, PrestigeData>();
-                Plugin.Logger.LogWarning("PlayerPrestiges Created");
+                Databases.playerRanks = new Dictionary<ulong, RankData>();
+                Plugin.Logger.LogWarning("PlayerRanks Created");
             }
         }
 
-        public static void LoadData()
+        public static void SavePlayerPrestige()
         {
-            Databases.playerRanks = LoadDataFromFile<Dictionary<ulong, RankData>>(Plugin.PlayerRanksJson);
-            Databases.playerPrestiges = LoadDataFromFile<Dictionary<ulong, PrestigeData>>(Plugin.PlayerPrestigesJson);
-        }
-
-        private static T LoadDataFromFile<T>(string filePath) where T : new()
-        {
-            if (!File.Exists(filePath))
-            {
-                File.Create(filePath).Dispose();
-                return new T();
-            }
-
-            string json = File.ReadAllText(filePath);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return new T();
-            }
-
-            try
-            {
-                return JsonSerializer.Deserialize<T>(json) ?? new T();
-            }
-            catch (JsonException ex)
-            {
-                Plugin.Logger.LogError($"Error deserializing file {filePath}: {ex.Message}");
-                return new T();
-            }
-        }
-
-        public static void SavePlayerPrestiges()
-        {
-            File.WriteAllText(Plugin.PlayerPrestigesJson, JsonSerializer.Serialize(Databases.playerPrestiges));
+            File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(Databases.playerPrestige));
         }
 
         public static void SavePlayerRanks()

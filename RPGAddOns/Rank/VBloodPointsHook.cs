@@ -8,6 +8,7 @@ using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
 using Math = System.Math;
+using System.Runtime.InteropServices;
 
 namespace RPGAddOns.PvERank
 {
@@ -42,6 +43,7 @@ namespace RPGAddOns.PvERank
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
+
                     string immaculate = AdminCommands.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood.ToString();
                     try
                     {
@@ -51,11 +53,13 @@ namespace RPGAddOns.PvERank
                             //add solarus shard to player inventory
                             Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
 
-                            PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
-
                             UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
-
-                            ProjectM.InventoryUtilitiesServer.TryRemoveItem(entityManager, user, shard, 1);
+                            Entity characterEntity = usermodel.FromCharacter.Character;
+                            PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
+                            if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
+                            {
+                                InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, shard, 1);
+                            }
                             AddItemToInventory(shard, 1, usermodel);
                         }
                         // check for solarus and give shard if found?

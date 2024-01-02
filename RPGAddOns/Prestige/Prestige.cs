@@ -2,19 +2,21 @@
 using RPGAddOns.Core;
 using RPGMods.Commands;
 using RPGMods.Systems;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
+using static RPGMods.Utils.Prefabs;
 
 namespace RPGAddOns.Prestige
 {
     public class PrestigeData
     {
         public int Prestiges { get; set; }
-        public List<int> Buffs { get; set; }
+        public List<int> Buffs { get; set; } = new List<int>();
 
-        public PrestigeData(int count, List<int> buffs)
+        public PrestigeData(int level, List<int> buffs)
         {
-            Prestiges = count;
+            Prestiges = level;
             Buffs = buffs;
         }
     }
@@ -26,17 +28,17 @@ namespace RPGAddOns.Prestige
             if (ExperienceSystem.getLevel(SteamID) >= ExperienceSystem.MaxLevel)
             {
                 // check for null reference
-                if (Databases.playerPrestiges != null)
+                if (Databases.playerPrestige != null)
                 {
                     // check for player data and reset level if below max resets else create data and reset level
-                    if (Databases.playerPrestiges.TryGetValue(SteamID, out PrestigeData data))
+                    if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
                     {
                         if (data.Prestiges >= Plugin.MaxPrestiges)
                         {
                             ctx.Reply("You have reached the maximum number of resets.");
                             return;
                         }
-                        ResetLevelFunctions.PlayerReset(ctx, playerName, SteamID, data);
+                        ResetLevelFunctions.PlayerPrestige(ctx, playerName, SteamID, data);
                         return;
                     }
                     else
@@ -44,10 +46,10 @@ namespace RPGAddOns.Prestige
                         // create new data then call reset level function
                         List<int> playerBuffs = new List<int>();
                         var prestigeData = new PrestigeData(0, playerBuffs);
-                        Databases.playerPrestiges.Add(SteamID, prestigeData);
-                        Commands.SavePlayerPrestiges();
-                        data = Databases.playerPrestiges[SteamID];
-                        ResetLevelFunctions.PlayerReset(ctx, playerName, SteamID, data);
+                        Databases.playerPrestige.Add(SteamID, prestigeData);
+                        Commands.SavePlayerPrestige();
+                        data = Databases.playerPrestige[SteamID];
+                        ResetLevelFunctions.PlayerPrestige(ctx, playerName, SteamID, data);
                         return;
                     }
                 }
@@ -101,7 +103,7 @@ namespace RPGAddOns.Prestige
                 return (itemName, itemguid);
             }
 
-            public static void PlayerReset(ChatCommandContext ctx, string playerName, ulong SteamID, PrestigeData data)
+            public static void PlayerPrestige(ChatCommandContext ctx, string playerName, ulong SteamID, PrestigeData data)
             {
                 // fallback to prefab if name not found, tired of dealing with this
                 List<int> playerBuffs = data.Buffs;
@@ -143,7 +145,8 @@ namespace RPGAddOns.Prestige
                 int extraSpellResistance = Plugin.ExtraSpellResistance + preSpellResistance;
 
                 // Use the PowerUpAdd command to apply the stats and inform the player
-
+                ctx.Reply($"Your level has been reset!");
+                Experience.setXP(ctx, playerName, 0);
                 if (Plugin.BuffRewardsPrestige)
                 {
                     var (buffname, buffguid, buffFlag) = BuffCheck(data);
@@ -164,15 +167,15 @@ namespace RPGAddOns.Prestige
                     RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, Plugin.ItemQuantity);
                     ctx.Reply($"You've been awarded with: {Plugin.ItemQuantity} {itemName}");
                 }
+                if (Plugin.PrestigeStats)
+                {
+                    PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
+                    ctx.Reply($"You've gained: MaxHealth {FontColors.Red(Plugin.ExtraHealth.ToString())}, PAtk {FontColors.Yellow(Plugin.ExtraPhysicalPower.ToString())}, SAtk {FontColors.Purple(Plugin.ExtraSpellPower.ToString())}, PDef {FontColors.Green(Plugin.ExtraPhysicalResistance.ToString())}, SDef {FontColors.Blue(Plugin.ExtraSpellResistance.ToString())}");
+                }
                 // log player ResetData and save, take away exp
 
-                Experience.setXP(ctx, playerName, 0);
-
-                PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
-                ctx.Reply($"Your level has been reset! You've gained: MaxHealth {FontColors.Red(Plugin.ExtraHealth.ToString())}, PAtk {FontColors.Orange(Plugin.ExtraPhysicalPower.ToString())}, SAtk {FontColors.Purple(Plugin.ExtraSpellPower.ToString())}, PDef {FontColors.Green(Plugin.ExtraPhysicalResistance.ToString())}, SDef {FontColors.Blue(Plugin.ExtraSpellResistance.ToString())}");
-
                 data.Prestiges++; data.Buffs = playerBuffs;
-                Commands.SavePlayerPrestiges();
+                Commands.SavePlayerPrestige();
                 return;
             }
         }

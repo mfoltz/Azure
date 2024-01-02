@@ -18,7 +18,7 @@ namespace RPGAddOns.Core
             IncludeFields = true
         };
 
-        public static Dictionary<ulong, PrestigeData> playerPrestiges = new();
+        public static Dictionary<ulong, PrestigeData> playerPrestige = new();
         public static Dictionary<ulong, RankData> playerRanks = new();
     }
 }
