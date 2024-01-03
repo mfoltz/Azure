@@ -1,10 +1,15 @@
 **QUICKSTART MODDING GUIDE**
 
 -download visual studio
+
 -clone open source mod repo
+
 -make changes
+
 -make red squiggles go away
+
 -test in game
+
 -repeat until working
 
 **RPGAddOns**
