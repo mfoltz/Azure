@@ -3,11 +3,13 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
+using ProjectM.UI;
 using System.Reflection;
 using Unity.Entities;
 using UnityEngine;
 using VampireCommandFramework;
 using VRising.GameData;
+using WillisCore.Patches;
 
 namespace RPGAddOns.Core
 {
@@ -19,6 +21,7 @@ namespace RPGAddOns.Core
         private Harmony _harmony;
         public static Keybinding configKeybinding;
         internal static Plugin Instance { get; private set; }
+        //private ModifierButtons modButtons = new ModifierButtons();
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns/player_data");
         public static readonly string PlayerPrestigeJson = Path.Combine(ConfigPath, "player_prestige.json");
@@ -53,6 +56,7 @@ namespace RPGAddOns.Core
             Instance = this;
             Logger = Log;
             CommandRegistry.RegisterAll();
+            AOTCompileHelper.ForceAOTCompilation();
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
@@ -78,6 +82,7 @@ namespace RPGAddOns.Core
 
         private void GameDataOnInitialize(World world)
         {
+            //try creating public class for BuffSpawnerSystem here, instantiating then calling it elsewhere?
         }
 
         public void InitConfig()
@@ -103,7 +108,7 @@ namespace RPGAddOns.Core
             BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", false, "Grants permanent buff to players when prestiging if enabled.").Value;
             BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsReset", "[]", "Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 'placeholder'").Value;
             BuffPrefabsRankUp = Config.Bind("Config", "BuffPrefabsPrestige", "[]", "Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige (5) if enabled to skip buff for a level set it to be 'placeholder'").Value;
-
+            /*
             DivineAngelKeybinding = KeybindManager.Register(new KeybindingDescription()
             {
                 Id = "RPGAddOns.divineangel",
@@ -118,6 +123,14 @@ namespace RPGAddOns.Core
                 Category = "configKeybinding",
                 Name = "Chaos Quake Cast",
                 DefaultKeybinding = KeyCode.G // Choose an appropriate default key
+            });
+            */
+            configKeybinding = KeybindManager.Register(new()
+            {
+                Id = "blue.quickstash.deposit",
+                Category = "QuickStash",
+                Name = "Cast",
+                DefaultKeybinding = KeyCode.G,
             });
             if (!Directory.Exists(ConfigPath)) Directory.CreateDirectory(ConfigPath);
         }
@@ -139,6 +152,23 @@ namespace RPGAddOns.Core
 
         public void OnGameInitialized()
         {
+        }
+
+        public class AOTCompileHelper
+        {
+            // Dummy method to force AOT compilation
+            public static void ForceAOTCompilation()
+            {
+                if (false) // This block will never execute
+                {
+                    EntityManager entityManager = default;
+                    ProjectM.ReplaceAbilityOnSlotBuff dummyData;
+                    Entity dummyEntity = default;
+
+                    // Explicitly use the method with the specific type
+                    entityManager.TryGetComponentData<ProjectM.ReplaceAbilityOnSlotBuff>(dummyEntity, out dummyData);
+                }
+            }
         }
     }
 }

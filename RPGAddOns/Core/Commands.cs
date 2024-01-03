@@ -1,5 +1,9 @@
-﻿using Bloodstone.API;
+﻿using AdminCommands;
+using Bloodstone.API;
+using Cpp2IL.Core.InstructionSets;
 using ProjectM;
+using ProjectM.Network;
+using ProjectM.Scripting;
 using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
 using System.Text.Json;
@@ -7,6 +11,7 @@ using Unity.Entities;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
+using static ProjectM.BuffUtility;
 
 namespace RPGAddOns.Core
 {
@@ -208,7 +213,7 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "getplayerprestige", shortHand: "grd", adminOnly: true, usage: ".rpg grd <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
+        [Command(name: "getplayerprestige", shortHand: "gpr", adminOnly: true, usage: ".rpg gpr <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
         public static void GetPlayerResetDataCommand(ChatCommandContext ctx, string playerName)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
@@ -230,28 +235,38 @@ namespace RPGAddOns.Core
             // choose skill based on VBlood tracking?
             // need small dictionary of VBloodTracked:VBloodSkill
             // so people could make custom weapons... man that's too fucking sick
+            EntityManager entityManager = VWorld.Server.EntityManager;
             UserModel usermodel = GameData.Users.GetUserByCharacterName(ctx.Name);
             Entity player = usermodel.FromCharacter.Character;
             //Entity character = ctx.Event.SenderCharacterEntity;
-            if (VWorld.Server.EntityManager.TryGetComponentData(player, out Equipment equipment))
+            if (entityManager.TryGetComponentData(player, out Equipment equipment))
             {
+                Plugin.Logger.LogError($"Equipment check");
                 Entity weaponEntity = equipment.WeaponSlotEntity._Entity;
-                if (VWorld.Server.EntityManager.TryGetComponentData<EquippableData>(weaponEntity, out EquippableData data))
+                Plugin.Logger.LogError($"Weapon check");
+
+                if (entityManager.TryGetComponentData<EquippableData>(weaponEntity, out EquippableData data))
                 {
+                    Plugin.Logger.LogError($"EquippableData check");
+
                     // item 0 auto attack, item 1 primary, item 2 secondary
-                    // also try replacing main auto attacks with solarus attack sequence
-                    var __instance = new PrefabCollectionSystem();
+
                     PrefabGUID equipBuff = data.BuffGuid;
-                    Entity equipBuffEntity = __instance._PrefabGuidToEntityMap[equipBuff];
+                    PrefabCollectionSystem prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
+                    Entity equipBuffEntity = prefabCollectionSystem._PrefabGuidToEntityMap[equipBuff];
+                    Plugin.Logger.LogError($"Buff check");
+
                     PrefabGUID main = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_Melee_AbilityGroup;
                     PrefabGUID secondary = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup;
-                    if (VWorld.Server.EntityManager.TryGetComponentData<ReplaceAbilityOnSlotBuff>(equipBuffEntity, out ReplaceAbilityOnSlotBuff slotBuff))
+                    if (entityManager.TryGetComponentData<ReplaceAbilityOnSlotBuff>(equipBuffEntity, out ReplaceAbilityOnSlotBuff slotBuff))
                     {
                         //slotBuff.ReplaceGroupId = main;
                         slotBuff.NewGroupId = main;
+                        Plugin.Logger.LogError($"slotBuff check");
+
                         try
                         {
-                            VWorld.Server.EntityManager.SetComponentData(equipBuffEntity, slotBuff);
+                            entityManager.SetComponentData(equipBuffEntity, slotBuff);
                             ctx.Reply("Your weapon has been bloodforged.");
                         }
                         catch (Exception e)
@@ -273,6 +288,46 @@ namespace RPGAddOns.Core
             {
                 ctx.Reply("Your weapon cannot be infused.");
             }
+        }
+
+        [Command("control", null, null, "Takes control over hovered NPC (Unstable, work-in-progress)", null, true)]
+        public static void ControlCommand(ChatCommandContext ctx)
+        {
+            Entity senderUserEntity = ctx.Event.SenderUserEntity;
+            Entity Character = ctx.Event.SenderCharacterEntity;
+            FromCharacter fromCharacter = new FromCharacter()
+            {
+                User = senderUserEntity,
+                Character = Character
+            };
+            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            if (Character.Read<EntityInput>().HoveredEntity.Index > 0)
+            {
+                Entity hoveredEntity = senderUserEntity.Read<EntityInput>().HoveredEntity;
+                if (!hoveredEntity.Has<PlayerCharacter>())
+                {
+                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                    {
+                        EntityTarget = hoveredEntity,
+                        Target = senderUserEntity.Read<EntityInput>().HoveredEntityNetworkId
+                    };
+                    existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
+                    ctx.Reply("Controlling hovered unit");
+                    return;
+                }
+            }
+            if (PlayerService.TryGetCharacterFromName(senderUserEntity.Read<User>().CharacterName.ToString(), out Character))
+            {
+                ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                {
+                    EntityTarget = Character,
+                    Target = Character.Read<NetworkId>()
+                };
+                existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
+                ctx.Reply("Controlling self");
+            }
+            else
+                ctx.Reply("An error ocurred while trying to control your original body");
         }
 
         private static EntityManager entityManager = VWorld.Server.EntityManager;
