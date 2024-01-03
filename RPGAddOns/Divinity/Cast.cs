@@ -6,7 +6,6 @@ using ProjectM;
 using ProjectM.Network;
 using RPGAddOns.Core;
 using RPGAddOns.PvERank;
-using System.Diagnostics;
 using Unity.Entities;
 using Unity.Mathematics;
 using VampireCommandFramework;

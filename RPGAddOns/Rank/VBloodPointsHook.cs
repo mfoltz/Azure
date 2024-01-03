@@ -8,7 +8,6 @@ using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
 using Math = System.Math;
-using System.Runtime.InteropServices;
 
 namespace RPGAddOns.PvERank
 {
@@ -44,7 +43,6 @@ namespace RPGAddOns.PvERank
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
 
-                    string immaculate = AdminCommands.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood.ToString();
                     try
                     {
                         if (vbloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
@@ -56,6 +54,7 @@ namespace RPGAddOns.PvERank
                             UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
                             Entity characterEntity = usermodel.FromCharacter.Character;
                             PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
+                            // sure I should properly fix the vblood 2 for 1 kill event thing orrrr I coould just keep doing simple bandaid fixes like this
                             if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
                             {
                                 InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, shard, 1);

@@ -1,9 +1,12 @@
 ﻿using Bloodstone.API;
+using ProjectM;
 using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
 using System.Text.Json;
 using Unity.Entities;
 using VampireCommandFramework;
+using VRising.GameData;
+using VRising.GameData.Models;
 
 namespace RPGAddOns.Core
 {
@@ -218,6 +221,57 @@ namespace RPGAddOns.Core
             else
             {
                 ctx.Reply($"Player {playerName} not found or no reset data available.");
+            }
+        }
+
+        [Command(name: "bloodforge", shortHand: "bf", adminOnly: false, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
+        public static void InfuseWeapon(ChatCommandContext ctx)
+        {
+            // choose skill based on VBlood tracking?
+            // need small dictionary of VBloodTracked:VBloodSkill
+            // so people could make custom weapons... man that's too fucking sick
+            UserModel usermodel = GameData.Users.GetUserByCharacterName(ctx.Name);
+            Entity player = usermodel.FromCharacter.Character;
+            //Entity character = ctx.Event.SenderCharacterEntity;
+            if (VWorld.Server.EntityManager.TryGetComponentData(player, out Equipment equipment))
+            {
+                Entity weaponEntity = equipment.WeaponSlotEntity._Entity;
+                if (VWorld.Server.EntityManager.TryGetComponentData<EquippableData>(weaponEntity, out EquippableData data))
+                {
+                    // item 0 auto attack, item 1 primary, item 2 secondary
+                    // also try replacing main auto attacks with solarus attack sequence
+                    var __instance = new PrefabCollectionSystem();
+                    PrefabGUID equipBuff = data.BuffGuid;
+                    Entity equipBuffEntity = __instance._PrefabGuidToEntityMap[equipBuff];
+                    PrefabGUID main = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_Melee_AbilityGroup;
+                    PrefabGUID secondary = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup;
+                    if (VWorld.Server.EntityManager.TryGetComponentData<ReplaceAbilityOnSlotBuff>(equipBuffEntity, out ReplaceAbilityOnSlotBuff slotBuff))
+                    {
+                        //slotBuff.ReplaceGroupId = main;
+                        slotBuff.NewGroupId = main;
+                        try
+                        {
+                            VWorld.Server.EntityManager.SetComponentData(equipBuffEntity, slotBuff);
+                            ctx.Reply("Your weapon has been bloodforged.");
+                        }
+                        catch (Exception e)
+                        {
+                            Plugin.Logger.LogError($"Error setting component data: {e}");
+                        }
+                    }
+                    else
+                    {
+                        ctx.Reply("Your weapon cannot be infused...");
+                    }
+                }
+                else
+                {
+                    ctx.Reply("Your weapon cannot be infused..");
+                }
+            }
+            else
+            {
+                ctx.Reply("Your weapon cannot be infused.");
             }
         }
 

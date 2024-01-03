@@ -2,19 +2,12 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
-using Bloodstone.Hooks;
 using HarmonyLib;
-using LibCpp2IL.BinaryStructures;
-using ProjectM.Network;
-using RPGAddOns.Patch;
 using System.Reflection;
 using Unity.Entities;
 using UnityEngine;
 using VampireCommandFramework;
 using VRising.GameData;
-using static ProjectM.VivoxEvents;
-using static RootMotion.FinalIK.InteractionObject;
-using static RPGAddOns.Divinity.CastCommands;
 
 namespace RPGAddOns.Core
 {

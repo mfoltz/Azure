@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
-using RPGAddOns.Prestige;
+﻿using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
+
+using System.Text.Json;
 
 namespace RPGAddOns.Core
 {

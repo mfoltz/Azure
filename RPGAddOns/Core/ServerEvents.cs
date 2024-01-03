@@ -1,14 +1,8 @@
 ﻿using HarmonyLib;
 using ProjectM;
-using RPGAddOns.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Entities;
 
-namespace RPGAddOns.Patch
+namespace RPGAddOns.Core
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 
