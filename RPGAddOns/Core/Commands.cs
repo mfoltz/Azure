@@ -2,6 +2,7 @@
 using Bloodstone.API;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.UI;
 using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
 using System.Text.Json;
@@ -287,7 +288,7 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "test", shortHand: "t", adminOnly: false, usage: "", description: "")]
+        [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "")]
         public static void Testing(ChatCommandContext ctx)
         {
             Entity senderUserEntity = ctx.Event.SenderUserEntity;
@@ -347,19 +348,35 @@ namespace RPGAddOns.Core
                         Plugin.Logger.LogWarning($"{buffer[i].ShowOnBar}");
                         Plugin.Logger.LogWarning($"{buffer[i].GroupSlotEntity}");
                         Plugin.Logger.LogWarning($"{buffer[i].BaseAbilityGroupOnSlot}");
-                    }
-                    var target = buffer[7].GroupSlotEntity;
-                    Plugin.Logger.LogWarning($"{target}");
+                        var target = buffer[i].GroupSlotEntity;
+                        Plugin.Logger.LogWarning($"{target}");
 
-                    AbilityGroupSlotBuffer abilityGroupSlotBuffer = new AbilityGroupSlotBuffer()
-                    {
-                        BaseAbilityGroupOnSlot = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_AbilityGroup,
-                        ShowOnBar = true,
-                        GroupSlotEntity = target,
-                    };
-                    buffer[11] = abilityGroupSlotBuffer;
-                    //buffer.Run();
-                    Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer Modification Achieved");
+                        AbilityGroupSlotBuffer abilityGroupSlotBuffer = new AbilityGroupSlotBuffer()
+                        {
+                            BaseAbilityGroupOnSlot = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_AbilityGroup,
+                            ShowOnBar = true,
+                            GroupSlotEntity = target,
+                        };
+                        buffer[i] = abilityGroupSlotBuffer;
+                        //buffer.Run();
+                        Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer Modification Achieved");
+                        /*
+                        ProjectM.UI.AbilityBarParentBinderSystem abilityBarParentBinderSystem = VWorld.Server.GetExistingSystem<ProjectM.UI.AbilityBarParentBinderSystem>();
+                        var abilityBarData = abilityBarParentBinderSystem._Entries_k__BackingField;
+                        var abilityBarEntry = abilityBarParentBinderSystem._UIDataSystem._CommonClientDataSystem;
+                        var abilityBarEntries = abilityBarParentBinderSystem.Entries;
+                        var localUserData = abilityBarParentBinderSystem._UIDataSystem.LocalUser;
+                        var abilityBar = abilityBarParentBinderSystem._UIDataSystem.UI.AbilityBar;
+                        var actionBar = abilityBarParentBinderSystem._UIDataSystem.UI.ActionBar;
+                        var bottomBar = abilityBarParentBinderSystem._UIDataSystem.UI.BottomBar;
+                        var actionWheel = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.ActionWheel._ActionWheelPartList;
+                        var bottomBarParent = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.BottomBarParent;
+                        var bottomBarAbilityBarEntries = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.BottomBarParentPrefab.AbilityBar.Entries;
+                        var bottomBarActionBarEntries = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.BottomBarParentPrefab.ActionBar.Entries;
+                        var UI = abilityBarParentBinderSystem._UIDataSystem.UI;
+                        //UI.CanvasBase
+                        */
+                    }
                 }
                 else
                 {
@@ -394,7 +411,7 @@ namespace RPGAddOns.Core
             //DynamicBuffer<AbilityGroupSlotBuffer> buffer = entityManager.GetBuffer<AbilityGroupSlotBuffer>(character);
         }
 
-        [Command(name: "test1", shortHand: "t1", adminOnly: false, usage: "", description: "")]
+        [Command(name: "test1", shortHand: "t1", adminOnly: true, usage: "", description: "")]
         public static void Testing1(ChatCommandContext ctx)
         {
             Entity senderUserEntity = ctx.Event.SenderUserEntity;
@@ -405,34 +422,11 @@ namespace RPGAddOns.Core
                 Character = character,
             };
             Plugin.Logger.LogWarning($"Getting Component");
-
             EntityManager entityManager = VWorld.Server.EntityManager;
-            ComponentType abilityBarComponentType = new ComponentType(Il2CppSystem.Type.GetType("ProjectM.AbilityBarComponent, ProjectM.Shared"));
+            ProjectM.UI.AbilityBarParentBinderSystem abilityBarParentBinderSystem = VWorld.Server.GetExistingSystem<ProjectM.UI.AbilityBarParentBinderSystem>();
 
-            if (entityManager.HasComponent(character, abilityBarComponentType))
-            {
-                // Get the thing using non-generic methods
-                if (entityManager.TryGetComponentData(character, out AbilityBarComponent abilityBarComponent))
-                {
-                    Plugin.Logger.LogWarning($"{abilityBarComponent.ToString}");
-                    for (int i = 0; i < abilityBarComponent.AbilityGroups.Length; i++)
-                    {
-                        Plugin.Logger.LogWarning($"{abilityBarComponent.AbilityGroups[i]}");
-                        Plugin.Logger.LogWarning($"{abilityBarComponent.enabled}");
-                        Plugin.Logger.LogWarning($"{abilityBarComponent.name[i]}");
-                        Plugin.Logger.LogWarning($"{abilityBarComponent.GetInstanceID}");
-                        Plugin.Logger.LogWarning($"{abilityBarComponent.isActiveAndEnabled}");
-                        Plugin.Logger.LogWarning($"{abilityBarComponent.Pointer}");
-                        Plugin.Logger.LogWarning($"{abilityBarComponent.useGUILayout}");
-                    }
-
-                    Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer Modification Achieved");
-                }
-                else
-                {
-                    Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer could not be retrieved");
-                }
-            }
+            //ComponentType abilityBarComponentType = new ComponentType(Il2CppSystem.Type.GetType("ProjectM.AbilityBarComponent, ProjectM.Shared"));
+            //ComponentType abilityBarComponentType = new(Il2CppSystem.Type.GetType("ProjectM.AbilityBarComponent, ProjectM.Shared"));
         }
 
         [Command("control", null, null, "Takes control over hovered NPC (Unstable, work-in-progress)", null, true)]
