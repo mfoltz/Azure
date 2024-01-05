@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
+using ProjectM;
 using ProjectM.UI;
 using System.Reflection;
 using Unity.Entities;
@@ -20,6 +21,7 @@ namespace RPGAddOns.Core
     {
         private Harmony _harmony;
         public static Keybinding configKeybinding;
+
         internal static Plugin Instance { get; private set; }
         //private ModifierButtons modButtons = new ModifierButtons();
 
@@ -48,8 +50,10 @@ namespace RPGAddOns.Core
         public static string BuffPrefabsPrestige;
         public static string BuffPrefabsRankUp;
 
-        public static Keybinding DivineAngelKeybinding;
-        public static Keybinding ChaosQuakeKeybinding;
+        //public static Keybinding DivineAngelKeybinding;
+        public static Keybinding configSpellKeybinding;
+
+        //public static Keybinding ChaosQuakeKeybinding;
 
         public override void Load()
         {
@@ -125,12 +129,12 @@ namespace RPGAddOns.Core
                 DefaultKeybinding = KeyCode.G // Choose an appropriate default key
             });
             */
-            configKeybinding = KeybindManager.Register(new()
+            configSpellKeybinding = KeybindManager.Register(new()
             {
-                Id = "blue.quickstash.deposit",
-                Category = "QuickStash",
-                Name = "Cast",
-                DefaultKeybinding = KeyCode.G,
+                Id = "blue.rpg.cast",
+                Category = "rpg",
+                Name = "cast",
+                DefaultKeybinding = KeyCode.LeftShift,
             });
             if (!Directory.Exists(ConfigPath)) Directory.CreateDirectory(ConfigPath);
         }
@@ -170,5 +174,8 @@ namespace RPGAddOns.Core
                 }
             }
         }
+        
+        //client cast group probably where the cast group goes for the ability
+        //UIDataSystem.UIComponents[AbilityBar_Server[]
     }
 }

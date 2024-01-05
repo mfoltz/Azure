@@ -45,6 +45,12 @@ namespace RPGAddOns.PvERank
 
                     try
                     {
+                        // need to check for hypothetical players in the ascension locations as well as if they have the mats required, should be kinda easy in this context? famous last words...
+                        // need to define zones elsewhere
+                        // need to check for mats per level
+                        // need to check for appropriate vblood kill
+                        // then ascend player?
+                        // should get coordinates and extrapolate to a map if possible
                         if (vbloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
                         {
                             // dont forget to try adding his ability as a castable ability
@@ -61,7 +67,6 @@ namespace RPGAddOns.PvERank
                             }
                             AddItemToInventory(shard, 1, usermodel);
                         }
-                        // check for solarus and give shard if found?
                         if (entityManager.TryGetComponentData(user, out User component))
                         {
                             ulong SteamID = component.PlatformId;
