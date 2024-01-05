@@ -228,7 +228,7 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "position", shortHand: "pos", adminOnly: false, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
+        [Command(name: "position", shortHand: "pos", adminOnly: true, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
         public static void GetPosition(ChatCommandContext ctx)
         {
             // choose skill based on VBlood tracking?
