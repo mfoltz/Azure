@@ -4,10 +4,12 @@ using ProjectM;
 using ProjectM.Network;
 using RPGAddOns.Core;
 using Unity.Entities;
+using Unity.Mathematics;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
 using Math = System.Math;
+using Random = System.Random;
 
 namespace RPGAddOns.PvERank
 {
@@ -46,19 +48,30 @@ namespace RPGAddOns.PvERank
                     try
                     {
                         // need to check for hypothetical players in the ascension locations as well as if they have the mats required, should be kinda easy in this context? famous last words...
-                        // need to define zones elsewhere
+                        // need to define zones elsewhere or here, who cares really
                         // need to check for mats per level
                         // need to check for appropriate vblood kill
                         // then ascend player?
                         // should get coordinates and extrapolate to a map if possible
+                        UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
+                        Entity characterEntity = usermodel.FromCharacter.Character;
+                        float3 playerPosition = usermodel.Position;
+                        // ascension location number 1
+                        float3 divineLocation1NWCorner = new(-1397.987f, 20f, -1221.586f);
+                        float3 divineLocation1SWCorner = new(-1386.987f, 20.48779f, -1221.781f);
+                        float3 divineLocation1NECorner = new(-1398.22f, 20.56775f, -1214.962f);
+                        float3 divineLocation1SECorner = new(-1386.954f, 20.0773f, -1214.544f);
+                        // check if player is inside these bounds with LOGIC and SCIENCE
+
+                        bool isInside = PositionChecker.IsWithinArea(playerPosition, divineLocation1NWCorner, divineLocation1SWCorner, divineLocation1NECorner, divineLocation1SECorner);
+
+                        //
+                        // so what all do I need to define a zone... wonder if it's easier to make a circle around a point with a radius or 4 points for a square
                         if (vbloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
                         {
-                            // dont forget to try adding his ability as a castable ability
                             //add solarus shard to player inventory
                             Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
 
-                            UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
-                            Entity characterEntity = usermodel.FromCharacter.Character;
                             PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
                             // sure I should properly fix the vblood 2 for 1 kill event thing orrrr I coould just keep doing simple bandaid fixes like this
                             if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
@@ -183,5 +196,20 @@ namespace RPGAddOns.PvERank
                 return random.Next(min, max);
             }
         }
+
+        public class PositionChecker
+        {
+            public static bool IsWithinArea(float3 position, float3 corner1, float3 corner2, float3 corner3, float3 corner4)
+            {
+                float minX = math.min(math.min(corner1.x, corner2.x), math.min(corner3.x, corner4.x));
+                float maxX = math.max(math.max(corner1.x, corner2.x), math.max(corner3.x, corner4.x));
+                float minZ = math.min(math.min(corner1.z, corner2.z), math.min(corner3.z, corner4.z));
+                float maxZ = math.max(math.max(corner1.z, corner2.z), math.max(corner3.z, corner4.z));
+
+                return position.x >= minX && position.x <= maxX && position.z >= minZ && position.z <= maxZ;
+            }
+        }
+
+        // Usage
     }
 }

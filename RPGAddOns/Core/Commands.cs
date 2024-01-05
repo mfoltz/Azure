@@ -7,6 +7,7 @@ using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
 using System.Text.Json;
 using Unity.Entities;
+using Unity.Mathematics;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
@@ -227,7 +228,20 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "bloodforge", shortHand: "bf", adminOnly: false, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
+        [Command(name: "position", shortHand: "pos", adminOnly: false, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
+        public static void GetPosition(ChatCommandContext ctx)
+        {
+            // choose skill based on VBlood tracking?
+            // need small dictionary of VBloodTracked:VBloodSkill
+            // so people could make custom weapons... man that's too fucking sick
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            UserModel usermodel = GameData.Users.GetUserByCharacterName(ctx.Name);
+            Entity player = usermodel.FromCharacter.Character;
+            float3 playerPosition = usermodel.Position;
+            Plugin.Logger.LogError($"{playerPosition}");
+        }
+
+        [Command(name: "bloodforge", shortHand: "bf", adminOnly: true, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
         public static void InfuseWeapon(ChatCommandContext ctx)
         {
             // choose skill based on VBlood tracking?
@@ -348,6 +362,7 @@ namespace RPGAddOns.Core
                         Plugin.Logger.LogWarning($"{buffer[i].ShowOnBar}");
                         Plugin.Logger.LogWarning($"{buffer[i].GroupSlotEntity}");
                         Plugin.Logger.LogWarning($"{buffer[i].BaseAbilityGroupOnSlot}");
+
                         var target = buffer[i].GroupSlotEntity;
                         Plugin.Logger.LogWarning($"{target}");
 

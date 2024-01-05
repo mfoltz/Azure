@@ -29,7 +29,7 @@
       <HintPath>..\..\..\..\Downloads\AdminCommands.dll</HintPath>
     </Reference>
     <Reference Include="RPGMods">
-      <HintPath>..\..\..\..\Downloads\RPGMods.dll</HintPath>
+      <HintPath>..\..\..\..\Downloads\RPGMods_3.dll</HintPath>
     </Reference>
     <Reference Include="VRising.GameData">
       <HintPath>..\..\BloodyEncounters\VRising.GameData.dll</HintPath>
