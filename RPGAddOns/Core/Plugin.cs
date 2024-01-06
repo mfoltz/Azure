@@ -60,7 +60,6 @@ namespace RPGAddOns.Core
             Instance = this;
             Logger = Log;
             CommandRegistry.RegisterAll();
-            AOTCompileHelper.ForceAOTCompilation();
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
@@ -128,7 +127,7 @@ namespace RPGAddOns.Core
                 Name = "Chaos Quake Cast",
                 DefaultKeybinding = KeyCode.G // Choose an appropriate default key
             });
-            */
+
             configSpellKeybinding = KeybindManager.Register(new()
             {
                 Id = "blue.rpg.cast",
@@ -136,6 +135,7 @@ namespace RPGAddOns.Core
                 Name = "cast",
                 DefaultKeybinding = KeyCode.LeftShift,
             });
+            */
             if (!Directory.Exists(ConfigPath)) Directory.CreateDirectory(ConfigPath);
         }
 
@@ -156,23 +156,6 @@ namespace RPGAddOns.Core
 
         public void OnGameInitialized()
         {
-        }
-
-        public class AOTCompileHelper
-        {
-            // Dummy method to force AOT compilation
-            public static void ForceAOTCompilation()
-            {
-                if (false) // This block will never execute
-                {
-                    EntityManager entityManager = default;
-                    ProjectM.ReplaceAbilityOnSlotBuff dummyData;
-                    Entity dummyEntity = default;
-
-                    // Explicitly use the method with the specific type
-                    entityManager.TryGetComponentData<ProjectM.ReplaceAbilityOnSlotBuff>(dummyEntity, out dummyData);
-                }
-            }
         }
 
         //client cast group probably where the cast group goes for the ability
