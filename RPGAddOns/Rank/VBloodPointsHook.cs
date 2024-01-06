@@ -39,8 +39,8 @@ namespace RPGAddOns.PvERank
                     //NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
 
                     Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
-                    string vbloodName = __instance._PrefabCollectionSystem._PrefabDataLookup[_event.Source].AssetName.ToString();
-                    Plugin.Logger.LogInfo($"VBlood name format: {vbloodName}"); // Log details about each event
+                    string vBloodName = __instance._PrefabCollectionSystem._PrefabDataLookup[_event.Source].AssetName.ToString();
+                    Plugin.Logger.LogInfo($"VBlood name format: {vBloodName}"); // Log details about each event
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
@@ -53,21 +53,55 @@ namespace RPGAddOns.PvERank
                         // need to check for appropriate vblood kill
                         // then ascend player?
                         // should get coordinates and extrapolate to a map if possible
+
                         UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
                         Entity characterEntity = usermodel.FromCharacter.Character;
                         float3 playerPosition = usermodel.Position;
                         // ascension location number 1
-                        float3 divineLocation1NWCorner = new(-1397.987f, 20f, -1221.586f);
-                        float3 divineLocation1SWCorner = new(-1386.987f, 20.48779f, -1221.781f);
-                        float3 divineLocation1NECorner = new(-1398.22f, 20.56775f, -1214.962f);
-                        float3 divineLocation1SECorner = new(-1386.954f, 20.0773f, -1214.544f);
-                        // check if player is inside these bounds with LOGIC and SCIENCE
 
+                        // check if player is inside these bounds with LOGIC and SCIENCE
+                        if (vBloodName == "CHAR_Manticore_VBlood")
+                        {
+                            //check player positions
+                            // uhhh entity query for player characters, think there are a few easy ways to do that
+                            //hmm if I make pve rank or prestiging to a certain level a requirement I can just check that instead
+                            // check all names in prestiging database for ascension I guess
+                            float3 divineLocation1NWCorner = new(-1397.987f, 20f, -1221.586f);
+                            float3 divineLocation1SWCorner = new(-1386.987f, 20.48779f, -1221.781f);
+                            float3 divineLocation1NECorner = new(-1398.22f, 20.56775f, -1214.962f);
+                            float3 divineLocation1SECorner = new(-1386.954f, 20.0773f, -1214.544f);
+                            var usersEnum = GameData.Users.Online;
+                            var usersList = GameData.Users.Online.ToList();
+                            for (int i = 0; i < usersList.Count; i++)
+                            {
+                                var online = usersList[i];
+                                var playerPosition1 = online.Position;
+                                if (PositionChecker.IsWithinArea(playerPosition1, divineLocation1NWCorner, divineLocation1SWCorner, divineLocation1NECorner, divineLocation1SECorner))
+                                {
+                                    //check for mats
+                                    //check for ascension level
+                                    //ascend player
+                                    //add buff
+                                    //add points
+                                    //save data
+                                    //send message
+                                    //return
+                                }
+                            }
+                        }
+                        if (vBloodName == "CHAR_Cursed_MountainBeast_VBlood")
+                        {
+                            //check player positions
+                        }
+                        if (vBloodName == "CHAR_Cursed_MountainBeast_VBlood")
+                        {
+                            //check player positions
+                        }
                         bool isInside = PositionChecker.IsWithinArea(playerPosition, divineLocation1NWCorner, divineLocation1SWCorner, divineLocation1NECorner, divineLocation1SECorner);
 
                         //
                         // so what all do I need to define a zone... wonder if it's easier to make a circle around a point with a radius or 4 points for a square
-                        if (vbloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
+                        if (vBloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
                         {
                             //add solarus shard to player inventory
                             Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event

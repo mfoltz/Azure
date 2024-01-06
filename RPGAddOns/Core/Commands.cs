@@ -17,6 +17,33 @@ namespace RPGAddOns.Core
     [CommandGroup(name: "rpg", shortHand: "rpg")]
     internal class Commands
     {
+        [Command(name: "visualbuff", shortHand: "vb", adminOnly: true, usage: ".rpg vb <#>", description: "Applies a visual buff you've earned through prestige.")]
+        public static void VisualBuffCommand(ChatCommandContext ctx, int buff)
+        {
+            var user = ctx.Event.User;
+            string name = user.CharacterName.ToString();
+            ulong SteamID = user.PlatformId;
+            string StringID = SteamID.ToString();
+
+            // check if player has prestiged
+            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+            {
+                // check if player level is high enough to have buff
+                if (data.Prestiges >= buff)
+                {
+                    // it should remove the previous one without me specifiying it
+                }
+                else
+                {
+                    ctx.Reply("You haven't prestiged enough times for that buff.");
+                }
+            }
+            else
+            {
+                ctx.Reply($"You haven't prestiged yet.");
+            }
+        }
+
         [Command(name: "setrankpoints", shortHand: "sp", adminOnly: true, usage: ".rpg sp <PlayerName> <Points>", description: "Sets the rank points for a specified player.")]
         public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
         {
@@ -228,7 +255,7 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "position", shortHand: "pos", adminOnly: true, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
+        [Command(name: "getposition", shortHand: "pos", adminOnly: true, usage: "", description: "")]
         public static void GetPosition(ChatCommandContext ctx)
         {
             // choose skill based on VBlood tracking?
@@ -239,279 +266,6 @@ namespace RPGAddOns.Core
             Entity player = usermodel.FromCharacter.Character;
             float3 playerPosition = usermodel.Position;
             Plugin.Logger.LogError($"{playerPosition}");
-        }
-
-        [Command(name: "bloodforge", shortHand: "bf", adminOnly: true, usage: ".bf", description: "Bloodforges your equipped weapon, imbuing it with the latent essence of slain VBloods.")]
-        public static void InfuseWeapon(ChatCommandContext ctx)
-        {
-            // choose skill based on VBlood tracking?
-            // need small dictionary of VBloodTracked:VBloodSkill
-            // so people could make custom weapons... man that's too fucking sick
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            UserModel usermodel = GameData.Users.GetUserByCharacterName(ctx.Name);
-            Entity player = usermodel.FromCharacter.Character;
-            //Entity character = ctx.Event.SenderCharacterEntity;
-            if (entityManager.TryGetComponentData(player, out Equipment equipment))
-            {
-                Plugin.Logger.LogError($"Equipment check");
-                Entity weaponEntity = equipment.WeaponSlotEntity._Entity;
-                Plugin.Logger.LogError($"Weapon check");
-
-                if (entityManager.TryGetComponentData<EquippableData>(weaponEntity, out EquippableData data))
-                {
-                    Plugin.Logger.LogError($"EquippableData check");
-
-                    // item 0 auto attack, item 1 primary, item 2 secondary
-
-                    PrefabGUID equipBuff = data.BuffGuid;
-                    PrefabCollectionSystem prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
-                    Entity equipBuffEntity = prefabCollectionSystem._PrefabGuidToEntityMap[equipBuff];
-                    Plugin.Logger.LogError($"Buff check");
-
-                    PrefabGUID main = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_Melee_AbilityGroup;
-                    PrefabGUID secondary = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup;
-                    if (entityManager.TryGetComponentData<ReplaceAbilityOnSlotBuff>(equipBuffEntity, out ReplaceAbilityOnSlotBuff slotBuff))
-                    {
-                        //slotBuff.ReplaceGroupId = main;
-                        slotBuff.NewGroupId = main;
-                        Plugin.Logger.LogError($"slotBuff check");
-
-                        try
-                        {
-                            entityManager.SetComponentData(equipBuffEntity, slotBuff);
-                            ctx.Reply("Your weapon has been bloodforged.");
-                        }
-                        catch (Exception e)
-                        {
-                            Plugin.Logger.LogError($"Error setting component data: {e}");
-                        }
-                    }
-                    else
-                    {
-                        ctx.Reply("Your weapon cannot be infused...");
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your weapon cannot be infused..");
-                }
-            }
-            else
-            {
-                ctx.Reply("Your weapon cannot be infused.");
-            }
-        }
-
-        [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "")]
-        public static void Testing(ChatCommandContext ctx)
-        {
-            Entity senderUserEntity = ctx.Event.SenderUserEntity;
-            Entity character = ctx.Event.SenderCharacterEntity;
-            FromCharacter fromCharacter = new FromCharacter()
-            {
-                User = senderUserEntity,
-                Character = character,
-            };
-            Plugin.Logger.LogWarning($"Getting Component");
-            //SocialMenuMapper socialMenuMapper = VWorld.Server.GetExistingSystem<SocialMenuMapper>();
-            //AbilityGroupSlotModificationBuffer buffer = VWorld.Server.EntityManager.GetBuffer<AbilityGroupSlotModificationBuffer>(Character);
-
-            /*
-            ProjectM.WorkstationUnassignInvalidServantsSystem
-            ProjectM.EntityControlSystem
-            ProjectM.AbilitySystemDebug
-            ProjectM.AbilityCooldownSystems
-            ProjectM.WorldUtility
-            ProjectM.WorkstationRecipesBuffer
-            ProjectM.WebApiSettings
-            ProjectM.ConsoleSystem
-            */
-
-            //DynamicBuffer<AbilityGroupSlotModificationBuffer> abilitySlots = uiDataSystem.GetBufferFromEntity<AbilityGroupSlotModificationBuffer>(true)[character];
-            //DynamicBuffer<AbilityGroupSlotModificationBuffer> abilityGroupSlots = VWorld.Server.EntityManager.GetBuffer<AbilityGroupSlotModificationBuffer>(character);
-
-            //DynamicBuffer<AbilityGroupSlotBuffer> abilityGroupSlots = uiDataSystem.GetBufferFromEntity<AbilityGroupSlotBuffer>(false)[character];
-            /*AbilityGroupSlotModificationBuffer abilitySlot = new AbilityGroupSlotModificationBuffer()
-            {
-                Owner = character,
-                Target = character,
-                NewAbilityGroup = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup,
-                Priority = 0,
-                Slot = 7,
-                CopyCooldown = true,
-                CastBlockType = GroupSlotModificationCastBlockType.None,
-            };
-            */
-            //AbilityGroup abilities = VWorld.Server.EntityManager.GetComponentData<AbilityGroup>(character);
-            //AbilityGroupComponent abilities = VWorld.Server.EntityManager.GetComponent<AbilityGroupComponent>(true)[character];
-            //EntityQuery query = __instance.__ConsumeBloodJob_entityQuery; //this seems to be the player entity as it did not have a unit level component
-            //NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
-            // try queries
-
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            ComponentType abilityGroupSlotBufferComponentType = new ComponentType(Il2CppSystem.Type.GetType("ProjectM.AbilityGroupSlotBuffer, ProjectM.Shared"));
-
-            if (entityManager.HasComponent(character, abilityGroupSlotBufferComponentType))
-            {
-                // Get the buffer using non-generic methods
-                if (entityManager.TryGetBuffer(character, out DynamicBuffer<AbilityGroupSlotBuffer> buffer))
-                {
-                    Plugin.Logger.LogWarning($"{buffer.ToString}");
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        Plugin.Logger.LogWarning($"{buffer[i].ShowOnBar}");
-                        Plugin.Logger.LogWarning($"{buffer[i].GroupSlotEntity}");
-                        Plugin.Logger.LogWarning($"{buffer[i].BaseAbilityGroupOnSlot}");
-
-                        var target = buffer[i].GroupSlotEntity;
-                        Plugin.Logger.LogWarning($"{target}");
-
-                        AbilityGroupSlotBuffer abilityGroupSlotBuffer = new AbilityGroupSlotBuffer()
-                        {
-                            BaseAbilityGroupOnSlot = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_AbilityGroup,
-                            ShowOnBar = true,
-                            GroupSlotEntity = target,
-                        };
-                        buffer[i] = abilityGroupSlotBuffer;
-                        //buffer.Run();
-                        Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer Modification Achieved");
-                        /*
-                        ProjectM.UI.AbilityBarParentBinderSystem abilityBarParentBinderSystem = VWorld.Server.GetExistingSystem<ProjectM.UI.AbilityBarParentBinderSystem>();
-                        var abilityBarData = abilityBarParentBinderSystem._Entries_k__BackingField;
-                        var abilityBarEntry = abilityBarParentBinderSystem._UIDataSystem._CommonClientDataSystem;
-                        var abilityBarEntries = abilityBarParentBinderSystem.Entries;
-                        var localUserData = abilityBarParentBinderSystem._UIDataSystem.LocalUser;
-                        var abilityBar = abilityBarParentBinderSystem._UIDataSystem.UI.AbilityBar;
-                        var actionBar = abilityBarParentBinderSystem._UIDataSystem.UI.ActionBar;
-                        var bottomBar = abilityBarParentBinderSystem._UIDataSystem.UI.BottomBar;
-                        var actionWheel = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.ActionWheel._ActionWheelPartList;
-                        var bottomBarParent = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.BottomBarParent;
-                        var bottomBarAbilityBarEntries = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.BottomBarParentPrefab.AbilityBar.Entries;
-                        var bottomBarActionBarEntries = abilityBarParentBinderSystem._UIDataSystem.UI.CanvasBase.BottomBarParentPrefab.ActionBar.Entries;
-                        var UI = abilityBarParentBinderSystem._UIDataSystem.UI;
-                        //UI.CanvasBase
-                        */
-                    }
-                }
-                else
-                {
-                    Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer could not be retrieved");
-                }
-
-                // Modify the buffer as needed
-                // Example: adding a new ability group component
-
-                // Convert the new ability group to an IBufferElementData and add it to the buffer
-
-                // Modify existing elements in the buffer as needed
-                // Note: This requires casting each element to AbilityGroupComponent
-            }
-            else
-            {
-                // The entity does not have an AbilityGroupComponent buffer
-                // Handle accordingly
-                Plugin.Logger.LogWarning($"No AbilityGroupSlotBuffer found");
-            }
-
-            /*
-            AbilityGroupComponent newAbilityGroupComponent = new AbilityGroupComponent()
-            {
-                enabled = true,
-                AbilitySlotPrefabs = weakAbilitiesArray
-            };
-            */
-            // so now I add it to my current AbilityGroup?
-
-            //VWorld.Server.EntityManager.AddComponent(character, abilityGroupComponentType);
-            //DynamicBuffer<AbilityGroupSlotBuffer> buffer = entityManager.GetBuffer<AbilityGroupSlotBuffer>(character);
-        }
-
-        [Command(name: "test1", shortHand: "t1", adminOnly: true, usage: "", description: "")]
-        public static void Testing1(ChatCommandContext ctx)
-        {
-            Entity senderUserEntity = ctx.Event.SenderUserEntity;
-            Entity character = ctx.Event.SenderCharacterEntity;
-            FromCharacter fromCharacter = new FromCharacter()
-            {
-                User = senderUserEntity,
-                Character = character,
-            };
-            Plugin.Logger.LogWarning($"Getting Component");
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            ProjectM.UI.AbilityBarParentBinderSystem abilityBarParentBinderSystem = VWorld.Server.GetExistingSystem<ProjectM.UI.AbilityBarParentBinderSystem>();
-
-            //ComponentType abilityBarComponentType = new ComponentType(Il2CppSystem.Type.GetType("ProjectM.AbilityBarComponent, ProjectM.Shared"));
-            //ComponentType abilityBarComponentType = new(Il2CppSystem.Type.GetType("ProjectM.AbilityBarComponent, ProjectM.Shared"));
-        }
-
-        [Command("control", null, null, "Takes control over hovered NPC (Unstable, work-in-progress)", null, true)]
-        public static void ControlCommand(ChatCommandContext ctx)
-        {
-            Entity senderUserEntity = ctx.Event.SenderUserEntity;
-            Entity character = ctx.Event.SenderCharacterEntity;
-            FromCharacter fromCharacter = new FromCharacter()
-            {
-                User = senderUserEntity,
-                Character = character
-            };
-            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            if (character.Read<EntityInput>().HoveredEntity.Index > 0)
-            {
-                Entity hoveredEntity = senderUserEntity.Read<EntityInput>().HoveredEntity;
-                if (!hoveredEntity.Has<PlayerCharacter>())
-                {
-                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
-                    {
-                        EntityTarget = hoveredEntity,
-                        Target = senderUserEntity.Read<EntityInput>().HoveredEntityNetworkId
-                    };
-
-                    existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
-                    ctx.Reply("Controlling hovered unit");
-                    //get ability slots
-                    EntityManager entityManager = VWorld.Server.EntityManager;
-                    ComponentType abilityGroupSlotBufferComponentType = new ComponentType(Il2CppSystem.Type.GetType("ProjectM.AbilityGroupSlotBuffer, ProjectM.Shared"));
-
-                    if (entityManager.HasComponent(character, abilityGroupSlotBufferComponentType))
-                    {
-                        // Get the buffer using non-generic methods
-                        if (entityManager.TryGetBuffer(character, out DynamicBuffer<AbilityGroupSlotBuffer> buffer))
-                        {
-                            Plugin.Logger.LogWarning($"{buffer}");
-
-                            var target = buffer[6].GroupSlotEntity;
-
-                            AbilityGroupSlotBuffer abilityGroupSlotBuffer = new AbilityGroupSlotBuffer()
-                            {
-                                BaseAbilityGroupOnSlot = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_EmpoweredMelee_AbilityGroup,
-                                ShowOnBar = true,
-                                GroupSlotEntity = target,
-                            };
-                            buffer[6] = abilityGroupSlotBuffer;
-                            Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer Modification Achieved");
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogWarning($"AbilityGroupSlotBuffer could not be retrieved");
-                        }
-                        return;
-                    }
-                }
-                if (PlayerService.TryGetCharacterFromName(senderUserEntity.Read<User>().CharacterName.ToString(), out character))
-                {
-                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
-                    {
-                        EntityTarget = character,
-                        Target = character.Read<NetworkId>()
-                    };
-                    existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
-                    ctx.Reply("Controlling self");
-                }
-                else
-                {
-                    ctx.Reply("An error ocurred while trying to control your original body");
-                }
-            }
         }
 
         public static void LoadData()
