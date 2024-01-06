@@ -29,7 +29,7 @@ namespace RPGAddOns.Core
         public static readonly string PlayerPrestigeJson = Path.Combine(ConfigPath, "player_prestige.json");
 
         public static readonly string PlayerRanksJson = Path.Combine(ConfigPath, "player_ranks.json");
-
+        public static readonly string PlayerDivinityJson = Path.Combine(ConfigPath, "player_divinity.json");
         public static ManualLogSource Logger;
 
         public static int ExtraHealth;
@@ -104,11 +104,11 @@ namespace RPGAddOns.Core
             MaxPrestiges = Config.Bind("Config", "MaxPrestiges", 5, "Maximum number of times players can prestige their level.").Value;
 
             MaxRanks = Config.Bind("Config", "MaxRanks", 5, "Maximum number of times players can rank up.").Value;
-            ItemReward = Config.Bind("Config", "ItemRewards", false, "Gives specified item/quantity to players when resetting if enabled.").Value;
+            ItemReward = Config.Bind("Config", "ItemRewards", true, "Gives specified item/quantity to players when resetting if enabled.").Value;
             ItemPrefab = Config.Bind("Config", "ItemPrefab", -651878258, "Item prefab to give players when resetting. Onyx tears default").Value;
             ItemQuantity = Config.Bind("Config", "ItemQuantity", 3, "Item quantity to give players when resetting.").Value;
-            BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsReset", false, "Grants permanent buff to players when resetting if enabled.").Value;
-            BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", false, "Grants permanent buff to players when prestiging if enabled.").Value;
+            BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsReset", true, "Grants permanent buff to players when resetting if enabled.").Value;
+            BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", true, "Grants permanent buff to players when prestiging if enabled.").Value;
             BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsReset", "[]", "Buff prefabs to give players when resetting. Granted in order, want # buffs == # levels [Buff1, Buff2, etc] to skip buff for a level set it to be 0").Value;
             BuffPrefabsRankUp = Config.Bind("Config", "BuffPrefabsPrestige", "[]", "Buff prefabs to give players when prestiging. Granted in order, want # buffs == # prestige [Buff1, Buff2, etc] if enabled to skip buff for a level set it to be 0").Value;
             /*

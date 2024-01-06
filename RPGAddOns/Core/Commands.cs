@@ -320,5 +320,10 @@ namespace RPGAddOns.Core
         {
             File.WriteAllText(Plugin.PlayerRanksJson, JsonSerializer.Serialize(Databases.playerRanks));
         }
+
+        public static void SavePlayerDivinity()
+        {
+            File.WriteAllText(Plugin.PlayerDivinityJson, JsonSerializer.Serialize(Databases.playerDivinity));
+        }
     }
 }
