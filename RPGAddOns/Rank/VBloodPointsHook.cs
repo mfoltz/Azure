@@ -63,9 +63,7 @@ namespace RPGAddOns.PvERank
                         if (vBloodName == "CHAR_Manticore_VBlood")
                         {
                             //check player positions
-                            // uhhh entity query for player characters, think there are a few easy ways to do that
-                            //hmm if I make pve rank or prestiging to a certain level a requirement I can just check that instead
-                            // check all names in prestiging database for ascension I guess
+
                             float3 divineLocation1NWCorner = new(-1397.987f, 20f, -1221.586f);
                             float3 divineLocation1SWCorner = new(-1386.987f, 20.48779f, -1221.781f);
                             float3 divineLocation1NECorner = new(-1398.22f, 20.56775f, -1214.962f);
@@ -93,11 +91,10 @@ namespace RPGAddOns.PvERank
                         {
                             //check player positions
                         }
-                        if (vBloodName == "CHAR_Cursed_MountainBeast_VBlood")
+                        if (vBloodName == "CHAR_Gloomrot_Monster_VBlood")
                         {
                             //check player positions
                         }
-                        bool isInside = PositionChecker.IsWithinArea(playerPosition, divineLocation1NWCorner, divineLocation1SWCorner, divineLocation1NECorner, divineLocation1SECorner);
 
                         //
                         // so what all do I need to define a zone... wonder if it's easier to make a circle around a point with a radius or 4 points for a square
