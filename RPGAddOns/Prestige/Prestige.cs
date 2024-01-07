@@ -33,10 +33,13 @@ namespace RPGAddOns.Prestige
                     // check for player data and reset level if below max resets else create data and reset level
                     if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
                     {
-                        if (data.Prestiges >= Plugin.MaxPrestiges)
+                        if (data.Prestiges >= Plugin.MaxPrestiges && Plugin.MaxPrestiges != 0)
                         {
                             ctx.Reply("You have reached the maximum number of resets.");
                             return;
+                        }
+                        else
+                        {
                         }
                         ResetLevelFunctions.PlayerPrestige(ctx, playerName, SteamID, data);
                         return;
@@ -81,14 +84,13 @@ namespace RPGAddOns.Prestige
                 if (buffList[data.Prestiges] == 0)
                 {
                     buffname = "string";
-                }
-                if (buffList.Count == Plugin.MaxPrestiges)
-                {
+
                     buffFlag = true;
                     return (buffname, buffguid, buffFlag);
                 }
                 else
                 {
+                    buffFlag = true;
                     return (buffname, buffguid, buffFlag);
                 }
             }
@@ -163,16 +165,23 @@ namespace RPGAddOns.Prestige
                 }
                 if (Plugin.ItemReward)
                 {
+                    int numFrags = Plugin.ItemQuantity * data.Prestiges;
+                    if (numFrags == 0)
+                    {
+                        numFrags = 1;
+                    }
                     var (itemName, itemguid) = ItemCheck();
-                    RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, Plugin.ItemQuantity);
+                    RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, numFrags);
                     ctx.Reply($"You've been awarded with: {Plugin.ItemQuantity} {itemName}");
                 }
-                if (Plugin.PrestigeStats)
+                /*
+                if (Plugin.AscensionStats)
                 {
                     PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
                     ctx.Reply($"You've gained: MaxHealth {FontColors.Red(Plugin.ExtraHealth.ToString())}, PAtk {FontColors.Yellow(Plugin.ExtraPhysicalPower.ToString())}, SAtk {FontColors.Purple(Plugin.ExtraSpellPower.ToString())}, PDef {FontColors.Green(Plugin.ExtraPhysicalResistance.ToString())}, SDef {FontColors.Blue(Plugin.ExtraSpellResistance.ToString())}");
                 }
                 // log player ResetData and save, take away exp
+                */
 
                 data.Prestiges++; data.Buffs = playerBuffs;
                 Commands.SavePlayerPrestige();

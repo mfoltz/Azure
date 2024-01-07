@@ -53,7 +53,7 @@ namespace RPGAddOns.PvERank
                         // need to check for appropriate vblood kill
                         // then ascend player?
                         // should get coordinates and extrapolate to a map if possible
-
+                        //1365358996 prefab for li9ghtning strike on ascension, looks neat
                         UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
                         Entity characterEntity = usermodel.FromCharacter.Character;
                         float3 playerPosition = usermodel.Position;
