@@ -4,7 +4,7 @@
     {
         public int Divinity { get; set; }
 
-        public DivineData(int divinity, List<int> buffs)
+        public DivineData(int divinity)
         {
             Divinity = divinity;
         }

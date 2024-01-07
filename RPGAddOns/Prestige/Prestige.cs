@@ -168,7 +168,7 @@ namespace RPGAddOns.Prestige
                     }
                     var (itemName, itemguid) = ItemCheck();
                     RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, numFrags);
-                    ctx.Reply($"You've been awarded with: {Plugin.ItemQuantity} {itemName}");
+                    ctx.Reply($"You've been awarded with: {numFrags} {itemName}");
                 }
                 if (Plugin.BuffRewardsPrestige)
                 {

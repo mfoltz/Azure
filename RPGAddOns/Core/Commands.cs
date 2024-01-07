@@ -1,18 +1,14 @@
-﻿using AdminCommands;
-using Bloodstone.API;
-using ProjectM;
-using ProjectM.Network;
-using ProjectM.UI;
+﻿using Bloodstone.API;
 using RPGAddOns.Divinity;
 using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Unity.Entities;
 using Unity.Mathematics;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
+using StunShared;
 
 namespace RPGAddOns.Core
 {
@@ -166,11 +162,11 @@ namespace RPGAddOns.Core
             // Find the user's SteamID based on the playerName
 
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
-            ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
+            ulong SteamID = ctx.User.PlatformId;
             if (Databases.playerPrestige.ContainsKey(SteamID))
             {
                 // Reset the user's progress
-                Databases.playerPrestige[SteamID] = new PrestigeData(0, []);
+                Databases.playerPrestige[SteamID] = new PrestigeData(0, 0);
                 SavePlayerPrestige();  // Assuming this method saves the data to a persistent storage
 
                 ctx.Reply($"Progress for player {playerName} has been wiped.");
@@ -206,10 +202,28 @@ namespace RPGAddOns.Core
         public static void GetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
-            ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
+            ulong SteamID = ctx.User.PlatformId;
 
             if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
             {
+                ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Reset Count: {data.Prestiges}, Buffs: {data.Buffs}");
+            }
+            else
+            {
+                ctx.Reply($"Player {playerName} not found or no reset data available.");
+            }
+        }
+
+        [Command(name: "setplayerprestige", shortHand: "spr", adminOnly: true, usage: ".rpg spr <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
+        public static void SetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName, int count)
+        {
+            RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
+            ulong SteamID = ctx.User.PlatformId;
+
+            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+            {
+                data.Prestiges = count;
+                Commands.SavePlayerPrestige();
                 ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Reset Count: {data.Prestiges}, Buffs: {data.Buffs}");
             }
             else
@@ -278,18 +292,18 @@ namespace RPGAddOns.Core
                 stream.Dispose();
             }
             string json3 = File.ReadAllText(Plugin.PlayerDivinityJson);
-            Plugin.Logger.LogWarning($"PlayerRanks found: {json2}");
+            Plugin.Logger.LogWarning($"PlayerDivinity found: {json3}");
 
             try
             {
                 Databases.playerDivinity = JsonSerializer.Deserialize<Dictionary<ulong, DivineData>>(json3);
-                Plugin.Logger.LogWarning("PlayerRanks Populated");
+                Plugin.Logger.LogWarning("PlayerDivinity populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
                 Databases.playerDivinity = new Dictionary<ulong, DivineData>();
-                Plugin.Logger.LogWarning("PlayerRanks Created");
+                Plugin.Logger.LogWarning("PlayerDivinity Created");
             }
         }
 

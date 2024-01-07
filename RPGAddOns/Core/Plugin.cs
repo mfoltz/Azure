@@ -3,14 +3,11 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
-using ProjectM;
-using ProjectM.UI;
+using StunShared.UI;
 using System.Reflection;
 using Unity.Entities;
-using UnityEngine;
 using VampireCommandFramework;
 using VRising.GameData;
-using WillisCore.Patches;
 
 namespace RPGAddOns.Core
 {
