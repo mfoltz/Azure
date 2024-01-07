@@ -156,8 +156,5 @@ namespace RPGAddOns.Core
         public void OnGameInitialized()
         {
         }
-
-        //client cast group probably where the cast group goes for the ability
-        //UIDataSystem.UIComponents[AbilityBar_Server[]
     }
 }

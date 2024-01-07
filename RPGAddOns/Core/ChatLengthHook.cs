@@ -17,7 +17,7 @@ namespace RPGAddOns.Core
         public static void LimitString(ref string text, ref int length)
         {
             // Modify the length parameter before the original method is executed
-            length = length * 5;
+            length = length * 2;
         }
     }
 }

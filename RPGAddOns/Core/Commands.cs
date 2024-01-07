@@ -3,9 +3,11 @@ using Bloodstone.API;
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.UI;
+using RPGAddOns.Divinity;
 using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Unity.Entities;
 using Unity.Mathematics;
 using VampireCommandFramework;
@@ -20,6 +22,11 @@ namespace RPGAddOns.Core
         [Command(name: "visualbuff", shortHand: "vb", adminOnly: true, usage: ".rpg vb <#>", description: "Applies a visual buff you've earned through prestige.")]
         public static void VisualBuffCommand(ChatCommandContext ctx, int buff)
         {
+            if (Plugin.BuffRewardsPrestige == false)
+            {
+                ctx.Reply("Visual buffs are disabled.");
+                return;
+            }
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
             ulong SteamID = user.PlatformId;
@@ -28,15 +35,8 @@ namespace RPGAddOns.Core
             // check if player has prestiged
             if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
             {
-                // check if player level is high enough to have buff
-                if (data.Prestiges >= buff)
-                {
-                    // it should remove the previous one without me specifiying it
-                }
-                else
-                {
-                    ctx.Reply("You haven't prestiged enough times for that buff.");
-                }
+                // handle applying chosen visual buff
+                Prestige.PrestigeSystem.PrestigeFunctions.BuffCheck(ctx, buff, data);
             }
             else
             {
@@ -113,7 +113,7 @@ namespace RPGAddOns.Core
         }
 
         [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: ".rpg pr", description: "Resets your level to 1 after reaching max level, offering extra perks.")]
-        public static void ResetLevelCommand(ChatCommandContext ctx)
+        public static void PrestigeCommand(ChatCommandContext ctx)
         {
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
@@ -123,7 +123,7 @@ namespace RPGAddOns.Core
             // Call the ResetLevel method from ResetLevelRPG
 
             //EntityManager entityManager = default;
-            ResetLevel.ResetPlayerLevel(ctx, name, SteamID);
+            PrestigeSystem.PrestigeCheck(ctx, name, SteamID);
         }
 
         [Command(name: "getrank", shortHand: "gr", adminOnly: false, usage: ".rpg gr", description: "Displays your current rank points and progress towards the next rank along with current rank.")]
@@ -159,43 +159,6 @@ namespace RPGAddOns.Core
                 ctx.Reply("You have not prestiged yet.");
             }
         }
-
-        /*
-        [Command(name: "getrankbuffs", shortHand: "grb", adminOnly: false, usage: ".rpg grb", description: "Checks and displays the buffs received from your current rank.")]
-        public static void CheckRankBuffsCommand(ChatCommandContext ctx)
-
-        {
-            var user = ctx.Event.User;
-            ulong SteamID = user.PlatformId;
-
-            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
-            {
-                var buffs = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
-                ctx.Reply($"Your current rank buffs are: {buffs}");
-            }
-            else
-            {
-                ctx.Reply("You have not received any rank buffs yet.");
-            }
-        }
-
-        [Command(name: "getprestigebuffs", shortHand: "gpb", adminOnly: false, usage: ".rpg gpb", description: "Shows the permanent buffs you've gained from prestige resets.")]
-        public static void CheckBuffsCommand(ChatCommandContext ctx)
-        {
-            var user = ctx.Event.User;
-            ulong SteamID = user.PlatformId;
-
-            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
-            {
-                var buffs = data.Buffs.Count > 0 ? string.Join(", ", data.Buffs) : "None";
-                ctx.Reply($"Your current buffs are: {buffs}");
-            }
-            else
-            {
-                ctx.Reply("You have not received any buffs yet.");
-            }
-        }
-        */
 
         [Command(name: "wipeprestige", shortHand: "wpr", adminOnly: true, usage: ".rpg wpr <PlayerName>", description: "Resets a player's prestige count.")]
         public static void WipePrestigeCommand(ChatCommandContext ctx, string playerName)
@@ -240,7 +203,7 @@ namespace RPGAddOns.Core
         }
 
         [Command(name: "getplayerprestige", shortHand: "gpr", adminOnly: true, usage: ".rpg gpr <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
-        public static void GetPlayerResetDataCommand(ChatCommandContext ctx, string playerName)
+        public static void GetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = (ulong)VWorld.Server.EntityManager.GetComponentData<PlatformID>(playerEntity);
@@ -307,6 +270,25 @@ namespace RPGAddOns.Core
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
                 Databases.playerRanks = new Dictionary<ulong, RankData>();
+                Plugin.Logger.LogWarning("PlayerRanks Created");
+            }
+            if (!File.Exists(Plugin.PlayerDivinityJson))
+            {
+                var stream = File.Create(Plugin.PlayerDivinityJson);
+                stream.Dispose();
+            }
+            string json3 = File.ReadAllText(Plugin.PlayerDivinityJson);
+            Plugin.Logger.LogWarning($"PlayerRanks found: {json2}");
+
+            try
+            {
+                Databases.playerDivinity = JsonSerializer.Deserialize<Dictionary<ulong, DivineData>>(json3);
+                Plugin.Logger.LogWarning("PlayerRanks Populated");
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError($"Error deserializing data: {ex}");
+                Databases.playerDivinity = new Dictionary<ulong, DivineData>();
                 Plugin.Logger.LogWarning("PlayerRanks Created");
             }
         }
