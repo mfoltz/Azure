@@ -2,6 +2,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
+using Bloodstone.Hooks;
 using HarmonyLib;
 using StunShared.UI;
 using System.Reflection;
@@ -144,7 +145,6 @@ namespace RPGAddOns.Core
             Commands.SavePlayerPrestige();
             Commands.SavePlayerRanks();
             KeybindManager.Unregister(configKeybinding);
-
             Config.Clear();
             _harmony.UnpatchSelf();
             return true;

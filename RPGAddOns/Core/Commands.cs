@@ -1,14 +1,18 @@
 ﻿using Bloodstone.API;
+using ProjectM;
+using ProjectM.Network;
 using RPGAddOns.Divinity;
 using RPGAddOns.Prestige;
 using RPGAddOns.PvERank;
 using System.Text.Json;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
-using StunShared;
+using WillisCore;
+using Timer = System.Timers.Timer;
 
 namespace RPGAddOns.Core
 {
@@ -26,7 +30,6 @@ namespace RPGAddOns.Core
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
             ulong SteamID = user.PlatformId;
-            string StringID = SteamID.ToString();
 
             // check if player has prestiged
             if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
@@ -214,7 +217,7 @@ namespace RPGAddOns.Core
             }
         }
 
-        [Command(name: "setplayerprestige", shortHand: "spr", adminOnly: true, usage: ".rpg spr <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
+        [Command(name: "setplayerprestige", shortHand: "spr", adminOnly: true, usage: ".rpg spr <PlayerName> <#>", description: "Retrieves the prestige count and buffs for a specified player.")]
         public static void SetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName, int count)
         {
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
@@ -243,6 +246,139 @@ namespace RPGAddOns.Core
             Entity player = usermodel.FromCharacter.Character;
             float3 playerPosition = usermodel.Position;
             Plugin.Logger.LogError($"{playerPosition}");
+        }
+
+        [Command("control", null, null, "Takes control over hovered NPC (Unstable, work-in-progress)", null, true)]
+        public static void ControlCommand(ChatCommandContext ctx)
+        {
+            Entity senderUserEntity = ctx.Event.SenderUserEntity;
+            Entity Character = ctx.Event.SenderCharacterEntity;
+            FromCharacter fromCharacter = new FromCharacter()
+            {
+                User = senderUserEntity,
+                Character = Character
+            };
+            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            if (Character.Read<EntityInput>().HoveredEntity.Index > 0)
+            {
+                Entity hoveredEntity = senderUserEntity.Read<EntityInput>().HoveredEntity;
+                if (!hoveredEntity.Has<PlayerCharacter>())
+                {
+                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                    {
+                        EntityTarget = hoveredEntity,
+                        Target = senderUserEntity.Read<EntityInput>().HoveredEntityNetworkId
+                    };
+                    existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
+                    ctx.Reply("Controlling hovered unit");
+                    return;
+                }
+            }
+            if (PlayerService.TryGetCharacterFromName(senderUserEntity.Read<User>().CharacterName.ToString(), out Character))
+            {
+                ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                {
+                    EntityTarget = Character,
+                    Target = Character.Read<NetworkId>()
+                };
+                existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
+                ctx.Reply("Controlling self");
+            }
+            else
+                ctx.Reply("An error ocurred while trying to control your original body");
+        }
+
+        private static readonly Timer timer;
+
+        [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "")]
+        public static void TestCommandPleaseIgnore(ChatCommandContext ctx)
+        {
+            Entity senderUserEntity = ctx.Event.SenderUserEntity;
+            Entity Character = ctx.Event.SenderCharacterEntity;
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            //DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            /*
+            existingSystem.SetDebugSetting
+            existingSystem.CastAbilityServerDebugEvent
+            existingSystem.GiveEvent
+            existingSystem.JumpToNextBloodMoon
+            existingSystem.SetUserContentDebugEvent
+            existingSystem.SpawnCharmeableDebugEvent
+            existingSystem.
+                        //var testZar = senderUserEntity.Read<SyncedInputState>().InputsPressed.ToInputFlag();
+            //Timer timer = new Timer(5000);
+            //var testZar = senderUserEntity.Read<ProjectM.UI.VBloodTrackingEntry>(); // only active client side probably, need to test and see if event can be intercepted
+            //var testWar = senderUserEntity.Read<ProjectM.UI.SocialMenu>();
+            */
+
+            //var testXar = senderUserEntity.Read<ProjectM.EntityInput>().State.InputsPressed.ToInputFlag();
+            WillisCore.ECSExtensions.LogComponentTypes(Character);
+            WillisCore.ECSExtensions.LogComponentTypes(senderUserEntity);
+            Plugin.Logger.LogInfo($"Begin test");
+
+            //serverbootstrapsystem serverclient events when new clients join server
+            ProjectM.UI.SocialMenu socialMenu = new ProjectM.UI.SocialMenu();
+            ServerBootstrapSystem serverBootstrapSystem = VWorld.Server.GetExistingSystem<ServerBootstrapSystem>();
+            Plugin.Logger.LogInfo($"{serverBootstrapSystem}");
+            if (serverBootstrapSystem == null)
+            {
+                Plugin.Logger.LogInfo($"ServerBootstrapSystem is null");
+            }
+            else
+            {
+                Plugin.Logger.LogInfo($"ServerBootstrapSystem is not null");
+            }
+            // GameClientSettings
+            GameBootstrap gameBootstrap = serverBootstrapSystem.GameBootstrap;
+            Plugin.Logger.LogInfo($"{gameBootstrap}");
+            if (gameBootstrap == null)
+            {
+                Plugin.Logger.LogInfo($"GameBootstrapSystem is null");
+            }
+            else
+            {
+                Plugin.Logger.LogInfo($"GameBootstrapSystem is not null");
+            }
+
+            // try to get bar entity from hovering or query for it even if the entity doesnt have the component at the time
+            //ctx.Reply($"{testZar}");            ctx.Reply($"{testXar}");
+
+            var queryChar = entityManager.CreateEntityQuery(new EntityQueryDesc()
+            {
+                All = new ComponentType[]
+                {
+                        ComponentType.ReadOnly<ProjectM.UI.CharacterHUDEntry>(),
+                        //ComponentType.ReadOnly<Team>(),
+                        //ComponentType.ReadOnly<CastleHeartConnection>(),
+                        //ComponentType.ReadOnly<BlueprintData>(),
+                        //ComponentType.ReadOnly<BlobAssetOwner>(),
+                        //ComponentType.ReadOnly<TileModelRegistrationState>(),
+                },
+                Options = true ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+            });
+            var queryCanv = entityManager.CreateEntityQuery(new EntityQueryDesc()
+            {
+                All = new ComponentType[]
+                {
+                    ComponentType.ReadOnly<ProjectM.UI.UICanvasBase>(),
+                },
+                Options = true ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+            });
+            var queryUIdata = entityManager.CreateEntityQuery(new EntityQueryDesc()
+            {
+                All = new ComponentType[]
+                {
+                    ComponentType.ReadOnly<ProjectM.UI.UIDataSystem>(),
+                },
+                Options = true ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+            });
+            var charQuery = queryChar.ToEntityArray(Allocator.TempJob);
+            var canvQuery = queryCanv.ToEntityArray(Allocator.TempJob);
+            var uiDataQuery = queryUIdata.ToEntityArray(Allocator.TempJob);
+            var characterEntry = new Queue<Entity>(charQuery.ToArray());
+            var canvasEntry = new Queue<Entity>(canvQuery.ToArray());
+            var uiDataEntry = new Queue<Entity>(uiDataQuery.ToArray());
+            Plugin.Logger.LogInfo($"{characterEntry} || {canvasEntry} || {uiDataEntry}");
         }
 
         public static void LoadData()

@@ -93,7 +93,7 @@ namespace RPGAddOns.Prestige
                         {
                             PrefabGUID buffguid = new(buffList[buff]);
                             // buff good to apply, 0 means no buff
-                            WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguid, -1, true);
+                            WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
                             data.Buffs = buffList[buff];
                             Commands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");
@@ -105,7 +105,7 @@ namespace RPGAddOns.Prestige
                             PrefabGUID buffguidold = new(data.Buffs);
                             WillisCore.Helper.UnbuffCharacter(ctx.Event.SenderCharacterEntity, buffguidold);
                             PrefabGUID buffguidnew = new(buffList[buff]);
-                            WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguidnew, -1, true);
+                            WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
                             data.Buffs = buffList[buff];
                             Commands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");

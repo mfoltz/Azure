@@ -2,12 +2,14 @@
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.UI;
 using RPGAddOns.Core;
 using Unity.Entities;
 using Unity.Mathematics;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
+using WillisCore;
 using Math = System.Math;
 using Random = System.Random;
 
@@ -28,6 +30,7 @@ namespace RPGAddOns.PvERank
 
                 //EntityManager entityManager = __instance.EntityManager;
                 EntityManager entityManager = VWorld.Server.EntityManager;
+
                 foreach (var _event in __instance.EventList)
                 {
                     if (!VWorld.Server.EntityManager.TryGetComponentData(_event.Target, out PlayerCharacter playerData)) continue;
@@ -44,6 +47,7 @@ namespace RPGAddOns.PvERank
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
+                    var testWar = user.Read<ProjectM.UI.GoToHUDMenu>();
 
                     try
                     {
