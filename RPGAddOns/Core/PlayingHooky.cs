@@ -42,7 +42,10 @@ namespace RPGAddOns.Core
                 Plugin.Logger.LogInfo($"{serverClient.NetConnectionId.GetHashCode().ToString()} connected.");
 
                 BootstrapManager.Instance.Bootstraps(netConnectionId, __instance._GameBootstrap);
-                CoroutineHelper.Instance.StartCoroutine(LoadSceneIfNotLoaded(serverClient.NetConnectionId.ToString()));
+                Plugin.Logger.LogInfo("Starting coroutine for loading scene.");
+
+                ScenePoolManager.Instance.LoadPlayerScene(serverClient.NetConnectionId.ToString());
+
                 // actually do this somewhere inside loadsceneifnotloaded
             }
             catch (Exception ex)
@@ -51,9 +54,10 @@ namespace RPGAddOns.Core
             }
         }
 
-        private static IEnumerator LoadSceneIfNotLoaded(string identifier)
+        private static IEnumerator LoadSceneInstanceIfNotLoaded(string identifier)
         {
             string sceneName = "UIEntryPoint";
+            // if no instance of the scene is loaded, load the instance then load the player scene from the thing
             if (!SceneManager.GetSceneByName(sceneName).isLoaded)
             {
                 // only want to modify the name for it here after LoadSceneIfNotLoaded is called I think
@@ -62,6 +66,7 @@ namespace RPGAddOns.Core
                 // Wait until the asynchronous scene fully loads
                 while (!asyncLoad.isDone)
                 {
+                    Plugin.Logger.LogInfo("Loading scene: " + asyncLoad.progress * 100 + "% complete");
                     yield return null;
                 }
 
@@ -105,13 +110,21 @@ namespace RPGAddOns.Core
             {
                 get
                 {
-                    if (_instance == null)
+                    try
                     {
-                        var gameObject = new GameObject("CoroutineHelper");
-                        _instance = gameObject.AddComponent<CoroutineHelper>();
-                        DontDestroyOnLoad(gameObject);
+                        if (_instance == null)
+                        {
+                            var gameObject = new GameObject("CoroutineHelper");
+                            _instance = gameObject.AddComponent<CoroutineHelper>();
+                            DontDestroyOnLoad(gameObject);
+                        }
+                        return _instance;
                     }
-                    return _instance;
+                    catch (Exception ex)
+                    {
+                        Plugin.Logger.LogError("Error in CoroutineHelper: " + ex.Message);
+                        return null;
+                    }
                 }
             }
 
@@ -229,14 +242,31 @@ namespace RPGAddOns.Core
 
     public class ScenePoolManager
     {
+        private static ScenePoolManager _instance;
+
+        public static ScenePoolManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new ScenePoolManager();
+                }
+                return _instance;
+            }
+        }
+
         private Dictionary<string, Scene> scenePool = new Dictionary<string, Scene>();
 
-        // Load and store a scene in the pool
+        // if multiple players are online the server has a unique scene for each player which is why I make sure they
+        // can be referred to uniquely when loading them again
         public void LoadPlayerScene(string identifier)
         {
             string sceneName = "UIEntryPoint";
             if (!scenePool.ContainsKey(identifier))
             {
+                Plugin.Logger.LogInfo("Starting coroutine for loading scene.");
+
                 CoroutineHelper.Instance.StartCoroutine(LoadSceneCoroutine(sceneName, identifier));
             }
         }
@@ -252,30 +282,30 @@ namespace RPGAddOns.Core
         }
 
         // Activate a scene from the pool
-        public void ActivateScene(string sceneName)
+        public void ActivateScene(string identifier)
         {
-            if (scenePool.TryGetValue(sceneName, out Scene scene))
+            if (scenePool.TryGetValue(identifier, out Scene scene))
             {
                 SceneManager.SetActiveScene(scene);
             }
         }
 
         // Deactivate a scene (but keep it in memory)
-        public void DeactivateScene(string sceneName)
+        public void DeactivateScene(string identifier)
         {
-            if (scenePool.TryGetValue(sceneName, out Scene scene))
+            if (scenePool.TryGetValue(identifier, out Scene scene))
             {
                 // Add logic to deactivate the scene (e.g., hide UI elements, pause updates)
             }
         }
 
         // Unload a scene to free up memory
-        public void UnloadScene(string sceneName)
+        public void UnloadScene(string identifier)
         {
-            if (scenePool.TryGetValue(sceneName, out Scene scene))
+            if (scenePool.TryGetValue(identifier, out Scene scene))
             {
                 SceneManager.UnloadSceneAsync(scene);
-                scenePool.Remove(sceneName);
+                scenePool.Remove(identifier);
             }
         }
 
