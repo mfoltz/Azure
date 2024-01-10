@@ -13,6 +13,10 @@ using Unity.Mathematics;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Mono;
+using UnityEngine.SceneManagement;
+using System.Collections;
+using BepInEx.Unity.IL2CPP.Utils;
+using static RPGAddOns.Core.OnUserConnectedPatch;
 
 namespace RPGAddOns.Core
 {
@@ -28,88 +32,90 @@ namespace RPGAddOns.Core
             {
                 var entityManager = __instance.EntityManager;
                 var gameBootstrap = __instance._GameBootstrap;
-                var networkManager = __instance._NetServer;
-                //var clientCreate = __instance._GameBootstrap.ClientCreateData;
-                //var sceneUI = __instance._GameBootstrap.UIAssetsSubScene;
-                //var sceneHUD = __instance._GameBootstrap.HUDSubScene;
 
                 var helper = new Helpers();
-                // can I get the component from the player client and force it to active or something?
-                var charHUDEntryCollection = gameBootstrap.CharacterHUDEntryCollection;
-                //var instance = gameBootstrap.CharacterHUDEntryCollection;
                 var userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
                 var serverClient = __instance._ApprovedUsersLookup[userIndex];
                 var userData = serverClient.UserEntity;
-                Plugin.Logger.LogInfo($"{userData}");
+                //Plugin.Logger.LogInfo($"{userData}");
 
-                Plugin.Logger.LogInfo($"{serverClient.UserEntity.ToString} connected.");
-                CharacterHUDEntryType characterHUDEntryType = CharacterHUDEntryType.Character;
-                WeakAssetReference<UnityEngine.GameObject> weakAssetReference = charHUDEntryCollection;
-                Plugin.Logger.LogInfo($"{weakAssetReference}");
-                if (weakAssetReference.IsReferenceSet && !weakAssetReference.WasCollected)
-                {
-                    // asset ref still loaded so uh cool, proceed
+                Plugin.Logger.LogInfo($"{serverClient.NetConnectionId.GetHashCode().ToString()} connected.");
 
-                    //AssetGuid assetGuid = weakAssetReference.GetAssetGuid();//IL2CPP.il2cpp_runtime_invoke
-                    AssetGuid assetGuid = AssetGuid.FromString(weakAssetReference.AssetGuid);
-                    Il2CppSystem.Object gameObject = assetGuid.BoxIl2CppObject();
-                    Plugin.Logger.LogInfo($"{assetGuid}");
-                    //Il2CppSystem.Type targetType = Il2CppSystem.Type.GetType("CharacterHUDEntry");//IL2CPP.il2cpp_runtime_invoke
-                    IntPtr intPtr = gameObject.Pointer;
-                    CharacterHUDEntryCollection hudEntryCollection = new CharacterHUDEntryCollection(intPtr);
-                    //GameObject charHUDEntry = hudEntryCollection.GetCharacterHUD(characterHUDEntryType);//IL2CPP.il2cpp_runtime_invoke
-                    //Plugin.Logger.LogInfo($"{charHUDEntry}");
-
-                    /*
-                    if (weakAssetReference.IsReferenceSet && !weakAssetReference.WasCollected)
-                    {
-                        // asset ref still loaded so uh cool, proceed
-
-                        //AssetGuid assetGuid = weakAssetReference.GetAssetGuid();//IL2CPP.il2cpp_runtime_invoke
-                        AssetGuid assetGuid = AssetGuid.FromString(weakAssetReference.AssetGuid);
-                        Il2CppSystem.Object gameObject = assetGuid.BoxIl2CppObject();
-                        Plugin.Logger.LogInfo($"{assetGuid}");
-                        //Il2CppSystem.Type targetType = Il2CppSystem.Type.GetType("CharacterHUDEntry");//IL2CPP.il2cpp_runtime_invoke
-                        IntPtr intPtr = gameObject.Pointer;
-                        CharacterHUDEntryCollection hudEntryCollection = new CharacterHUDEntryCollection(intPtr);
-                        GameObject charHUDEntry = hudEntryCollection.GetCharacterHUD(characterHUDEntryType);//IL2CPP.il2cpp_runtime_invoke
-                        Plugin.Logger.LogInfo($"{charHUDEntry}");
-                        if (charHUDEntry.WasCollected)
-                        {
-                            Plugin.Logger.LogInfo($"-garbage truck noises-");
-                            return;
-                        }
-                        else
-                        {
-                            Il2CppSystem.Type targetType = helper.SystemTypeGet(typeof(CharacterHUDEntry));
-                            Plugin.Logger.LogInfo($"{targetType}");
-                            // spot to add to
-                            GameObject HUDCanvas = (GameObject)GameObject.FindWithTag("HUDCanvas");
-                            Plugin.Logger.LogInfo($"{HUDCanvas.name}");
-                            Plugin.Logger.LogInfo($"{HUDCanvas.Pointer}");
-                            Plugin.Logger.LogInfo($"{HUDCanvas.m_CachedPtr}");
-                            Plugin.Logger.LogInfo($"{HUDCanvas.activeSelf}");
-                            Plugin.Logger.LogInfo($"{HUDCanvas.activeInHierarchy}");
-                            Plugin.Logger.LogInfo($"{HUDCanvas.scene}");
-                            Plugin.Logger.LogInfo($"{HUDCanvas.tag}");
-
-                            Plugin.Logger.LogInfo($"soooooon");
-                        }
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo($"Asset ref not set");
-                    }*/
-                }
-                else
-                {
-                    Plugin.Logger.LogInfo($"Asset ref not set");
-                }
+                BootstrapManager.Instance.Bootstraps(netConnectionId, __instance._GameBootstrap);
+                CoroutineHelper.Instance.StartCoroutine(LoadSceneIfNotLoaded(serverClient.NetConnectionId.ToString()));
+                // actually do this somewhere inside loadsceneifnotloaded
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError(ex);
             }
+        }
+
+        private static IEnumerator LoadSceneIfNotLoaded(string identifier)
+        {
+            string sceneName = "UIEntryPoint";
+            if (!SceneManager.GetSceneByName(sceneName).isLoaded)
+            {
+                // only want to modify the name for it here after LoadSceneIfNotLoaded is called I think
+                AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+                // Wait until the asynchronous scene fully loads
+                while (!asyncLoad.isDone)
+                {
+                    yield return null;
+                }
+
+                Plugin.Logger.LogInfo($"{identifier} scene has been loaded.");
+                Scene loadedScene = SceneManager.GetSceneByName(sceneName);
+                SceneManager.SetActiveScene(loadedScene);
+                GameObject inventoryBackground = FindGameObjectInScene(loadedScene, "InventoryBackground");
+                if (inventoryBackground != null)
+                {
+                    inventoryBackground.SetActive(true); // Activate the GameObject
+                }
+                else
+                {
+                    Plugin.Logger.LogError("InventoryBackground GameObject not found in the loaded scene.");
+                }
+
+                // Method to find a GameObject by name in a given scene
+            }
+            else
+            {
+                Plugin.Logger.LogInfo($"{identifier} scene is already loaded.");
+            }
+        }
+
+        private static GameObject FindGameObjectInScene(Scene scene, string gameObjectName)
+        {
+            foreach (GameObject rootGameObject in scene.GetRootGameObjects())
+            {
+                Transform foundTransform = rootGameObject.transform.Find(gameObjectName);
+                if (foundTransform != null)
+                    return foundTransform.gameObject;
+            }
+            return null;
+        }
+
+        public class CoroutineHelper : MonoBehaviour
+        {
+            private static CoroutineHelper _instance;
+
+            public static CoroutineHelper Instance
+            {
+                get
+                {
+                    if (_instance == null)
+                    {
+                        var gameObject = new GameObject("CoroutineHelper");
+                        _instance = gameObject.AddComponent<CoroutineHelper>();
+                        DontDestroyOnLoad(gameObject);
+                    }
+                    return _instance;
+                }
+            }
+
+            // Other methods as needed
         }
     }
 
@@ -201,8 +207,9 @@ namespace RPGAddOns.Core
         }
     }
 
-    public class UIManager
+    public class BootstrapManager
     {
+        public static BootstrapManager Instance { get; } = new BootstrapManager();
         private Dictionary<NetConnectionId, GameBootstrap> playerGameBootstrapInstances = new Dictionary<NetConnectionId, GameBootstrap>();
 
         public void Bootstraps(NetConnectionId connectionId, GameBootstrap gameBootstrap)
@@ -218,9 +225,64 @@ namespace RPGAddOns.Core
             }
             return null;
         }
+    }
 
-        public class ServerScript
+    public class ScenePoolManager
+    {
+        private Dictionary<string, Scene> scenePool = new Dictionary<string, Scene>();
+
+        // Load and store a scene in the pool
+        public void LoadPlayerScene(string identifier)
         {
+            string sceneName = "UIEntryPoint";
+            if (!scenePool.ContainsKey(identifier))
+            {
+                CoroutineHelper.Instance.StartCoroutine(LoadSceneCoroutine(sceneName, identifier));
+            }
+        }
+
+        private IEnumerator LoadSceneCoroutine(string sceneName, string identifier)
+        {
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            yield return asyncLoad;
+
+            Scene loadedScene = SceneManager.GetSceneByName(sceneName);
+            SceneManager.SetActiveScene(loadedScene);
+            scenePool.Add(identifier, loadedScene);
+        }
+
+        // Activate a scene from the pool
+        public void ActivateScene(string sceneName)
+        {
+            if (scenePool.TryGetValue(sceneName, out Scene scene))
+            {
+                SceneManager.SetActiveScene(scene);
+            }
+        }
+
+        // Deactivate a scene (but keep it in memory)
+        public void DeactivateScene(string sceneName)
+        {
+            if (scenePool.TryGetValue(sceneName, out Scene scene))
+            {
+                // Add logic to deactivate the scene (e.g., hide UI elements, pause updates)
+            }
+        }
+
+        // Unload a scene to free up memory
+        public void UnloadScene(string sceneName)
+        {
+            if (scenePool.TryGetValue(sceneName, out Scene scene))
+            {
+                SceneManager.UnloadSceneAsync(scene);
+                scenePool.Remove(sceneName);
+            }
+        }
+
+        // Optional: Function to monitor memory usage and unload scenes if needed
+        public void ManageMemoryUsage()
+        {
+            // Implement memory checks and unload scenes if memory threshold is exceeded
         }
     }
 }

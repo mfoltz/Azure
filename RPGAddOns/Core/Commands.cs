@@ -8,11 +8,12 @@ using System.Text.Json;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
 using WillisCore;
-using Timer = System.Timers.Timer;
 
 namespace RPGAddOns.Core
 {
@@ -380,11 +381,98 @@ namespace RPGAddOns.Core
         }
 
         [Command(name: "testing", shortHand: "t1", adminOnly: true, usage: "", description: "")]
-        public static void TestCommandPleaseIgnoreTheSecond()
+        public static void TestCommandPleaseIgnoreTheSecond(ChatCommandContext ctx)
         {
-            // scramble game mode hype
+            // scramble game mode hype also test HUD modding and everything else
             // uhhh try it on current world and see what happens? lol
-            ScrambleGameModeSystem scrambleGameModeSystem = VWorld.Client.GetExistingSystem<ScrambleGameModeSystem>();
+            ScrambleGameModeSystem scrambleGameModeSystem = VWorld.Server.GetExistingSystem<ScrambleGameModeSystem>();
+            //var HUD = GameObject.FindObjectOfType<UICanvasBase>();
+            CanvasFinder.ServerSceneManagement.FindScenes();
+            CanvasFinder.ServerSceneManagement.InteractWithUIEntryPoint();
+            CanvasFinder.ServerSceneManagement.LoadUIScene();
+            //var scrambleGameMode = scrambleGameModeSystem.Enabled;
+            Plugin.Logger.LogInfo($" || {scrambleGameModeSystem.Enabled} || {scrambleGameModeSystem.ScrambleSettings} || {scrambleGameModeSystem.Pointer}");
+            // use that for on update
+        }
+
+        public class CanvasFinder : MonoBehaviour
+        {
+            public class ServerSceneManagement
+            {
+                public static void FindScenes()
+                {
+                    for (int i = 0; i < SceneManager.sceneCount; i++)
+                    {
+                        Scene scene = SceneManager.GetSceneAt(i);
+                        if (scene.isLoaded)
+                        {
+                            Plugin.Logger.LogInfo("Active Scene: " + scene.name);
+                        }
+                    }
+                }
+
+                public static void InteractWithUIEntryPoint()
+                {
+                    // Find the UIEntryPoint scene
+                    Scene uiEntryPointScene = SceneManager.GetSceneByName("UIEntryPoint");
+                    if (!uiEntryPointScene.isLoaded)
+                    {
+                        Plugin.Logger.LogInfo("UIEntryPoint scene is not loaded.");
+                        return;
+                    }
+
+                    // Assuming you know the names of the GameObjects you want to interact with
+                    // For example, finding a GameObject named "MainCanvas"
+                    foreach (GameObject obj in uiEntryPointScene.GetRootGameObjects())
+                    {
+                        if (obj.name == "MainCanvas")
+                        {
+                            // Interact with the MainCanvas or its components
+                            Canvas canvasComponent = obj.GetComponent<Canvas>();
+                            if (canvasComponent != null)
+                            {
+                                // Perform actions on the canvas
+                                // For example, enabling/disabling it
+                                canvasComponent.enabled = !canvasComponent.enabled;
+                            }
+
+                            // If you need to find a child GameObject
+                            Transform childTransform = obj.transform.Find("ChildObjectName");
+                            if (childTransform != null)
+                            {
+                                GameObject childObject = childTransform.gameObject;
+                                // Perform actions on the child object
+                                Plugin.Logger.LogInfo($"{childObject.name}");
+                            }
+
+                            break;
+                        }
+                    }
+                }
+
+                public static void LoadUIScene()
+                {
+                    string sceneName = "UIEntryPoint"; // Name of the scene you want to load
+
+                    // Check if the scene is already loaded
+                    if (SceneManager.GetSceneByName(sceneName).isLoaded)
+                    {
+                        Plugin.Logger.LogInfo($"{sceneName} scene is already loaded.");
+                        return;
+                    }
+
+                    // Load the scene
+                    try
+                    {
+                        SceneManager.LoadScene(sceneName, LoadSceneMode.Additive); // Using Additive mode to keep existing scenes
+                        Plugin.Logger.LogInfo($"{sceneName} scene has been loaded.");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Plugin.Logger.LogInfo($"Failed to load {sceneName} scene: {ex.Message}");
+                    }
+                }
+            }
         }
 
         public static void LoadData()
