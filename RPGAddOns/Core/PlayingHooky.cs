@@ -1,13 +1,18 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
 using Il2CppInterop.Runtime;
+using Newtonsoft.Json;
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.UI;
 using Stunlock.Network;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Mono;
 
 namespace RPGAddOns.Core
 {
@@ -23,9 +28,13 @@ namespace RPGAddOns.Core
             {
                 var entityManager = __instance.EntityManager;
                 var gameBootstrap = __instance._GameBootstrap;
-                var helper = new Helpers();
-                Plugin.Logger.LogInfo($"check1");
+                var networkManager = __instance._NetServer;
+                //var clientCreate = __instance._GameBootstrap.ClientCreateData;
+                //var sceneUI = __instance._GameBootstrap.UIAssetsSubScene;
+                //var sceneHUD = __instance._GameBootstrap.HUDSubScene;
 
+                var helper = new Helpers();
+                // can I get the component from the player client and force it to active or something?
                 var charHUDEntryCollection = gameBootstrap.CharacterHUDEntryCollection;
                 //var instance = gameBootstrap.CharacterHUDEntryCollection;
                 var userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
@@ -35,14 +44,10 @@ namespace RPGAddOns.Core
 
                 Plugin.Logger.LogInfo($"{serverClient.UserEntity.ToString} connected.");
                 CharacterHUDEntryType characterHUDEntryType = CharacterHUDEntryType.Character;
-
                 WeakAssetReference<UnityEngine.GameObject> weakAssetReference = charHUDEntryCollection;
                 Plugin.Logger.LogInfo($"{weakAssetReference}");
-
                 if (weakAssetReference.IsReferenceSet && !weakAssetReference.WasCollected)
                 {
-                    Plugin.Logger.LogInfo($"check4");
-
                     // asset ref still loaded so uh cool, proceed
 
                     //AssetGuid assetGuid = weakAssetReference.GetAssetGuid();//IL2CPP.il2cpp_runtime_invoke
@@ -52,26 +57,49 @@ namespace RPGAddOns.Core
                     //Il2CppSystem.Type targetType = Il2CppSystem.Type.GetType("CharacterHUDEntry");//IL2CPP.il2cpp_runtime_invoke
                     IntPtr intPtr = gameObject.Pointer;
                     CharacterHUDEntryCollection hudEntryCollection = new CharacterHUDEntryCollection(intPtr);
-                    GameObject charHUDEntry = hudEntryCollection.GetCharacterHUD(characterHUDEntryType);//IL2CPP.il2cpp_runtime_invoke
-                    Plugin.Logger.LogInfo($"{charHUDEntry}");
-                    if (charHUDEntry == null)
+                    //GameObject charHUDEntry = hudEntryCollection.GetCharacterHUD(characterHUDEntryType);//IL2CPP.il2cpp_runtime_invoke
+                    //Plugin.Logger.LogInfo($"{charHUDEntry}");
+
+                    /*
+                    if (weakAssetReference.IsReferenceSet && !weakAssetReference.WasCollected)
                     {
+                        // asset ref still loaded so uh cool, proceed
+
+                        //AssetGuid assetGuid = weakAssetReference.GetAssetGuid();//IL2CPP.il2cpp_runtime_invoke
+                        AssetGuid assetGuid = AssetGuid.FromString(weakAssetReference.AssetGuid);
+                        Il2CppSystem.Object gameObject = assetGuid.BoxIl2CppObject();
+                        Plugin.Logger.LogInfo($"{assetGuid}");
+                        //Il2CppSystem.Type targetType = Il2CppSystem.Type.GetType("CharacterHUDEntry");//IL2CPP.il2cpp_runtime_invoke
+                        IntPtr intPtr = gameObject.Pointer;
+                        CharacterHUDEntryCollection hudEntryCollection = new CharacterHUDEntryCollection(intPtr);
+                        GameObject charHUDEntry = hudEntryCollection.GetCharacterHUD(characterHUDEntryType);//IL2CPP.il2cpp_runtime_invoke
                         Plugin.Logger.LogInfo($"{charHUDEntry}");
-                    }
-                    else
-                    {
-                        Il2CppSystem.Type targetType = helper.SystemTypeGet(typeof(CharacterHUDEntry));
-                        CharacterHUDEntry charHUD = charHUDEntry.TryGetComponentInternal(targetType) as CharacterHUDEntry;
-                        if (charHUD != null)
+                        if (charHUDEntry.WasCollected)
                         {
-                            charHUD.gameObject.SetActive(true);
-                            Plugin.Logger.LogInfo($"{charHUD}");
+                            Plugin.Logger.LogInfo($"-garbage truck noises-");
+                            return;
                         }
                         else
                         {
-                            Plugin.Logger.LogInfo($"check8");
+                            Il2CppSystem.Type targetType = helper.SystemTypeGet(typeof(CharacterHUDEntry));
+                            Plugin.Logger.LogInfo($"{targetType}");
+                            // spot to add to
+                            GameObject HUDCanvas = (GameObject)GameObject.FindWithTag("HUDCanvas");
+                            Plugin.Logger.LogInfo($"{HUDCanvas.name}");
+                            Plugin.Logger.LogInfo($"{HUDCanvas.Pointer}");
+                            Plugin.Logger.LogInfo($"{HUDCanvas.m_CachedPtr}");
+                            Plugin.Logger.LogInfo($"{HUDCanvas.activeSelf}");
+                            Plugin.Logger.LogInfo($"{HUDCanvas.activeInHierarchy}");
+                            Plugin.Logger.LogInfo($"{HUDCanvas.scene}");
+                            Plugin.Logger.LogInfo($"{HUDCanvas.tag}");
+
+                            Plugin.Logger.LogInfo($"soooooon");
                         }
                     }
+                    else
+                    {
+                        Plugin.Logger.LogInfo($"Asset ref not set");
+                    }*/
                 }
                 else
                 {
@@ -189,6 +217,10 @@ namespace RPGAddOns.Core
                 return gameBootstrap;
             }
             return null;
+        }
+
+        public class ServerScript
+        {
         }
     }
 }

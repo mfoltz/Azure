@@ -1,0 +1,221 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Getting Started</title>
+    <style type="text/css" media="screen">
+        body {            
+            margin: 0;
+            padding: 0;
+            border: 0;
+            color: #1E1E1E;
+            font-size: 14px;
+            font-family: "Open Sans Condensed",Arial Narrow,sans-serif;
+            font-weight: 400;
+            line-height: 1.45;
+            word-wrap: break-word;
+        }
+        .container {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: block;
+            margin: 0;
+            border-bottom: 1px solid #d7d7d7;
+            padding-bottom: 1em;
+            margin-bottom: 1em;
+        }
+        
+        :link, :visited {
+            border-bottom: 1px dotted #bbb;
+            color: #1d84bf;
+            text-decoration: none;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+        }
+
+        #header {
+            color: #FFF;
+            background: #124C7A;
+            position: relative;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.2);
+            height: 80px;
+        }
+
+        #header_border {
+            height: 8px;
+            width: 100%;
+            background: #2fa6e2;
+            position: relative;
+            z-index: -9;
+        }
+
+        #logo {
+            float: left;
+            margin: 17px 0 0 17px;
+        }
+
+        h1, h2 {
+            font-family: "Segoe UI Light", "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1;
+            margin: 0 18px;
+            padding: 0;
+        }
+
+        #header h1 {
+            font-size: 2.4em;
+            padding: 22px 0 0 0;
+            margin: 0;
+            font-weight: normal;
+            float: right;
+        }
+
+        #header h2 {
+            font-size: 1.5em;
+            margin-top: 10px;
+            padding-bottom: 18px;
+            font-weight: normal;
+        }
+
+        #main_content {
+            width: 100%;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: bolder;
+        }
+
+        #main_content h1 {
+            font-size: 1.8em;
+            margin-top: 34px;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+            #main_content h1:first-child {
+                margin-top: 30px;
+            }
+
+        #main_content h2 {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        p, ul {
+            margin: 11px 18px;
+        }
+
+        #main_content a {
+            color: #06C;
+            text-decoration: none;
+        }
+
+        ul {
+            margin-top: 13px;
+            margin-left: 18px;
+            padding-left: 0;
+        }
+
+        ul li {
+            margin-left: 18px;
+            padding-left: 0;
+        }
+        
+        #lpanel {
+            width: auto;
+            overflow: hidden;
+        }
+
+        #lpanel_inner
+        {
+            padding: 0 0 0 64px;
+            margin-right: 64px;
+        }
+
+        #rpanel ul {
+            list-style-type: none;
+        }
+
+        #rpanel ul li {
+            line-height: 1.8em;
+        }
+
+        #rpanel h1 {
+            text-align: left;
+        }
+
+        #rpanel {
+            padding-top: 24px;
+            width: 400px;
+            float: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">   
+        <svg id="logo" xmlns="http://www.w3.org/2000/svg" width="326" height="47" viewBox="1459 936.4 326 47" enable-background="new 1459 936.4 326 47"><style type="text/css">.st0{fill:#2AA6E2;} .st1{fill:#FFFFFF;}</style><path class="st0" d="M1497.2 942.5l5.1 11.8-11.1 14.8-9.5-1.2 2.4 5.6 9.7 1.1 14.7-19.6-7.6-17.3-9.5-1.2-3.5 4.6 9.3 1.5zm-31.6 15.5l7.6-10.3 18.3 2.3 3.7 8.7 3.7-4.8-3.9-8.9-24.3-3-11.2 15.2 3.8 8.9 5.7.7-3.4-8.8zm29.2 19.6l-12.7-1.4-7.2-17h-.1l5.8-7.6-6.1-.8-5.7 7.8 9.5 22.5 18.9 2.2 5.7-7.7-2.2-5.4z"/><path class="st1" d="M1544.1 965.9h-.3c-.6 0-1.2-.2-1.7-.5s-1-.7-1.4-1.2l-10.6-12.2c-.9-1-1.9-1.8-2.9-2.2-1-.5-2.2-.7-3.7-.7h-5.5v21.9h5.2v-16.8h.3c.6 0 1.2.2 1.7.5.6.3 1 .7 1.4 1.2l10.4 12.1c.9 1.1 1.9 1.9 2.9 2.4 1.1.5 2.3.7 3.9.7h5.5v-22.1h-5.2v16.9zm33.2-16.9h-16.9c-5.5 0-8.3 2.3-8.3 7v8c0 4.6 2.8 7 8.3 7h16.9c5.5 0 8.3-2.3 8.3-7v-8c0-4.6-2.8-7-8.3-7zm2.9 15c0 1.2-1 1.9-2.9 1.9h-16.9c-1.9 0-2.9-.6-2.9-1.9v-8c0-1.3 1-1.9 2.9-1.9h16.9c1.9 0 2.9.6 2.9 1.9v8zm13.5.8v-2.2h25.2v-5.1h-25.2v-2.2c0-.7.4-1.1 1.2-1.1h24.1v-5.2h-24.1c-4.4 0-6.6 1.8-6.6 5.3v11.2c0 3.6 2.2 5.4 6.6 5.4h24.2v-5.1h-24.2c-.8.1-1.2-.3-1.2-1zm52.8-7.4h-18.3c-.8 0-1.3-.3-1.3-.8v-1.7c0-.5.4-.8 1.3-.8h24.2v-5.1h-24.2c-4.4 0-6.6 1.8-6.6 5.3v3.5c0 3.1 2.2 4.7 6.6 4.7h18.3c.8 0 1.2.3 1.2.8v1.8c0 .5-.4.8-1.2.8h-24.2v5.1h24.2c4.4 0 6.6-1.8 6.6-5.3v-3c0-3.5-2.2-5.3-6.6-5.3zm9.3-8.4h5.4v21.9h-5.4zm33 8.4h-18.3c-.8 0-1.3-.3-1.3-.8v-1.7c0-.5.4-.8 1.3-.8h24.2v-5.1h-24.2c-4.4 0-6.6 1.8-6.6 5.3v3.5c0 3.1 2.2 4.7 6.6 4.7h18.3c.8 0 1.2.3 1.2.8v1.8c0 .5-.4.8-1.2.8h-24.2v5.1h24.2c4.4 0 6.6-1.8 6.6-5.3v-3c-.1-3.5-2.3-5.3-6.6-5.3z"/><path class="st0" d="M1771 965.1c0 .5-.4.8-1.2.8h-19.2c-.8 0-1.3-.3-1.3-.8v-16h-5.4v16.6c0 3.6 2.2 5.4 6.6 5.4h19.2c4.4 0 6.6-1.8 6.6-5.3v-16.8h-5.4v16.1zm8.1-16.1h5.4v21.9h-5.4zm-49.9 8.6v5.4h6.7v2.9h-20.2c-.8 0-1.3-.4-1.3-1.1v-9.6c0-.7.4-1.1 1.3-1.1h25v-5.1h-25c-4.4 0-6.6 1.8-6.6 5.3v11.2c0 3.6 2.2 5.4 6.6 5.4h25.6v-13.4h-12.1z"/></svg>     
+        <div class="container">    
+        </div>
+    </div>
+    <div id="header_border"></div>
+    <div class="container">
+
+        <div id="main_content">
+            <div class="panel" id="rpanel">
+                <div id="rpanel_inner">
+                    <h2>NoesisGUI Resources</h2>
+
+                        <p><a target="_blank" href="https://www.noesisengine.com/docs/">Documentation</a><br />Detailed documentation and API reference.</p>
+                        <p><a target="_blank" href="https://www.noesisengine.com/docs/Gui.Core.Unity3DTutorial.html">Unity Tutorial</a><br />First steps with NoesisGUI and Unity.</p>
+                        <p><a target="_blank" href="https://forums.noesisengine.com/">Forums</a><br />Discuss about NoesisGUI and give feedback.</p>
+                        <p><a target="_blank" href="https://github.com/Noesis/Tutorials">Samples</a><br />Repository containing official examples.</p>
+
+                    <h2 style="margin-top: 25px;">Give us feedback</h2>
+                    <p><a target="_blank" href="https://bugs.noesisengine.com/">Submit a new feature idea or suggestion</a></p>
+                </div>
+            </div>
+            <div class="panel" id="lpanel">
+                <div id="lpanel_inner">  
+                    <h1>Getting Started with NoesisGUI in Unity</h1>       
+                    <p>Your project has been generated! This document will describe how to run the project in both Blend and Unity.</p> 
+                    <div class="section" style="margin-top: 24px;">    
+                        <h2>Project Structure</h2>
+                        <p>Depending on your choice during creation, the project folder will either be a child of the solution folder, or the same as the solution folder.</p>
+                        <p>The project folder contains an Assets and Blend folder:</p>
+                        <ul>
+                            <li><i>Assets:</i> All resources which are shared between Unity and Blend, including XAML, Code-Behind classes, fonts, and textures, are placed in this folder.</li>
+                            <li><i>Blend:</i> This folder contains resources which are required for Blend, which should not be exposed to Unity/NoesisGUI.</li>
+                        </ul>
+                        <p><i>Note:</i> The solution has been renamed, adding "-blend", to avoid conflicts with the solution which Unity generates.</p>
+                    </div>
+                    <div class="section">    
+                        <h2>Visual Studio and Blend</h2>
+                        <p>The project is ready to run in Visual Studio and Blend, simply click Start on the top bar, or press F5.</p>
+                    </div>     
+                    <div class="section">
+                        
+                    <h2>Unity</h2>
+                    <p>Before opening the project in Unity, you&#39;ll need to install the NoesisGUI Unity Package.</p>
+                    <p>Please follow these steps:</p>
+                    <ol>
+                        <li><a href="https://www.noesisengine.com/developers/downloads.php" target="_blank">Download</a>&nbsp;the latest NoesisGUI Unity Package.</li>
+                        <li>Extract the NoesisGUI Unity Package zip archive to the <em>LocalPackages\com.noesis.noesisgui\</em> directory, which is located in the project folder. The <em>package.json</em> file should be located in the <em>com.noesis.noesisgui</em> folder.</li>
+                        <li>Open Unity Hub, click Add, and select the project folder. This is the folder which contains the <em>Assets</em> and <em>LocalPackages</em> folders.</li>
+                        <li>In the Unity Hub project list, select a Unity version for the project.</li>
+                        <li>Open the project, and select Continue in the upgrade popup.</li>
+                    </ol>
+                    <p>To load the UI in Unity, open the application Scene in the Assets folder and click Play.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

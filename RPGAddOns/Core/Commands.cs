@@ -288,8 +288,6 @@ namespace RPGAddOns.Core
                 ctx.Reply("An error ocurred while trying to control your original body");
         }
 
-        private static readonly Timer timer;
-
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "")]
         public static void TestCommandPleaseIgnore(ChatCommandContext ctx)
         {
@@ -379,6 +377,14 @@ namespace RPGAddOns.Core
             var canvasEntry = new Queue<Entity>(canvQuery.ToArray());
             var uiDataEntry = new Queue<Entity>(uiDataQuery.ToArray());
             Plugin.Logger.LogInfo($"{characterEntry} || {canvasEntry} || {uiDataEntry}");
+        }
+
+        [Command(name: "testing", shortHand: "t1", adminOnly: true, usage: "", description: "")]
+        public static void TestCommandPleaseIgnoreTheSecond()
+        {
+            // scramble game mode hype
+            // uhhh try it on current world and see what happens? lol
+            ScrambleGameModeSystem scrambleGameModeSystem = VWorld.Client.GetExistingSystem<ScrambleGameModeSystem>();
         }
 
         public static void LoadData()
