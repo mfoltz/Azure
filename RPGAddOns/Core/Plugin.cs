@@ -11,7 +11,7 @@ using UnityEngine;
 using VampireCommandFramework;
 using VRising.GameData;
 using System.IO;
-using static RPGAddOns.Core.OnUserConnectedPatch;
+using static RPGAddOns.Core.OnUserConnectedManager;
 
 namespace RPGAddOns.Core
 {
@@ -55,20 +55,34 @@ namespace RPGAddOns.Core
         {
             Instance = this;
             Logger = Log;
+            _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
 
-            _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-
             // Create a GameObject for CoroutineHelper and ensure it persists across scenes
-            GameObject coroutineHelperObject = new GameObject("CoroutineHelper");
-            coroutineHelper = coroutineHelperObject.AddComponent<CoroutineHelper>();
+            GameObject coroutineHelperObject = new("CoroutineHelper");
+            CoroutineHelper coroutineHelperComponent = coroutineHelperObject.AddComponent<CoroutineHelper>();
+            if (coroutineHelperComponent == null)
+            {
+                Logger.LogError("CoroutineHelper component creation failed.");
+            }
+            else
+            {
+                Logger.LogInfo("CoroutineHelper component created successfully.");
+            }
             GameObject.DontDestroyOnLoad(coroutineHelperObject);
-
-            // Initialize ScenePoolManager with CoroutineHelper
-            scenePoolManager = new ScenePoolManager(coroutineHelper);
+            scenePoolManager = new ScenePoolManager(coroutineHelperComponent);
+            if (scenePoolManager == null)
+            {
+                Logger.LogError("ScenePoolManager initialization failed.");
+            }
+            else
+            {
+                Logger.LogInfo("ScenePoolManager initialized successfully.");
+            }
+            // Pass CoroutineHelper and ScenePoolManager to OnUserConnectedManager
+            OnUserConnectedManager.InitializeWithScenePoolManagerAndCoroutineHelper(scenePoolManager, coroutineHelper);
 
             // Pass scenePoolManager to OnUserConnectedPatch
-            OnUserConnectedPatch.InitializeWithScenePoolManager(scenePoolManager);
 
             // Verify server environment
             if (!VWorld.IsServer)
@@ -92,7 +106,6 @@ namespace RPGAddOns.Core
 
         private void GameDataOnInitialize(World world)
         {
-            OnUserConnectedPatch.InitializeWithScenePoolManager(scenePoolManager);
         }
 
         private void InitConfig()

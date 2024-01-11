@@ -1,29 +1,38 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
-using Bloodstone.API;
 using HarmonyLib;
-using Il2CppInterop.Runtime;
 using ProjectM;
 using Stunlock.Network;
 using System.Collections;
-using System.Runtime.InteropServices;
-using Unity.Entities;
+using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static RPGAddOns.Core.OnUserConnectedManager;
 
 namespace RPGAddOns.Core
 {
     [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
-    public class OnUserConnectedPatch
+    public class OnUserConnectedManager
     {
         private static ScenePoolManager _scenePoolManager;
+        private static CoroutineHelper _coroutineHelper;
 
-        public static void InitializeWithScenePoolManager(ScenePoolManager scenePoolManager)
+        public static void InitializeWithScenePoolManagerAndCoroutineHelper(ScenePoolManager scenePoolManager, CoroutineHelper coroutineHelperComponent)
         {
+            if (scenePoolManager == null)
+            {
+                Plugin.Logger.LogError("ScenePoolManager is null in InitializeWithScenePoolManagerAndCoroutineHelper");
+            }
+            if (coroutineHelperComponent == null)
+            {
+                Plugin.Logger.LogError(("CoroutineHelper is null in InitializeWithScenePoolManagerAndCoroutineHelper");
+            }
+
             _scenePoolManager = scenePoolManager;
+            _coroutineHelper = coroutineHelperComponent;
         }
 
         [HarmonyPostfix]
-        public static unsafe void Postfix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
+        public static void Postfix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
             Plugin.Logger.LogInfo("Patching...");
 
@@ -32,7 +41,6 @@ namespace RPGAddOns.Core
                 var entityManager = __instance.EntityManager;
                 var gameBootstrap = __instance._GameBootstrap;
 
-                var helper = new Helpers();
                 var userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
                 var serverClient = __instance._ApprovedUsersLookup[userIndex];
                 var userData = serverClient.UserEntity;
@@ -41,56 +49,30 @@ namespace RPGAddOns.Core
                 Plugin.Logger.LogInfo($"{serverClient.PlatformId} connected.");
 
                 BootstrapManager.Instance.Bootstraps(netConnectionId, __instance._GameBootstrap);
-                Plugin.Logger.LogInfo("Starting coroutine for loading scene.");
-                if (_scenePoolManager == null)
+                if (_coroutineHelper == null)
                 {
-                    Plugin.Logger.LogError("ScenePoolManager is not initialized.");
+                    Plugin.Logger.LogError("_coroutineHelper is null");
                     return;
                 }
-                _scenePoolManager.LoadPlayerScene(serverClient.NetConnectionId.ToString());
+                //_scenePoolManager.LoadSceneInstanceIfNotLoaded(serverClient.NetConnectionId.ToString());
+                _coroutineHelper.StartCoroutine(_scenePoolManager.LoadPlayerSceneOnConnect(serverClient.NetConnectionId.ToString()));
 
-                // actually do this somewhere inside loadsceneifnotloaded
+                // once scene has loaded for this person activate their inventorybackground
+                void OnSceneLoadedHandler(Scene loadedScene)
+                {
+                    var inventoryBackground = FindGameObjectInScene(loadedScene, "InventoryBackground");
+                    if (inventoryBackground != null)
+                    {
+                        inventoryBackground.SetActive(true);
+                    }
+                    _scenePoolManager.OnSceneLoaded -= OnSceneLoadedHandler; // Unsubscribe
+                }
+
+                _scenePoolManager.OnSceneLoaded += OnSceneLoadedHandler;
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError(ex);
-            }
-        }
-
-        private static IEnumerator LoadSceneInstanceIfNotLoaded(string identifier)
-        {
-            string sceneName = "UIEntryPoint";
-            // if no instance of the scene is loaded, load the instance then load the player scene from the thing
-            if (!SceneManager.GetSceneByName(sceneName).isLoaded)
-            {
-                // only want to modify the name for it here after LoadSceneIfNotLoaded is called I think
-                AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-
-                // Wait until the asynchronous scene fully loads
-                while (!asyncLoad.isDone)
-                {
-                    Plugin.Logger.LogInfo("Loading scene: " + asyncLoad.progress * 100 + "% complete");
-                    yield return null;
-                }
-
-                Plugin.Logger.LogInfo($"{identifier} scene has been loaded.");
-                Scene loadedScene = SceneManager.GetSceneByName(sceneName);
-                SceneManager.SetActiveScene(loadedScene);
-                GameObject inventoryBackground = FindGameObjectInScene(loadedScene, "InventoryBackground");
-                if (inventoryBackground != null)
-                {
-                    inventoryBackground.SetActive(true); // Activate the GameObject
-                }
-                else
-                {
-                    Plugin.Logger.LogError("InventoryBackground GameObject not found in the loaded scene.");
-                }
-
-                // Method to find a GameObject by name in a given scene
-            }
-            else
-            {
-                Plugin.Logger.LogInfo($"{identifier} scene is already loaded.");
             }
         }
 
@@ -107,119 +89,13 @@ namespace RPGAddOns.Core
 
         public class CoroutineHelper : MonoBehaviour
         {
-            /*
-            private static CoroutineHelper _instance;
-
-            public static CoroutineHelper Instance
-            {
-                get
-                {
-                    if (_instance == null)
-                    {
-                        GameObject coroutineHelperObject = new GameObject("CoroutineHelper");
-                        _instance = coroutineHelperObject.AddComponent<CoroutineHelper>();
-                        DontDestroyOnLoad(coroutineHelperObject);
-                    }
-                    return _instance;
-                }
-            }
-            */
-            // Other methods as needed
-        }
-    }
-
-    public class Helpers
-    {
-        public Il2CppSystem.Type SystemTypeGet(Type type)
-        {
-            return Il2CppSystem.Type.GetType(type.AssemblyQualifiedName);
-        }
-
-        public ComponentType ComponentTypeGet(string component)
-        {
-            return ComponentType.ReadOnly(Il2CppSystem.Type.GetType(component));
-        }
-
-        public static class AotWorkaroundUtil
-        {
-            // alternative for Entitymanager.HasComponent
-            public static bool HasComponent<T>(Entity entity) where T : struct
-            {
-                return VWorld.Server.EntityManager.HasComponent(entity, ComponentType<T>());
-            }
-
-            // more convenient than Entitymanager.AddComponent
-            public static bool AddComponent<T>(Entity entity) where T : struct
-            {
-                return VWorld.Server.EntityManager.AddComponent(entity, ComponentType<T>());
-            }
-
-            // alternative for Entitymanager.AddComponentData
-            public static void AddComponentData<T>(Entity entity, T componentData) where T : struct
-            {
-                AddComponent<T>(entity);
-                SetComponentData(entity, componentData);
-            }
-
-            // alternative for Entitymanager.RemoveComponent
-            public static bool RemoveComponent<T>(Entity entity) where T : struct
-            {
-                return VWorld.Server.EntityManager.RemoveComponent(entity, ComponentType<T>());
-            }
-
-            // alternative for EntityMManager.GetComponentData
-            public static unsafe T GetComponentData<T>(Entity entity) where T : struct
-            {
-                void* rawPointer = VWorld.Server.EntityManager.GetComponentDataRawRO(entity, ComponentTypeIndex<T>());
-                return Marshal.PtrToStructure<T>(new System.IntPtr(rawPointer));
-            }
-
-            // alternative for EntityManager.SetComponentData
-            public static unsafe void SetComponentData<T>(Entity entity, T componentData) where T : struct
-            {
-                var size = Marshal.SizeOf(componentData);
-                //byte[] byteArray = new byte[size];
-                var byteArray = StructureToByteArray(componentData);
-                fixed (byte* data = byteArray)
-                {
-                    //UnsafeUtility.CopyStructureToPtr(ref componentData, data);
-                    VWorld.Server.EntityManager.SetComponentDataRaw(entity, ComponentTypeIndex<T>(), data, size);
-                }
-            }
-
-            private static ComponentType ComponentType<T>()
-            {
-                return new ComponentType(Il2CppType.Of<T>());
-            }
-
-            private static int ComponentTypeIndex<T>()
-            {
-                return ComponentType<T>().TypeIndex;
-            }
-
-            private static byte[] StructureToByteArray<T>(T structure) where T : struct
-            {
-                int size = Marshal.SizeOf(structure);
-                byte[] byteArray = new byte[size];
-                IntPtr ptr = Marshal.AllocHGlobal(size);
-                try
-                {
-                    Marshal.StructureToPtr(structure, ptr, true);
-                    Marshal.Copy(ptr, byteArray, 0, size);
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(ptr);
-                }
-                return byteArray;
-            }
         }
     }
 
     public class BootstrapManager
     {
         public static BootstrapManager Instance { get; } = new BootstrapManager();
-        private Dictionary<NetConnectionId, GameBootstrap> playerGameBootstrapInstances = new Dictionary<NetConnectionId, GameBootstrap>();
+        private ConcurrentDictionary<NetConnectionId, GameBootstrap> playerGameBootstrapInstances = new ConcurrentDictionary<NetConnectionId, GameBootstrap>();
 
         public void Bootstraps(NetConnectionId connectionId, GameBootstrap gameBootstrap)
         {
@@ -238,56 +114,89 @@ namespace RPGAddOns.Core
 
     public class ScenePoolManager
     {
-        private MonoBehaviour coroutineContext;
+        private readonly MonoBehaviour coroutineContext;
+
+        public event Action<Scene> OnSceneLoaded;
 
         public ScenePoolManager(MonoBehaviour coroutineContext)
         {
             this.coroutineContext = coroutineContext;
+            scenePool = [];
         }
 
-        private Dictionary<string, Scene> scenePool = new Dictionary<string, Scene>();
+        private static Dictionary<string, Scene> scenePool = [];
 
-        public void LoadPlayerScene(string identifier)
+        //for loading scene instances on demand for mem mangement whenever i get to that
+
+        //so for later when I want the player scene instance again I need to make sure I can get it or else would need a new connection to make changes to the scene
+        public void LoadSceneFromPool(string identifier)
         {
-            string sceneName = "UIEntryPoint";
-            if (!scenePool.ContainsKey(identifier))
+            //loading scene instance specific to each player from the pool if it exists and this method is called
+            if (scenePool.ContainsKey(identifier))
             {
-                Plugin.Logger.LogInfo("Starting coroutine for loading scene.");
-
-                coroutineContext.StartCoroutine(LoadSceneCoroutine(sceneName, identifier));
+                coroutineContext.StartCoroutine(LoadSceneFromPoolCoroutine(identifier));
+            }
+            else
+            {
+                Plugin.Logger.LogInfo("Couldn't retrieve scene instance from pool, please reconnect to add a new instance to the pool.");
             }
         }
 
-        private IEnumerator LoadSceneCoroutine(string sceneName, string identifier)
+        public IEnumerator LoadPlayerSceneOnConnect(string identifier)
         {
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-            yield return asyncLoad;
+            string sceneName = "UIEntryPoint";
+            // if no instance of the scene is loaded, load the instance then load the player scene from the thing
+            // this part actually isnt specific to each player which is extra confusing
+            // but yeah without the player scene there is no UIEntryPoint to their object
 
+            // first check if the player scene is loaded, is the scene ever going to already be loaded here? shouldnt but checks dont hurt that being said it is only a check so no else maybe
+            Plugin.Logger.LogInfo($"Loading scene for {identifier}");
+
+            // only want to modify the name for it here after LoadSceneIfNotLoaded is called I think
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            yield return new CustomWaitUntil(() => asyncLoad.isDone);
+            // Wait until the asynchronous scene fully loads also add to the pool while we're here for later
             Scene loadedScene = SceneManager.GetSceneByName(sceneName);
-            SceneManager.SetActiveScene(loadedScene);
-            scenePool.Add(identifier, loadedScene);
+            if (loadedScene.IsValid())
+            {
+                // Do something with the loaded scene
+                Plugin.Logger.LogInfo($"Scene loaded: {loadedScene.name}");
+                OnSceneLoaded?.Invoke(loadedScene);
+            }
+            else
+            {
+                Plugin.Logger.LogError("Failed to load the scene or scene is not valid");
+            }
         }
 
-        // Activate a scene from the pool
-        public void ActivateScene(string identifier)
+        //dont think I need to use this yet, only for loading scenes if already present in the pool but it's neat that it can run at the same time as new players joining
+        public IEnumerator LoadSceneFromPoolCoroutine(string identifier)
+        {
+            string sceneName = "UIEntryPoint";
+            Plugin.Logger.LogInfo($"Loading scene for {identifier}");
+
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            while (!asyncLoad.isDone)
+            {
+                yield return asyncLoad;
+            }
+        }
+
+        // Activate a scene from the pool when needed eventually
+        public void ActivateSceneFromPool(string identifier)
         {
             if (scenePool.TryGetValue(identifier, out Scene scene))
             {
                 SceneManager.SetActiveScene(scene);
             }
-        }
-
-        // Deactivate a scene (but keep it in memory)
-        public void DeactivateScene(string identifier)
-        {
-            if (scenePool.TryGetValue(identifier, out Scene scene))
+            else
             {
-                // Add logic to deactivate the scene (e.g., hide UI elements, pause updates)
+                Plugin.Logger.LogInfo("Couldn't retrieve scene instance from pool, please reconnect to add a new instance to the pool.");
             }
         }
 
-        // Unload a scene to free up memory
-        public void UnloadScene(string identifier)
+        // Unload a scene to free up memory when player logs off or when need to for emory I guess
+        public void UnloadSceneFromPool(string identifier)
         {
             if (scenePool.TryGetValue(identifier, out Scene scene))
             {
@@ -296,27 +205,26 @@ namespace RPGAddOns.Core
             }
         }
 
-        // Optional: Function to monitor memory usage and unload scenes if needed
-        public void ManageMemoryUsage()
+        public class CustomWaitUntil : CustomYieldInstruction
         {
-            // Implement memory checks and unload scenes if memory threshold is exceeded
-        }
-    }
+            private readonly Func<bool> _predicate;
 
-    public class ComponentManager
-    {
-        public Component AddComponent(GameObject gameObject, Il2CppSystem.Type componentType)
-        {
-            // Check if the GameObject already has the component
-            Component existingComponent = gameObject.GetComponent(componentType);
-            if (existingComponent != null)
+            public override bool keepWaiting
             {
-                // Component already exists, no need to add a new one
-                return existingComponent;
+                get
+                {
+                    // Continue waiting while the predicate is true
+                    return _predicate();
+                }
             }
 
-            // Add the component of the specified type to the GameObject
-            return gameObject.AddComponent(componentType);
+            public CustomWaitUntil(Func<bool> predicate)
+            {
+                if (predicate == null)
+                    throw new ArgumentNullException(nameof(predicate));
+
+                _predicate = predicate;
+            }
         }
     }
 }
