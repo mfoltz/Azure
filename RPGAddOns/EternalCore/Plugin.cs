@@ -20,8 +20,6 @@ namespace RPGAddOns.Core
     public class Plugin : BasePlugin, IRunOnInitialized
     {
         private Harmony _harmony;
-        private ScenePoolManager scenePoolManager;
-        private CoroutineHelper coroutineHelper;
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
@@ -57,49 +55,35 @@ namespace RPGAddOns.Core
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
 
-            // Create a GameObject for CoroutineHelper and ensure it persists across scenes
-            GameObject coroutineHelperObject = new("CoroutineHelper");
+            Logger.LogInfo("Creating CoroutineHelper GameObject...");
+            GameObject coroutineHelperObject = new GameObject("CoroutineHelper");
+
+            Logger.LogInfo("Adding CoroutineHelper Component...");
             CoroutineHelper coroutineHelperComponent = coroutineHelperObject.AddComponent<CoroutineHelper>();
+
             if (coroutineHelperComponent == null)
             {
-                Logger.LogError("CoroutineHelper component creation failed.");
+                Logger.LogError("Failed to add CoroutineHelper to GameObject.");
+                return;
             }
-            else
-            {
-                Logger.LogInfo("CoroutineHelper component created successfully.");
-            }
+
             GameObject.DontDestroyOnLoad(coroutineHelperObject);
-            scenePoolManager = new ScenePoolManager(coroutineHelperComponent);
-            if (scenePoolManager == null)
-            {
-                Logger.LogError("ScenePoolManager initialization failed.");
-            }
-            else
-            {
-                Logger.LogInfo("ScenePoolManager initialized successfully.");
-            }
-            // Pass CoroutineHelper and ScenePoolManager to OnUserConnectedManager
-            OnUserConnectedManager.InitializeWithScenePoolManagerAndCoroutineHelper(scenePoolManager, coroutineHelper);
+            Logger.LogInfo("CoroutineHelper created and set to DontDestroyOnLoad.");
 
-            // Pass scenePoolManager to OnUserConnectedPatch
+            ScenePoolManager localScenePoolManager = new ScenePoolManager(coroutineHelperComponent);
+            OnUserConnectedManager.InitializeWithScenePoolManagerAndCoroutineHelper(localScenePoolManager, coroutineHelperComponent);
 
-            // Verify server environment
+            // Verify server environment and load configurations
             if (!VWorld.IsServer)
             {
                 Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is only for server!");
                 return;
             }
 
-            // Initialize configurations
             InitConfig();
-
-            // Register event listeners
             ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
             GameData.OnInitialize += GameDataOnInitialize;
-
-            // Load data
             ChatCommands.LoadData();
-
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
         }
 

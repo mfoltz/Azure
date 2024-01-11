@@ -47,7 +47,7 @@ namespace RPGAddOns.PvERank
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
-                    var testWar = user.Read<ProjectM.UI.GoToHUDMenu>();
+                    //var testWar = user.Read<ProjectM.UI.GoToHUDMenu>();
 
                     try
                     {
