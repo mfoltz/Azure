@@ -1,12 +1,10 @@
-﻿using RPGAddOns.Divinity;
-using RPGAddOns.Prestige;
-using RPGAddOns.PvERank;
-
+﻿using RPGAddOns.VeinModules;
+using RPGAddOns.VeinModules.Divinity;
 using System.Text.Json;
 
 namespace RPGAddOns.Core
 {
-    public class Databases
+    public class DataStructures
     {
         public static JsonSerializerOptions JSON_options = new()
         {

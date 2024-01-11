@@ -3,7 +3,7 @@ using RPGAddOns.Core;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
 
-namespace RPGAddOns.PvERank
+namespace RPGAddOns.VeinModules
 {
     public class RankData
     {
@@ -44,7 +44,7 @@ namespace RPGAddOns.PvERank
             data.Points = 0;
             data.Buffs = playerBuffs;
             ctx.Reply($"Congratulations {playerName}! You have increased your PvE rank to {data.Rank}.");
-            Commands.SavePlayerRanks();
+            ChatCommands.SavePlayerRanks();
             return;
         }
 

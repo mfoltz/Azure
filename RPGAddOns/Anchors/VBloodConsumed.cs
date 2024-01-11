@@ -4,6 +4,7 @@ using ProjectM;
 using ProjectM.Network;
 using ProjectM.UI;
 using RPGAddOns.Core;
+using RPGAddOns.VeinModules;
 using Unity.Entities;
 using Unity.Mathematics;
 using VRising.GameData;
@@ -16,7 +17,7 @@ using Random = System.Random;
 namespace RPGAddOns.PvERank
 {
     [HarmonyPatch]
-    internal class VBloodPointsHook
+    internal class VBloodConsumed
     {
         [HarmonyPatch(typeof(VBloodSystem), nameof(VBloodSystem.OnUpdate))]
         [HarmonyPrefix]
@@ -131,9 +132,9 @@ namespace RPGAddOns.PvERank
                             else
                             {
                                 // check for database existence just in case. if it exists, and the player key can be found, check for points < max points before adding points. if not, create new database and add points
-                                if (Databases.playerRanks != null)
+                                if (DataStructures.playerRanks != null)
                                 {
-                                    if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
+                                    if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
                                     {
                                         // this is where max points is derived and checked. level 0 max is 1000, level 1 max is 2000, etc
                                         if (data.Points < data.Rank * 1000 + 1000)
@@ -144,15 +145,15 @@ namespace RPGAddOns.PvERank
                                             {
                                                 data.Points = data.Rank * 1000 + 1000;
                                             }
-                                            Commands.SavePlayerRanks();
+                                            ChatCommands.SavePlayerRanks();
                                         }
                                     }
                                     else
                                     {
                                         // create new data then add points
                                         RankData rankData = new(0, GetPoints(playerLevel, unitLevel), []);
-                                        Databases.playerRanks.Add(SteamID, rankData);
-                                        Commands.SavePlayerRanks();
+                                        DataStructures.playerRanks.Add(SteamID, rankData);
+                                        ChatCommands.SavePlayerRanks();
                                     }
                                 }
                             }

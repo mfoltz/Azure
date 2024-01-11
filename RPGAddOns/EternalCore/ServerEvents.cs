@@ -32,8 +32,8 @@ namespace RPGAddOns.Core
         {
             public static void Prefix()
             {
-                Commands.SavePlayerPrestige();
-                Commands.SavePlayerRanks();
+                ChatCommands.SavePlayerPrestige();
+                ChatCommands.SavePlayerRanks();
             }
         }
 
@@ -42,8 +42,8 @@ namespace RPGAddOns.Core
         {
             public static void Prefix()
             {
-                Commands.SavePlayerPrestige();
-                Commands.SavePlayerRanks();
+                ChatCommands.SavePlayerPrestige();
+                ChatCommands.SavePlayerRanks();
             }
         }
     }

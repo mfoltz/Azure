@@ -1,14 +1,15 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
 using HarmonyLib;
 using ProjectM;
+using RPGAddOns.Core;
 using Stunlock.Network;
 using System.Collections;
 using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static RPGAddOns.Core.OnUserConnectedManager;
+using static RPGAddOns.Rank.OnUserConnectedManager;
 
-namespace RPGAddOns.Core
+namespace RPGAddOns.Rank
 {
     [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
     public class OnUserConnectedManager
@@ -24,7 +25,7 @@ namespace RPGAddOns.Core
             }
             if (coroutineHelperComponent == null)
             {
-                Plugin.Logger.LogError(("CoroutineHelper is null in InitializeWithScenePoolManagerAndCoroutineHelper");
+                Plugin.Logger.LogError("CoroutineHelper is null in InitializeWithScenePoolManagerAndCoroutineHelper");
             }
 
             _scenePoolManager = scenePoolManager;

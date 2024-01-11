@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using VampireCommandFramework;
 using static RPGMods.Utils.Prefabs;
 
-namespace RPGAddOns.Prestige
+namespace RPGAddOns.VeinModules
 {
     public class PrestigeData
     {
@@ -29,10 +29,10 @@ namespace RPGAddOns.Prestige
             if (ExperienceSystem.getLevel(SteamID) >= ExperienceSystem.MaxLevel)
             {
                 // check for null reference
-                if (Databases.playerPrestige != null)
+                if (DataStructures.playerPrestige != null)
                 {
                     // check for player data and reset level if below max resets else create data and reset level
-                    if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+                    if (DataStructures.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
                     {
                         if (data.Prestiges >= Plugin.MaxPrestiges && Plugin.MaxPrestiges != -1)
                         {
@@ -47,9 +47,9 @@ namespace RPGAddOns.Prestige
                         // create new data then call prestige level function
 
                         PrestigeData prestigeData = new PrestigeData(0, 0);
-                        Databases.playerPrestige.Add(SteamID, prestigeData);
-                        Commands.SavePlayerPrestige();
-                        data = Databases.playerPrestige[SteamID];
+                        DataStructures.playerPrestige.Add(SteamID, prestigeData);
+                        ChatCommands.SavePlayerPrestige();
+                        data = DataStructures.playerPrestige[SteamID];
                         PrestigeFunctions.PlayerPrestige(ctx, playerName, SteamID, data);
                         return;
                     }
@@ -95,7 +95,7 @@ namespace RPGAddOns.Prestige
                             // buff good to apply, 0 means no buff
                             WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
                             data.Buffs = buffList[buff];
-                            Commands.SavePlayerPrestige();
+                            ChatCommands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");
                             return;
                         }
@@ -107,7 +107,7 @@ namespace RPGAddOns.Prestige
                             PrefabGUID buffguidnew = new(buffList[buff]);
                             WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
                             data.Buffs = buffList[buff];
-                            Commands.SavePlayerPrestige();
+                            ChatCommands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");
                             return;
                         }
@@ -123,7 +123,7 @@ namespace RPGAddOns.Prestige
                                 // buff good to apply, 0 means no buff
                                 WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguid, -1, true);
                                 data.Buffs = buffList[buff];
-                                Commands.SavePlayerPrestige();
+                                ChatCommands.SavePlayerPrestige();
                                 ctx.Reply($"Visual buff #{buff} has been applied.");
                                 return;
                             }
@@ -135,7 +135,7 @@ namespace RPGAddOns.Prestige
                                 PrefabGUID buffguidnew = new(buffList[buff]);
                                 WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguidnew, -1, true);
                                 data.Buffs = buffList[buff];
-                                Commands.SavePlayerPrestige();
+                                ChatCommands.SavePlayerPrestige();
                                 ctx.Reply($"Visual buff #{buff} has been applied.");
                                 return;
                             }
@@ -176,7 +176,7 @@ namespace RPGAddOns.Prestige
                 }
 
                 data.Prestiges++;
-                Commands.SavePlayerPrestige();
+                ChatCommands.SavePlayerPrestige();
                 return;
             }
         }

@@ -1,4 +1,4 @@
-﻿namespace RPGAddOns.Divinity
+﻿namespace RPGAddOns.VeinModules.Divinity
 {
     public class DivineData
     {

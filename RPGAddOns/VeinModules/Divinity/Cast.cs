@@ -10,7 +10,7 @@ using VampireCommandFramework;
 
 #nullable disable
 
-namespace RPGAddOns.Divinity
+namespace RPGAddOns.VeinModules.Divinity
 {
     [CommandGroup(name: "casting", shortHand: "c")]
     internal class CastCommands

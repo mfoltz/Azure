@@ -11,7 +11,8 @@ using UnityEngine;
 using VampireCommandFramework;
 using VRising.GameData;
 using System.IO;
-using static RPGAddOns.Core.OnUserConnectedManager;
+using static RPGAddOns.Rank.OnUserConnectedManager;
+using RPGAddOns.Rank;
 
 namespace RPGAddOns.Core
 {
@@ -99,7 +100,7 @@ namespace RPGAddOns.Core
             GameData.OnInitialize += GameDataOnInitialize;
 
             // Load data
-            Commands.LoadData();
+            ChatCommands.LoadData();
 
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
         }
@@ -135,8 +136,8 @@ namespace RPGAddOns.Core
 
         public override bool Unload()
         {
-            Commands.SavePlayerPrestige();
-            Commands.SavePlayerRanks();
+            ChatCommands.SavePlayerPrestige();
+            ChatCommands.SavePlayerRanks();
             Config.Clear();
             _harmony.UnpatchSelf();
             return true;

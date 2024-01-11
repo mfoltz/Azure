@@ -49,7 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Zones\" />
+    <Folder Include="Misc\" />
   </ItemGroup>
 	<Target Name="CopyDLLsServer" AfterTargets="Build">
 		<Message Text="DLL to V Rising Server" Importance="High" />
