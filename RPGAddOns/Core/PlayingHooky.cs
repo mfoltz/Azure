@@ -1,28 +1,27 @@
-﻿using Bloodstone.API;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using Bloodstone.API;
 using HarmonyLib;
 using Il2CppInterop.Runtime;
-using Newtonsoft.Json;
 using ProjectM;
-using ProjectM.Network;
-using ProjectM.UI;
 using Stunlock.Network;
-using System.Runtime.InteropServices;
-using Unity.Collections;
-using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
-using Object = UnityEngine.Object;
-using Mono;
-using UnityEngine.SceneManagement;
 using System.Collections;
-using BepInEx.Unity.IL2CPP.Utils;
-using static RPGAddOns.Core.OnUserConnectedPatch;
+using System.Runtime.InteropServices;
+using Unity.Entities;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RPGAddOns.Core
 {
     [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
     public class OnUserConnectedPatch
     {
+        private static ScenePoolManager _scenePoolManager;
+
+        public static void InitializeWithScenePoolManager(ScenePoolManager scenePoolManager)
+        {
+            _scenePoolManager = scenePoolManager;
+        }
+
         [HarmonyPostfix]
         public static unsafe void Postfix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
@@ -39,12 +38,16 @@ namespace RPGAddOns.Core
                 var userData = serverClient.UserEntity;
                 //Plugin.Logger.LogInfo($"{userData}");
 
-                Plugin.Logger.LogInfo($"{serverClient.NetConnectionId.GetHashCode().ToString()} connected.");
+                Plugin.Logger.LogInfo($"{serverClient.PlatformId} connected.");
 
                 BootstrapManager.Instance.Bootstraps(netConnectionId, __instance._GameBootstrap);
                 Plugin.Logger.LogInfo("Starting coroutine for loading scene.");
-
-                ScenePoolManager.Instance.LoadPlayerScene(serverClient.NetConnectionId.ToString());
+                if (_scenePoolManager == null)
+                {
+                    Plugin.Logger.LogError("ScenePoolManager is not initialized.");
+                    return;
+                }
+                _scenePoolManager.LoadPlayerScene(serverClient.NetConnectionId.ToString());
 
                 // actually do this somewhere inside loadsceneifnotloaded
             }
@@ -104,6 +107,7 @@ namespace RPGAddOns.Core
 
         public class CoroutineHelper : MonoBehaviour
         {
+            /*
             private static CoroutineHelper _instance;
 
             public static CoroutineHelper Instance
@@ -119,7 +123,7 @@ namespace RPGAddOns.Core
                     return _instance;
                 }
             }
-
+            */
             // Other methods as needed
         }
     }
@@ -234,17 +238,15 @@ namespace RPGAddOns.Core
 
     public class ScenePoolManager
     {
-        private ComponentManager componentManager;
+        private MonoBehaviour coroutineContext;
 
-        public ScenePoolManager(ComponentManager componentManager)
+        public ScenePoolManager(MonoBehaviour coroutineContext)
         {
-            this.componentManager = componentManager;
+            this.coroutineContext = coroutineContext;
         }
 
         private Dictionary<string, Scene> scenePool = new Dictionary<string, Scene>();
 
-        // if multiple players are online the server has a unique scene for each player which is why I make sure they
-        // can be referred to uniquely when loading them again
         public void LoadPlayerScene(string identifier)
         {
             string sceneName = "UIEntryPoint";
@@ -252,9 +254,7 @@ namespace RPGAddOns.Core
             {
                 Plugin.Logger.LogInfo("Starting coroutine for loading scene.");
 
-                GameObject gameObject = new GameObject($"SceneLoader_{identifier}");
-                CoroutineHelper coroutineHelper = componentManager.AddComponent(gameObject, typeof(CoroutineHelper)) as CoroutineHelper;
-                coroutineHelper.StartCoroutine(LoadSceneCoroutine(sceneName, identifier));
+                coroutineContext.StartCoroutine(LoadSceneCoroutine(sceneName, identifier));
             }
         }
 
