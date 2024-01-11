@@ -15,18 +15,36 @@ namespace RPGAddOns.Core
     [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
     public class OnUserConnectedPatch
     {
+        private static bool _isInitialized = false;
+
         private static ScenePoolManager _scenePoolManager;
 
         public static void InitializeWithScenePoolManager(ScenePoolManager scenePoolManager)
         {
             _scenePoolManager = scenePoolManager;
+            _isInitialized = true;
+            Plugin.Logger.LogInfo($"_scenePoolManager set in InitializeWithScenePoolManager.");
+        }
+
+        private static void EnsureInitialized()
+        {
+            if (!_isInitialized)
+            {
+                Plugin.Logger.LogError("OnUserConnectedPatch was called before ScenePoolManager was initialized. Attempting to initialize now.");
+                // Fallback initialization logic if needed, or handle the error appropriately
+            }
         }
 
         [HarmonyPostfix]
         public static unsafe void Postfix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
             Plugin.Logger.LogInfo("Patching...");
-
+            EnsureInitialized();
+            if (_scenePoolManager == null)
+            {
+                Plugin.Logger.LogError("ScenePoolManager is still null in OnUserConnectedPatch.");
+                return;
+            }
             try
             {
                 var entityManager = __instance.EntityManager;
@@ -85,8 +103,6 @@ namespace RPGAddOns.Core
                 {
                     Plugin.Logger.LogError("InventoryBackground GameObject not found in the loaded scene.");
                 }
-
-                // Method to find a GameObject by name in a given scene
             }
             else
             {
@@ -236,16 +252,11 @@ namespace RPGAddOns.Core
         }
     }
 
-    public class ScenePoolManager
+    public class ScenePoolManager(MonoBehaviour coroutineContext)
     {
-        private MonoBehaviour coroutineContext;
+        private readonly MonoBehaviour coroutineContext = coroutineContext;
 
-        public ScenePoolManager(MonoBehaviour coroutineContext)
-        {
-            this.coroutineContext = coroutineContext;
-        }
-
-        private Dictionary<string, Scene> scenePool = new Dictionary<string, Scene>();
+        private Dictionary<string, Scene> scenePool = [];
 
         public void LoadPlayerScene(string identifier)
         {

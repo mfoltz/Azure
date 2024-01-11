@@ -22,7 +22,6 @@ namespace RPGAddOns.Core
     {
         private Harmony _harmony;
         private ScenePoolManager scenePoolManager;
-        private CoroutineHelper coroutineHelper;
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
@@ -61,12 +60,19 @@ namespace RPGAddOns.Core
 
             // Create a GameObject for CoroutineHelper and ensure it persists across scenes
             GameObject coroutineHelperObject = new GameObject("CoroutineHelper");
-            coroutineHelper = coroutineHelperObject.AddComponent<CoroutineHelper>();
+            CoroutineHelper coroutineHelperComponent = coroutineHelperObject.AddComponent<CoroutineHelper>();
             GameObject.DontDestroyOnLoad(coroutineHelperObject);
 
             // Initialize ScenePoolManager with CoroutineHelper
-            scenePoolManager = new ScenePoolManager(coroutineHelper);
-
+            scenePoolManager = new ScenePoolManager(coroutineHelperComponent);
+            if (scenePoolManager == null)
+            {
+                Logger.LogError("Failed to initialize ScenePoolManager.");
+            }
+            else
+            {
+                Logger.LogInfo("ScenePoolManager initialized successfully.");
+            }
             // Pass scenePoolManager to OnUserConnectedPatch
             OnUserConnectedPatch.InitializeWithScenePoolManager(scenePoolManager);
 
@@ -92,7 +98,6 @@ namespace RPGAddOns.Core
 
         private void GameDataOnInitialize(World world)
         {
-            OnUserConnectedPatch.InitializeWithScenePoolManager(scenePoolManager);
         }
 
         private void InitConfig()
@@ -127,6 +132,10 @@ namespace RPGAddOns.Core
             Config.Clear();
             _harmony.UnpatchSelf();
             return true;
+        }
+
+        public static void Initialize()
+        {
         }
 
         public void OnGameInitialized()
