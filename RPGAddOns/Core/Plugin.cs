@@ -19,7 +19,8 @@ namespace RPGAddOns.Core
     {
         private Harmony _harmony;
         public static Keybinding configKeybinding;
-
+        private ComponentManager componentManager;
+        private ScenePoolManager scenePoolManager;
         internal static Plugin Instance { get; private set; }
         //private ModifierButtons modButtons = new ModifierButtons();
 
@@ -133,6 +134,8 @@ namespace RPGAddOns.Core
                 DefaultKeybinding = KeyCode.LeftShift,
             });
             */
+            componentManager = new ComponentManager();
+            scenePoolManager = new ScenePoolManager(componentManager);
             if (!Directory.Exists(ConfigPath)) Directory.CreateDirectory(ConfigPath);
         }
 

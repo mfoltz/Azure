@@ -110,21 +110,13 @@ namespace RPGAddOns.Core
             {
                 get
                 {
-                    try
+                    if (_instance == null)
                     {
-                        if (_instance == null)
-                        {
-                            var gameObject = new GameObject("CoroutineHelper");
-                            _instance = gameObject.AddComponent<CoroutineHelper>();
-                            DontDestroyOnLoad(gameObject);
-                        }
-                        return _instance;
+                        GameObject coroutineHelperObject = new GameObject("CoroutineHelper");
+                        _instance = coroutineHelperObject.AddComponent<CoroutineHelper>();
+                        DontDestroyOnLoad(coroutineHelperObject);
                     }
-                    catch (Exception ex)
-                    {
-                        Plugin.Logger.LogError("Error in CoroutineHelper: " + ex.Message);
-                        return null;
-                    }
+                    return _instance;
                 }
             }
 
@@ -242,18 +234,11 @@ namespace RPGAddOns.Core
 
     public class ScenePoolManager
     {
-        private static ScenePoolManager _instance;
+        private ComponentManager componentManager;
 
-        public static ScenePoolManager Instance
+        public ScenePoolManager(ComponentManager componentManager)
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new ScenePoolManager();
-                }
-                return _instance;
-            }
+            this.componentManager = componentManager;
         }
 
         private Dictionary<string, Scene> scenePool = new Dictionary<string, Scene>();
@@ -267,7 +252,9 @@ namespace RPGAddOns.Core
             {
                 Plugin.Logger.LogInfo("Starting coroutine for loading scene.");
 
-                CoroutineHelper.Instance.StartCoroutine(LoadSceneCoroutine(sceneName, identifier));
+                GameObject gameObject = new GameObject($"SceneLoader_{identifier}");
+                CoroutineHelper coroutineHelper = componentManager.AddComponent(gameObject, typeof(CoroutineHelper)) as CoroutineHelper;
+                coroutineHelper.StartCoroutine(LoadSceneCoroutine(sceneName, identifier));
             }
         }
 
@@ -313,6 +300,23 @@ namespace RPGAddOns.Core
         public void ManageMemoryUsage()
         {
             // Implement memory checks and unload scenes if memory threshold is exceeded
+        }
+    }
+
+    public class ComponentManager
+    {
+        public Component AddComponent(GameObject gameObject, Il2CppSystem.Type componentType)
+        {
+            // Check if the GameObject already has the component
+            Component existingComponent = gameObject.GetComponent(componentType);
+            if (existingComponent != null)
+            {
+                // Component already exists, no need to add a new one
+                return existingComponent;
+            }
+
+            // Add the component of the specified type to the GameObject
+            return gameObject.AddComponent(componentType);
         }
     }
 }
