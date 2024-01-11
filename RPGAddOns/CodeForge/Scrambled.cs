@@ -1,43 +1,4 @@
-﻿using Bloodstone.API;
-using HarmonyLib;
-using Il2CppInterop.Runtime;
-using Newtonsoft.Json;
-using ProjectM;
-using ProjectM.Network;
-using ProjectM.UI;
-using Stunlock.Network;
-using System.Runtime.InteropServices;
-using Unity.Collections;
-using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
-using Object = UnityEngine.Object;
-
-using HarmonyLib;
-using ProjectM;
-using ProjectM.Network;
-
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-using Unity.Collections;
-
-using BepInEx.Logging;
-using Il2CppSystem.Net;
-using RPGMods.Utils;
-using ProjectM.Shared.Systems;
-
-using Unity.Entities;
-
-using ProjectM.Terrain;
-using ProjectM.Behaviours;
-
-using Unity.Mathematics;
-
-using Cache = UnityEngine.Cache;
-
-/*
+﻿/*
 namespace RPGMods.Hooks
 {
     public class AiMove_Patch

@@ -2,7 +2,6 @@
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
-using ProjectM.UI;
 using RPGAddOns.Core;
 using RPGAddOns.VeinModules;
 using Unity.Entities;

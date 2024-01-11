@@ -2,17 +2,15 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
-using Bloodstone.Hooks;
 using HarmonyLib;
-using StunShared.UI;
+using RPGAddOns.Rank;
+
 using System.Reflection;
 using Unity.Entities;
 using UnityEngine;
 using VampireCommandFramework;
 using VRising.GameData;
-using System.IO;
 using static RPGAddOns.Rank.OnUserConnectedManager;
-using RPGAddOns.Rank;
 
 namespace RPGAddOns.Core
 {

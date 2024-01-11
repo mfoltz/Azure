@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static RPGAddOns.Rank.OnUserConnectedManager;
 
 namespace RPGAddOns.Rank
 {
@@ -45,7 +44,6 @@ namespace RPGAddOns.Rank
                 var userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
                 var serverClient = __instance._ApprovedUsersLookup[userIndex];
                 var userData = serverClient.UserEntity;
-                //Plugin.Logger.LogInfo($"{userData}");
 
                 Plugin.Logger.LogInfo($"{serverClient.PlatformId} connected.");
 
