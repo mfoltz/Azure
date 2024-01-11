@@ -8,7 +8,6 @@ For an example configuration, see [RPGAddOns.cfg](https://github.com/mfoltz/Blue
 ---
 
 ## Commands
-
 **Command**: `.rpg resetlevel` or `.rpg rl`  
 **Admin**: false  
 **Usage**: Use this command to reset your level to 1 after reaching max level to receive configured extras.  
