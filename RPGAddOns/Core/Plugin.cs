@@ -3,16 +3,18 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
-using RPGAddOns.Rank;
-
+using RPGAddOns.Hooks;
+using RPGAddOns.Core;
+using RPGAddOns;
 using System.Reflection;
 using Unity.Entities;
 using UnityEngine;
 using VampireCommandFramework;
 using VRising.GameData;
-using static RPGAddOns.Rank.OnUserConnectedManager;
+using UnityEngine.SceneManagement;
+using static RPGAddOns.Core.ChatCommands;
 
-namespace RPGAddOns.Core
+namespace RPGAddOns
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]
@@ -54,31 +56,6 @@ namespace RPGAddOns.Core
             Logger = Log;
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
-
-            Logger.LogInfo("Creating CoroutineHelper GameObject...");
-            GameObject coroutineHelperObject = new GameObject("CoroutineHelper");
-
-            Logger.LogInfo("Adding CoroutineHelper Component...");
-            CoroutineHelper coroutineHelperComponent = coroutineHelperObject.AddComponent<CoroutineHelper>();
-
-            if (coroutineHelperComponent == null)
-            {
-                Logger.LogError("Failed to add CoroutineHelper to GameObject.");
-                return;
-            }
-
-            GameObject.DontDestroyOnLoad(coroutineHelperObject);
-            Logger.LogInfo("CoroutineHelper created and set to DontDestroyOnLoad.");
-
-            ScenePoolManager localScenePoolManager = new ScenePoolManager(coroutineHelperComponent);
-            OnUserConnectedManager.InitializeWithScenePoolManagerAndCoroutineHelper(localScenePoolManager, coroutineHelperComponent);
-
-            // Verify server environment and load configurations
-            if (!VWorld.IsServer)
-            {
-                Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is only for server!");
-                return;
-            }
 
             InitConfig();
             ServerEvents.OnGameDataInitialized += GameDataOnInitialize;

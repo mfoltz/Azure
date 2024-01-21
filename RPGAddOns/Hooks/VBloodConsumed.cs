@@ -13,7 +13,7 @@ using WillisCore;
 using Math = System.Math;
 using Random = System.Random;
 
-namespace RPGAddOns.PvERank
+namespace RPGAddOns.Hooks
 {
     [HarmonyPatch]
     internal class VBloodConsumed
