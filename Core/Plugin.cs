@@ -102,5 +102,9 @@ namespace RPGAddOnsEx.Core
         public void OnGameInitialized()
         {
         }
+
+        public void FreeBuildAdminOnly()
+        {
+        }
     }
 }

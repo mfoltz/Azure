@@ -17,11 +17,11 @@ using Random = System.Random;
 namespace RPGAddOnsEx.Hooks
 {
     [HarmonyPatch]
-    internal class VBloodConsumed
+    internal class VBloodSystem
     {
         [HarmonyPatch(typeof(VBloodSystem), nameof(VBloodSystem.OnUpdate))]
         [HarmonyPrefix]
-        public static void OnUpdate(VBloodSystem __instance)
+        public static void OnUpdate(ProjectM.VBloodSystem __instance)
         {
             // for whatever reason one vblood kill triggers 2 events so make a cooldown or something
             if (!__instance.EventList.IsEmpty)

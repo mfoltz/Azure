@@ -15,6 +15,8 @@ namespace RPGAddOnsEx.Hooks
     [HarmonyPatch(typeof(ModifyUnitStatBuffSystem_Spawn), "OnUpdate")]
     public class ModifyUnitStatBuffSystem_Spawn_Patch
     {
+        private static Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>> playerBuffers = new Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>>();
+
         private static void Prefix(ModifyUnitStatBuffSystem_Spawn __instance)
         {
             try
@@ -27,7 +29,9 @@ namespace RPGAddOnsEx.Hooks
                 {
                     // ah, so the event is probably it's own entity
                     entity.LogComponentTypes();
-                    Plugin.Logger.LogInfo($"ArmorLevel: {entityManager.GetComponentData<ArmorLevel>(entity).Level}");
+                    //Plugin.Logger.LogInfo($"ArmorLevel: {Utilities.GetComponentData<ArmorLevel>(entity).Level}");
+                    // this is the armor level of the item, not the player, hmmm
+                    // so if this entity has that component, that means the player is equipping a piece of armor
                     Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
                     //ForEachLambdaJobDescription entities = __instance.Entities;
 
@@ -39,6 +43,23 @@ namespace RPGAddOnsEx.Hooks
                     else
                     {
                         Plugin.Logger.LogInfo("Found player...");
+                        // yay, identified when armor is being equipped
+                        // now can check for specific types of armor and o
+                        if (entityManager.TryGetComponentData<ArmorLevel>(entity, out ArmorLevel component))
+                        {
+                            Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                            User user = entityManager.GetComponentData<User>(userEntity);
+                            DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
+                            // do I want to keep a record of each MUSB_DOTS per player? might have to if I want to remove them later
+                            playerBuffers[user.PlatformId] = buffer;
+                            ModifyUnitStatBuff_DOTS item = buffer[0];
+                            ModifyUnitStatBuff_DOTS itemClone = item;
+                            Plugin.Logger.LogInfo("Adding item to buffer...");
+                            itemClone.StatType = UnitStatType.PhysicalResistance;
+                            itemClone.Id = ModificationId.NewId(0);
+                            buffer.Add(itemClone);
+                            Plugin.Logger.LogInfo("Modification complete.");
+                        }
                         /*
                         if (entityManager.TryGetComponentData<Equipment>(entity, out Equipment component))
                         {
@@ -59,20 +80,7 @@ namespace RPGAddOnsEx.Hooks
                             }
                         }
                         */
-                        // need to make sure this is when they are equipping armor or it will apply every time the player is updated
-                        // also, need to take away what was given when the armor is unequipped or else it will apply forever
-                        // check their inventory?
-
-                        Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
-                        DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
-
-                        ModifyUnitStatBuff_DOTS item = buffer[0];
-                        ModifyUnitStatBuff_DOTS itemClone = item;
-                        Plugin.Logger.LogInfo("Adding item to buffer...");
-                        itemClone.StatType = UnitStatType.PhysicalResistance;
-                        itemClone.Id = ModificationId.NewId(0);
-                        buffer.Add(itemClone);
-                        Plugin.Logger.LogInfo("Modification complete.");
+                        // technically unequipping armor is the same thing as adding that piece of armor to a player inventory kind of?
                     }
                 }
                 entityArray.Dispose();
@@ -83,6 +91,7 @@ namespace RPGAddOnsEx.Hooks
             }
         }
 
+        /*
         private static void Postfix(ModifyUnitStatBuffSystem_Spawn __instance)
         {
             try
@@ -94,7 +103,7 @@ namespace RPGAddOnsEx.Hooks
                 foreach (Entity entity in entityArray)
                 {
                     entity.LogComponentTypes();
-                    Plugin.Logger.LogInfo($"ArmorLevel: {entityManager.GetComponentData<ArmorLevel>(entity).Level}");
+                    Plugin.Logger.LogInfo($"ArmorLevel: {Utilities.GetComponentData<ArmorLevel>(entity).Level}");
                     Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
                     //ForEachLambdaJobDescription entities = __instance.Entities;
 
@@ -106,7 +115,7 @@ namespace RPGAddOnsEx.Hooks
                     else
                     {
                         Plugin.Logger.LogInfo("Found player...");
-                        /*
+
                         if (entityManager.TryGetComponentData<Equipment>(entity, out Equipment component))
                         {
                             List<NetworkedEntity> slotEntities = new List<NetworkedEntity>
@@ -125,7 +134,7 @@ namespace RPGAddOnsEx.Hooks
                                 }
                             }
                         }
-                        */
+
                         //Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                         //Equipment componentData = entityManager.GetComponentData<Equipment>(userEntity);
                         DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
@@ -146,9 +155,6 @@ namespace RPGAddOnsEx.Hooks
                 Plugin.Logger.LogError(ex.Message);
             }
         }
-
-        private static void ModifyArmorStats()
-        {
-        }
+        */
     }
 }

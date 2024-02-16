@@ -724,13 +724,13 @@ namespace RPGAddOnsEx.Core
                     if (check)
                     {
                         // item was present and removed, add it back
-                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                     else
                     {
                         // item was not present and should be added
-                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                 }
