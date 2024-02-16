@@ -1,8 +1,10 @@
-﻿using ProjectM;
+﻿using AdminCommands.Commands.Converters;
+using ProjectM;
+using RPGAddOnsEx.Core;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
 
-namespace RPGAddOns
+namespace RPGAddOnsEx.Augments.RankUp
 {
     public class RankData
     {
@@ -10,11 +12,14 @@ namespace RPGAddOns
         public int Points { get; set; }
         public List<int> Buffs { get; set; } = new List<int>();
 
+        public DateTime LastAbilityUse { get; set; }
+
         public RankData(int rank, int points, List<int> buffs)
         {
             Rank = rank;
             Points = points;
             Buffs = buffs;
+            LastAbilityUse = DateTime.MinValue; // Initialize to ensure it's always set
         }
     }
 
@@ -33,7 +38,7 @@ namespace RPGAddOns
                     ctx.Reply("Unable to parse buffs, make sure number of buff prefabs equals the number of max ranks in configuration.");
                     return;
                 }
-                if (buffname != "string") // this is a hacky way to skip a buff, leave buffs you want skipped as 0s in config
+                if (buffname != "0") // this is a way to skip a buff, leave buffs you want skipped as 0s in config
                 {
                     WillisCore.Helper.BuffPlayerByName(playerName, buffguid, 0, true);
                     ctx.Reply($"You've been granted a permanent buff: {buffname}");
@@ -43,7 +48,12 @@ namespace RPGAddOns
             data.Points = 0;
             data.Buffs = playerBuffs;
             ctx.Reply($"Congratulations {playerName}! You have increased your PvE rank to {data.Rank}.");
-            Commands.SavePlayerRanks();
+            //lightning bolt goes here
+
+            PrefabGUID lightning = new PrefabGUID(1365358996);
+            FoundPrefabGuid foundPrefabGuid = new(lightning);
+            CastCommands.CastCommand(ctx, foundPrefabGuid, null);
+            ChatCommands.SavePlayerRanks();
             return;
         }
 
@@ -63,7 +73,7 @@ namespace RPGAddOns
             buffname = AdminCommands.ECSExtensions.LookupName(buffguid);
             if (buffList[data.Rank] == 0)
             {
-                buffname = "string";
+                buffname = "0";
             }
             if (buffList.Count == Plugin.MaxRanks)
             {

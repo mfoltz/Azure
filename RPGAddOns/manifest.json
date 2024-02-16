@@ -1,8 +1,8 @@
 ﻿{
-    "name": "RPGAddOns",
-    "version_number": "0.0.1",
-    "website_url": "",
-    "description": "",
+    "name": "TMPI",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/mfoltz/Azure/tree/AzureEx",
+    "description": "Solarus drops his shard and Death gear has the Bloodmoon set bonus.",
     "dependencies": [
         "BepInEx-BepInExPack_V_Rising-1.668.5",
         "deca-Bloodstone-0.1.6",

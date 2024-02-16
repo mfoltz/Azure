@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	<AssemblyName>RPGAddOns</AssemblyName>
+	<AssemblyName>RPGAddOnsEx</AssemblyName>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<LangVersion>latest</LangVersion>
@@ -29,7 +29,10 @@
       <HintPath>..\..\..\..\Downloads\AdminCommands.dll</HintPath>
     </Reference>
     <Reference Include="RPGMods">
-      <HintPath>..\..\..\..\Downloads\RPGMods.dll</HintPath>
+      <HintPath>..\..\..\..\Downloads\RPGMods_3.dll</HintPath>
+    </Reference>
+    <Reference Include="VRising.GameData">
+      <HintPath>..\..\BloodyEncounters\VRising.GameData.dll</HintPath>
     </Reference>
   </ItemGroup>
 	<Target Name="CopyDLLsServer" AfterTargets="Build">
