@@ -1,10 +1,10 @@
 ﻿using AdminCommands.Commands.Converters;
 using ProjectM;
-using RPGAddOns.Core;
+using RPGAddOnsEx.Core;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
 
-namespace RPGAddOns.Augments.RankUp
+namespace RPGAddOnsEx.Augments.RankUp
 {
     public class RankData
     {

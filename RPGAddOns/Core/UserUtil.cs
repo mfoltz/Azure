@@ -8,66 +8,67 @@ using Unity.Entities;
 using VRising.GameData.Models;
 using VRising.GameData.Models.Internals;
 
-namespace RPGAddOns.Core;
-
-public static class Extensions
+namespace RPGAddOnsEx.Core
 {
-    public static List<T> GetBufferInternal<T>(this EntityManager entityManager, Entity entity) where T : new()
+    public static class Extensions
     {
-        try
+        public static List<T> GetBufferInternal<T>(this EntityManager entityManager, Entity entity) where T : new()
         {
-            DynamicBuffer<T> buffer = entityManager.GetBuffer<T>(entity);
-            List<T> list = new List<T>();
-            NativeArray<T>.Enumerator enumerator = buffer.GetEnumerator();
-            while (enumerator.MoveNext())
+            try
             {
-                T current = enumerator.Current;
-                list.Add(current);
+                DynamicBuffer<T> buffer = entityManager.GetBuffer<T>(entity);
+                List<T> list = new List<T>();
+                NativeArray<T>.Enumerator enumerator = buffer.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    T current = enumerator.Current;
+                    list.Add(current);
+                }
+
+                return list;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public static bool HasComponentInternal<T>(this EntityManager entityManager, Entity entity)
+        {
+            try
+            {
+                return entityManager.HasComponent<T>(entity);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool TryGetComponentDataInternal<T>(this EntityManager entityManager, Entity entity, out T value) where T : new()
+        {
+            try
+            {
+                value = entityManager.GetComponentData<T>(entity);
+                return true;
+            }
+            catch
+            {
+                value = default(T);
+                return false;
+            }
+        }
+
+        public static T GetManagedComponentDataInternal<T>(this World world, BaseEntityModel entity) where T : class
+        {
+            PrefabGUID? prefabGUID = entity.PrefabGUID;
+            if (!prefabGUID.HasValue)
+            {
+                return null;
             }
 
-            return list;
+            ManagedDataRegistry managedDataRegistry = world.GetExistingSystem<GameDataSystem>().ManagedDataRegistry;
+            return managedDataRegistry.GetOrDefault<T>(prefabGUID.Value);
         }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
-
-    public static bool HasComponentInternal<T>(this EntityManager entityManager, Entity entity)
-    {
-        try
-        {
-            return entityManager.HasComponent<T>(entity);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public static bool TryGetComponentDataInternal<T>(this EntityManager entityManager, Entity entity, out T value) where T : new()
-    {
-        try
-        {
-            value = entityManager.GetComponentData<T>(entity);
-            return true;
-        }
-        catch
-        {
-            value = default(T);
-            return false;
-        }
-    }
-
-    public static T GetManagedComponentDataInternal<T>(this World world, BaseEntityModel entity) where T : class
-    {
-        PrefabGUID? prefabGUID = entity.PrefabGUID;
-        if (!prefabGUID.HasValue)
-        {
-            return null;
-        }
-
-        ManagedDataRegistry managedDataRegistry = world.GetExistingSystem<GameDataSystem>().ManagedDataRegistry;
-        return managedDataRegistry.GetOrDefault<T>(prefabGUID.Value);
     }
 }

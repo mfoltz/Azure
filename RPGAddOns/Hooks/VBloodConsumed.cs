@@ -2,10 +2,9 @@
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
-using RPGAddOns.Augments.RankUp;
-using RPGAddOns.Core;
-using RPGAddOns.VeinModules;
-using TMPI.Core;
+using RPGAddOnsEx.Augments.RankUp;
+using RPGAddOnsEx.Core;
+
 using Unity.Entities;
 using Unity.Mathematics;
 using VRising.GameData;
@@ -15,7 +14,7 @@ using WillisCore;
 using Math = System.Math;
 using Random = System.Random;
 
-namespace RPGAddOns.Hooks
+namespace RPGAddOnsEx.Hooks
 {
     [HarmonyPatch]
     internal class VBloodConsumed

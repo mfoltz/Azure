@@ -1,9 +1,9 @@
-﻿using RPGAddOns.Augments;
-using RPGAddOns.Augments.RankUp;
-using RPGAddOns.VeinModules;
+﻿using RPGAddOnsEx.Augments;
+using RPGAddOnsEx.Augments.RankUp;
+
 using System.Text.Json;
 
-namespace RPGAddOns.Core
+namespace RPGAddOnsEx.Core
 {
     public class DataStructures
     {

@@ -5,7 +5,7 @@ using Il2CppInterop.Runtime;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 
-namespace TMPI.Core
+namespace RPGAddOnsEx.Core
 {
     public static class Utilities
     {

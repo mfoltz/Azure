@@ -4,7 +4,7 @@ using Bloodstone.API;
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
-using RPGAddOns.Core;
+using RPGAddOnsEx.Core;
 using RPGMods.Utils;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,7 +14,7 @@ using TimeSpan = System.TimeSpan;
 
 #nullable disable
 
-namespace RPGAddOns.Augments.RankUp
+namespace RPGAddOnsEx.Augments.RankUp
 {
     [CommandGroup(name: "casting", shortHand: "c")]
     internal class CastCommands

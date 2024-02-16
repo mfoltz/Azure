@@ -2,9 +2,9 @@
 using ProjectM;
 using System.Reflection;
 using Unity.Entities;
-using TMPI.Core;
+using RPGAddOnsEx.Core;
 
-namespace TMPI.Augments
+namespace RPGAddOnsEx.Augments
 {
     public static class ArmorModifierSystem
     {

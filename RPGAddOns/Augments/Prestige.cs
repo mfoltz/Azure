@@ -1,6 +1,6 @@
 ﻿using LibCpp2IL.BinaryStructures;
 using ProjectM;
-using RPGAddOns.Core;
+using RPGAddOnsEx.Core;
 using RPGMods.Commands;
 using RPGMods.Systems;
 using Steamworks;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using VampireCommandFramework;
 using static RPGMods.Utils.Prefabs;
 
-namespace RPGAddOns.VeinModules
+namespace RPGAddOnsEx.Augments
 {
     public class PrestigeData
     {

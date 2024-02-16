@@ -2,9 +2,11 @@
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.UI;
-using RPGAddOns.Augments;
-using RPGAddOns.Augments.RankUp;
-using RPGAddOns.VeinModules;
+using RPGAddOnsEx.Augments;
+using RPGAddOnsEx.Augments.RankUp;
+
+using RPGAddOnsEx.Augments.RankUp;
+
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -17,9 +19,8 @@ using VRising.GameData;
 using VRising.GameData.Models;
 using VRising.GameData.Models.Internals;
 using WillisCore;
-using static RPGAddOns.VeinModules.PrestigeSystem;
 
-namespace RPGAddOns.Core
+namespace RPGAddOnsEx.Core
 {
     [CommandGroup(name: "rpg", shortHand: "rpg")]
     internal class ChatCommands
@@ -730,13 +731,13 @@ namespace RPGAddOns.Core
                     if (check)
                     {
                         // item was present and removed, add it back
-                        RPGAddOns.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                     else
                     {
                         // item was not present and should be added
-                        RPGAddOns.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                 }
@@ -764,7 +765,7 @@ namespace RPGAddOns.Core
             var item = modifyUnitStatBuff[0];
 
             item.StatType = UnitStatType.AttackSpeed;
-            modifyUnitStatBuff[0] = item;  
+            modifyUnitStatBuff[0] = item;
 
             ctx.Reply("Test complete.");
         }
