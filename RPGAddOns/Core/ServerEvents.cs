@@ -1,8 +1,9 @@
 ﻿using HarmonyLib;
 using ProjectM;
+using TMPI;
 using Unity.Entities;
 
-namespace RPGAddOns.Core
+namespace TMPI.Core
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 
@@ -24,26 +25,6 @@ namespace RPGAddOns.Core
             catch (Exception ex)
             {
                 Plugin.Logger.LogError(ex);
-            }
-        }
-
-        [HarmonyPatch(typeof(GameBootstrap), nameof(GameBootstrap.OnApplicationQuit))]
-        public static class GameBootstrapQuit_Patch
-        {
-            public static void Prefix()
-            {
-                ChatCommands.SavePlayerPrestige();
-                ChatCommands.SavePlayerRanks();
-            }
-        }
-
-        [HarmonyPatch(typeof(TriggerPersistenceSaveSystem), nameof(TriggerPersistenceSaveSystem.TriggerSave))]
-        public class TriggerPersistenceSaveSystem_Patch
-        {
-            public static void Prefix()
-            {
-                ChatCommands.SavePlayerPrestige();
-                ChatCommands.SavePlayerRanks();
             }
         }
     }

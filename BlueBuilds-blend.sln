@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RPGAddOns", "RPGAddOns\RPGAddOns.csproj", "{02D39927-FF18-4006-B9EB-E11E8B4914FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TMPI", "RPGAddOns\TMPI.csproj", "{02D39927-FF18-4006-B9EB-E11E8B4914FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

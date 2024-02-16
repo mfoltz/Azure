@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	<AssemblyName>RPGAddOns</AssemblyName>
+	<AssemblyName>TMPI</AssemblyName>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<LangVersion>latest</LangVersion>
@@ -25,31 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="AdminCommands">
-      <HintPath>..\..\..\..\Downloads\AdminCommands.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.CecilX">
-      <HintPath>..\..\..\..\Downloads\Mirror-master\Mirror-master\Assets\Mirror\Plugins\Mono.Cecil\Mono.CecilX.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.CecilX.Mdb">
-      <HintPath>..\..\..\..\Downloads\Mirror-master\Mirror-master\Assets\Mirror\Plugins\Mono.Cecil\Mono.CecilX.Mdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.CecilX.Pdb">
-      <HintPath>..\..\..\..\Downloads\Mirror-master\Mirror-master\Assets\Mirror\Plugins\Mono.Cecil\Mono.CecilX.Pdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.CecilX.Rocks">
-      <HintPath>..\..\..\..\Downloads\Mirror-master\Mirror-master\Assets\Mirror\Plugins\Mono.Cecil\Mono.CecilX.Rocks.dll</HintPath>
-    </Reference>
-    <Reference Include="RPGMods">
-      <HintPath>..\..\..\..\Downloads\RPGMods_3.dll</HintPath>
-    </Reference>
     <Reference Include="VRising.GameData">
       <HintPath>..\..\BloodyEncounters\VRising.GameData.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Other\" />
   </ItemGroup>
 	<Target Name="CopyDLLsServer" AfterTargets="Build">
 		<Message Text="DLL to V Rising Server" Importance="High" />
