@@ -694,7 +694,7 @@ namespace RPGAddOnsEx.Core
             }
         }
 
-        [Command(name: "addNoctumSet", shortHand: "ans", adminOnly: true, usage: "", description: "buffer modification testing")]
+        [Command(name: "addNoctumSet", shortHand: "ans", adminOnly: true, usage: "", description: "adds noctum set to inventory if not already present")]
         public static void addNoctumCommand(ChatCommandContext ctx)
         {
             // want to get ModifyUnitStatsBuff_DOTS from EquipBuff_Gloves_Base or something similar
@@ -737,6 +737,7 @@ namespace RPGAddOnsEx.Core
             }
         }
 
+        /*
         [Command(name: "statChange", shortHand: "sc", adminOnly: true, usage: "", description: "buffer modification testing")]
         public static void statChangeCommand(ChatCommandContext ctx)
         {
@@ -763,7 +764,6 @@ namespace RPGAddOnsEx.Core
             ctx.Reply("Test complete.");
         }
 
-        /*
         [Command(name: "suntoggle", shortHand: "st", adminOnly: true, usage: "", description: "Toggles the Sun on and off.")]
         public static void ToggleSun(ChatCommandContext ctx)
         {
