@@ -12,6 +12,9 @@ using VRising.GameData.Models.Internals;
 using System.Xml.Linq;
 using RPGAddOnsEx.Core;
 using Extensions = System.Xml.Linq.Extensions;
+using ProjectM.Network;
+using VRising.GameData.Models;
+using VRising.GameData;
 
 // WIP
 
@@ -57,14 +60,10 @@ namespace ServerSideBtw
                 return;
             }
 
-            // Ensure the entity has a BaseEntityModel component
-            if (!entityManager.HasComponent<BaseEntityModel>(player))
-            {
-                Plugin.Logger.LogError("BaseEntityModel component not found on the entity.");
-                return;
-            }
-
-            var baseEntityModel = entityManager.GetComponentData<BaseEntityModel>(player);
+            string playerName = entityManager.GetComponentData<User>(player).CharacterName.ToString();
+            UserModel userModel = GameData.Users.GetUserByCharacterName(playerName);
+            BaseEntityModel baseEntityModel = userModel.Internals;
+            //var baseEntityModel = entityManager.GetComponentData<BaseEntityModel>(player);
             CustomManagedDataModel customModel = new CustomManagedDataModel(serverBootstrapSystem.World, baseEntityModel);
             // Access the GameDataSystem to retrieve the ManagedDataRegistry
             ManagedDataRegistry managedDataRegistry = serverBootstrapSystem.World.GetExistingSystem<GameDataSystem>().ManagedDataRegistry;
@@ -316,4 +315,5 @@ namespace ServerSideBtw
         }
     }
 }
+
 */

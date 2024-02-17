@@ -10,6 +10,10 @@ namespace RPGAddOnsEx.Augments
     {
         public static void ModifyArmorPrefabEquipmentSet()
         {
+            if (!Plugin.modifyDeathSetBonus)
+            {
+                return;
+            }
             EntityManager entityManager = VWorld.Server.EntityManager;
 
             List<PrefabGUID> darkMatterSet = new List<PrefabGUID>

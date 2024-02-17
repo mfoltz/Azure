@@ -20,6 +20,10 @@ namespace RPGAddOnsEx.Hooks_WIP
 
         private static void Prefix(ModifyUnitStatBuffSystem_Spawn __instance)
         {
+            if (!Plugin.modifyDeathSetStats)
+            {
+                return;
+            }
             try
             {
                 EntityManager entityManager = __instance.EntityManager;
@@ -52,11 +56,11 @@ namespace RPGAddOnsEx.Hooks_WIP
                                 User user = entityManager.GetComponentData<User>(userEntity);
                                 DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
                                 Plugin.Logger.LogInfo("Adding stat...");
-                                ModifyUnitStatBuff_DOTS item = buffer[0];
-                                ModifyUnitStatBuff_DOTS newItem = item;
-                                newItem.StatType = UnitStatType.SpellPower;
-                                newItem.Id = ModificationId.NewId(0);
-                                newItem.Value = 5;
+                                //ModifyUnitStatBuff_DOTS item = buffer[0];
+                                //ModifyUnitStatBuff_DOTS newItem = item;
+                                ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatType);
+                                // will be spell power by default if no match from config
+                                newItem.Value = Plugin.extraStatValue;
                                 buffer.Add(newItem);
                                 Plugin.Logger.LogInfo("Addition complete.");
                             }
@@ -77,6 +81,10 @@ namespace RPGAddOnsEx.Hooks_WIP
     {
         private static void Prefix(ModifyUnitStatBuffSystem_Destroy __instance)
         {
+            if (!Plugin.modifyDeathSetStats)
+            {
+                return;
+            }
             try
             {
                 EntityManager entityManager = __instance.EntityManager;
@@ -104,7 +112,9 @@ namespace RPGAddOnsEx.Hooks_WIP
                                 Plugin.Logger.LogInfo("Removing stat...");
                                 for (int i = 0; i < buffer.Length; i++)
                                 {
-                                    if (buffer[i].StatType == UnitStatType.SpellPower && buffer[i].Id.Id == 0)
+                                    ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatType);
+                                    UnitStatType type = buffer[i].StatType;
+                                    if (buffer[i].StatType == type && buffer[i].Id.Id == 0)
                                     {
                                         buffer.RemoveAt(i);
                                         Plugin.Logger.LogInfo("Removal complete.");
