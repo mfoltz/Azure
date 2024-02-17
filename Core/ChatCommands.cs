@@ -737,6 +737,49 @@ namespace RPGAddOnsEx.Core
             }
         }
 
+        [Command(name: "addDeathSet", shortHand: "ads", adminOnly: true, usage: "", description: "adds death set to inventory if not already present")]
+        public static void addDeathCommand(ChatCommandContext ctx)
+        {
+            // want to get ModifyUnitStatsBuff_DOTS from EquipBuff_Gloves_Base or something similar
+            var user = ctx.Event.User;
+            var player = ctx.Event.SenderCharacterEntity;
+            string name = user.CharacterName.ToString();
+            var SteamID = user.PlatformId;
+
+            EntityManager entityManager = VWorld.Server.EntityManager;
+
+            List<PrefabGUID> deathSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1055898174), // Chest
+                new PrefabGUID(1400688919), // Boots
+                new PrefabGUID(125611165),  // Legs
+                new PrefabGUID(-204401621),  // Gloves
+            };
+            var userModel = GameData.Users.GetUserByCharacterName(name);
+            var inventoryModel = userModel.Inventory;
+            var inventoryItemData = inventoryModel.Items;
+            if (InventoryUtilities.TryGetInventoryEntity(entityManager, player, out Entity inventoryEntity))
+            {
+                foreach (var prefabGUID in deathSet)
+                {
+                    bool check = InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, prefabGUID, 1);
+                    // going to assume that returns true if present/removed and false if not present
+                    if (check)
+                    {
+                        // item was present and removed, add it back
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
+                        //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
+                    }
+                    else
+                    {
+                        // item was not present and should be added
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
+                        //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
+                    }
+                }
+            }
+        }
+
         /*
         [Command(name: "statChange", shortHand: "sc", adminOnly: true, usage: "", description: "buffer modification testing")]
         public static void statChangeCommand(ChatCommandContext ctx)

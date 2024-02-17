@@ -16,6 +16,21 @@ namespace RPGAddOnsEx.Hooks_WIP
     public class ModifyUnitStatBuffSystem_Spawn_Patch
     {
         //private static Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>> playerBuffers = new Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>>();
+        public static List<PrefabGUID> deathSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1055898174), // Chest
+                new PrefabGUID(1400688919), // Boots
+                new PrefabGUID(125611165),  // Legs
+                new PrefabGUID(-204401621),  // Gloves
+            };
+
+        public static List<PrefabGUID> noctumSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1076026390), // Chest
+                new PrefabGUID(735487676), // Boots
+                new PrefabGUID(-810609112),  // Legs
+                new PrefabGUID(776192195),  // Gloves
+            };
 
         private static void Prefix(ModifyUnitStatBuffSystem_Spawn __instance)
         {
@@ -28,7 +43,7 @@ namespace RPGAddOnsEx.Hooks_WIP
                 {
                     //Plugin.Logger.LogInfo($"ArmorLevel: {Utilities.GetComponentData<ArmorLevel>(entity).Level}");
                     // this is the armor level of the item, not the player
-                    // so if this entity has that component, that means the player is equipping a piece of armor
+                    // so if this entity has that component, that means the player is equipping a piece of armor probably
                     Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
                     if (!entityManager.HasComponent<PlayerCharacter>(owner))
                     {
