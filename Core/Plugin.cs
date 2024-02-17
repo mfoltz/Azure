@@ -57,6 +57,8 @@ namespace RPGAddOnsEx.Core
         public static string extraStatType;
         public static int extraStatValue;
 
+        public static bool shardDrop;
+
         public override void Load()
         {
             Instance = this;

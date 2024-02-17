@@ -103,7 +103,7 @@ namespace RPGAddOnsEx.Hooks
 
                         //
                         // so what all do I need to define a zone... wonder if it's easier to make a circle around a point with a radius or 4 points for a square
-                        if (vBloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
+                        if (vBloodName == "CHAR_ChurchOfLight_Paladin_VBlood" && Plugin.shardDrop)
                         {
                             //add solarus shard to player inventory
                             Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
