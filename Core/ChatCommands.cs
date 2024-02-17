@@ -844,6 +844,19 @@ namespace RPGAddOnsEx.Core
             }
             Plugin.Logger.LogInfo("[ToggleSun] Valid 'SceneLightingGameObjects' not found.");
         }
+        [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
+        public static void TestCommand(ChatCommandContext ctx)
+        {
+            Entity senderUserEntity = ctx.Event.SenderUserEntity;
+            Entity Character = ctx.Event.SenderCharacterEntity;
+            FromCharacter fromCharacter = new FromCharacter()
+            {
+                User = senderUserEntity,
+                Character = Character
+            };
+            ManagedDataRegistry managedDataRegistry = VRising.GameData.GameData.Systems.ManagedDataRegistry;
+            GameDataSystem gameDataSystem = VRising.GameData.GameData.Systems.GameDataSystem;
+
         */
 
         public static Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<UnityEngine.Object> FindAllObjects()
