@@ -15,7 +15,7 @@ namespace RPGAddOnsEx.Hooks_WIP
     [HarmonyPatch(typeof(ModifyUnitStatBuffSystem_Spawn), "OnUpdate")]
     public class ModifyUnitStatBuffSystem_Spawn_Patch
     {
-        private static Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>> playerBuffers = new Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>>();
+        //private static Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>> playerBuffers = new Dictionary<ulong, DynamicBuffer<ModifyUnitStatBuff_DOTS>>();
 
         private static void Prefix(ModifyUnitStatBuffSystem_Spawn __instance)
         {
@@ -36,24 +36,23 @@ namespace RPGAddOnsEx.Hooks_WIP
                     }
                     else
                     {
-                        Plugin.Logger.LogInfo("Found player...");
                         // yay, identified when armor is being equipped
-                        // now can check for specific types of armor like death gear being equipped, then I might check for death gear being added to player inventory to remove the buff?
-                        // how would that work if the player acquired a new set, I don't want that to count as unequipping
+                        // now can check for specific types of armor like death gear being equipped
                         if (entityManager.TryGetComponentData(entity, out ArmorLevel component))
                         {
+                            Plugin.Logger.LogInfo("Player equipping armor...");
                             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                             User user = entityManager.GetComponentData<User>(userEntity);
                             DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
                             // do I want to keep a record of each MUSB_DOTS per player? might have to if I want to remove them later
-                            playerBuffers[user.PlatformId] = buffer;
+                            //playerBuffers[user.PlatformId] = buffer;
                             ModifyUnitStatBuff_DOTS item = buffer[0];
                             ModifyUnitStatBuff_DOTS itemClone = item;
                             Plugin.Logger.LogInfo("Adding item to buffer...");
-                            itemClone.StatType = UnitStatType.PhysicalResistance;
+                            itemClone.StatType = UnitStatType.PrimaryAttackSpeed;
                             itemClone.Id = ModificationId.NewId(0);
                             buffer.Add(itemClone);
-                            Plugin.Logger.LogInfo("Modification complete.");
+                            Plugin.Logger.LogInfo("Addition complete.");
                         }
                     }
                 }
@@ -73,6 +72,7 @@ namespace RPGAddOnsEx.Hooks_WIP
         {
             try
             {
+                //this might be firing twice when armor is unequipped, once for the armor and once for the player or something?
                 EntityManager entityManager = __instance.EntityManager;
                 NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
                 Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Destroy Prefix called...");
@@ -86,10 +86,24 @@ namespace RPGAddOnsEx.Hooks_WIP
                     }
                     else
                     {
-                        Plugin.Logger.LogInfo("Found player...");
-                        Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
-                        User user = entityManager.GetComponentData<User>(userEntity);
-                        DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
+                        if (entityManager.TryGetComponentData(entity, out ArmorLevel component))
+                        {
+                            Plugin.Logger.LogInfo("Player unequipping armor...");
+                            // first pass appears to be for the armor, second pass is for the player?
+                            Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                            User user = entityManager.GetComponentData<User>(userEntity);
+                            DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
+                            // want to remove what was given above
+                            for (int i = 0; i < buffer.Length; i++)
+                            {
+                                if (buffer[i].StatType == UnitStatType.PrimaryAttackSpeed)
+                                {
+                                    Plugin.Logger.LogInfo("Removing item from buffer...");
+                                    buffer.RemoveAt(i);
+                                    Plugin.Logger.LogInfo("Removal complete.");
+                                }
+                            }
+                        }
                     }
                 }
                 entityArray.Dispose();
