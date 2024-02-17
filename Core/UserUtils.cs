@@ -12,6 +12,22 @@ namespace RPGAddOnsEx.Core
 {
     public static class Extensions
     {
+        public static List<PrefabGUID> deathSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1055898174), // Chest
+                new PrefabGUID(1400688919), // Boots
+                new PrefabGUID(125611165),  // Legs
+                new PrefabGUID(-204401621),  // Gloves
+            };
+
+        public static List<PrefabGUID> noctumSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1076026390), // Chest
+                new PrefabGUID(735487676), // Boots
+                new PrefabGUID(-810609112),  // Legs
+                new PrefabGUID(776192195),  // Gloves
+            };
+
         public static List<T> GetBufferInternal<T>(this EntityManager entityManager, Entity entity) where T : new()
         {
             try

@@ -35,7 +35,7 @@
       <HintPath>..\..\..\Downloads\test\AdminCommands.dll</HintPath>
     </Reference>
     <Reference Include="RPGMods">
-      <HintPath>..\..\..\Downloads\RPGMods_3.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRising\VRising_Server\BepInEx\plugins\RPGMods.dll</HintPath>
     </Reference>
     <Reference Include="VRising.GameData">
       <HintPath>VRising.GameData.dll</HintPath>
