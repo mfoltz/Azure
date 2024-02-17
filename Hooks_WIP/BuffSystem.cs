@@ -12,7 +12,7 @@ using Unity.Entities;
 
 #nullable disable
 
-namespace RPGMods.Hooks
+namespace RPGAddonsEx.Hooks
 {
     [HarmonyPatch(typeof(BuffSystem_Spawn_Server), "OnUpdate")]
     public class BuffSystem_Spawn_Server_Patch
@@ -21,37 +21,10 @@ namespace RPGMods.Hooks
 
         private static void Prefix(BuffSystem_Spawn_Server __instance)
         {
-            if (!PermissionSystem.isVIPSystem)
-                return;
-            foreach (Entity entity in __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp))
-            {
-                PrefabGUID componentData = __instance.EntityManager.GetComponentData<PrefabGUID>(entity);
-                if (PermissionSystem.isVIPSystem)
-                    PermissionSystem.BuffReceiver(entity, componentData);
-            }
         }
 
         private static void Postfix(BuffSystem_Spawn_Server __instance)
         {
-            if (!WeaponMasterSystem.isMasteryEnabled)
-                return;
-            foreach (Entity entity in __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp))
-            {
-                EntityManager entityManager = __instance.EntityManager;
-                if (entityManager.HasComponent<InCombatBuff>(entity))
-                {
-                    entityManager = __instance.EntityManager;
-                    Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
-                    entityManager = __instance.EntityManager;
-                    if (entityManager.HasComponent<PlayerCharacter>(owner))
-                    {
-                        entityManager = __instance.EntityManager;
-                        Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
-                        if (WeaponMasterSystem.isMasteryEnabled)
-                            WeaponMasterSystem.LoopMastery(userEntity, owner);
-                    }
-                }
-            }
         }
     }
 }
