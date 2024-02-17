@@ -10,7 +10,7 @@ using Plugin = RPGAddOnsEx.Core.Plugin;
 
 #nullable disable
 
-namespace RPGAddOnsEx.Hooks
+namespace RPGAddOnsEx.Hooks_WIP
 {
     [HarmonyPatch(typeof(ModifyUnitStatBuffSystem_Spawn), "OnUpdate")]
     public class ModifyUnitStatBuffSystem_Spawn_Patch
@@ -38,8 +38,9 @@ namespace RPGAddOnsEx.Hooks
                     {
                         Plugin.Logger.LogInfo("Found player...");
                         // yay, identified when armor is being equipped
-                        // now can check for specific types of armor like death gear being equipped
-                        if (entityManager.TryGetComponentData<ArmorLevel>(entity, out ArmorLevel component))
+                        // now can check for specific types of armor like death gear being equipped, then I might check for death gear being added to player inventory to remove the buff?
+                        // how would that work if the player acquired a new set, I don't want that to count as unequipping
+                        if (entityManager.TryGetComponentData(entity, out ArmorLevel component))
                         {
                             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                             User user = entityManager.GetComponentData<User>(userEntity);
@@ -58,7 +59,42 @@ namespace RPGAddOnsEx.Hooks
                 }
                 entityArray.Dispose();
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError(ex.Message);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ModifyUnitStatBuffSystem_Destroy), "OnUpdate")]
+    public class ModifyUnitStatBuffSystem_Destroy_Patch
+    {
+        private static void Prefix(ModifyUnitStatBuffSystem_Destroy __instance)
+        {
+            try
+            {
+                EntityManager entityManager = __instance.EntityManager;
+                NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
+                Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Destroy Prefix called...");
+                foreach (Entity entity in entityArray)
+                {
+                    entity.LogComponentTypes();
+                    Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
+                    if (!entityManager.HasComponent<PlayerCharacter>(owner))
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        Plugin.Logger.LogInfo("Found player...");
+                        Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                        User user = entityManager.GetComponentData<User>(userEntity);
+                        DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
+                    }
+                }
+                entityArray.Dispose();
+            }
+            catch (Exception ex)
             {
                 Plugin.Logger.LogError(ex.Message);
             }

@@ -17,6 +17,7 @@ namespace RPGModsAddOnsEx.Hooks
         private static void Prefix(ArmorLevelSystem_Spawn __instance)
         {
             // going to assume this gets fired whenever armor is equipped/unequipped for a player (not exclusively for any nitpickers reading this :P)
+// also no it only fires when equipping armor of course lol
             Plugin.Logger.LogInfo("ArmorLevelSystem_Spawn Prefix called...");
             EntityManager entityManager = __instance.EntityManager;
             NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
