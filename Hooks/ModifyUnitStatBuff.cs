@@ -22,20 +22,14 @@ namespace RPGAddOnsEx.Hooks
             try
             {
                 EntityManager entityManager = __instance.EntityManager;
-                // is this an array of all entities associated with the 'event'? if so can grab armor entity probably
                 NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
                 Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Spawn Prefix called...");
                 foreach (Entity entity in entityArray)
                 {
-                    // ah, so the event is probably it's own entity
-                    entity.LogComponentTypes();
                     //Plugin.Logger.LogInfo($"ArmorLevel: {Utilities.GetComponentData<ArmorLevel>(entity).Level}");
-                    // this is the armor level of the item, not the player, hmmm
+                    // this is the armor level of the item, not the player
                     // so if this entity has that component, that means the player is equipping a piece of armor
                     Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
-                    //ForEachLambdaJobDescription entities = __instance.Entities;
-
-                    // maybe prefix will have state of equipment before armor is equipped in postfix or something?
                     if (!entityManager.HasComponent<PlayerCharacter>(owner))
                     {
                         return;
@@ -44,7 +38,7 @@ namespace RPGAddOnsEx.Hooks
                     {
                         Plugin.Logger.LogInfo("Found player...");
                         // yay, identified when armor is being equipped
-                        // now can check for specific types of armor and o
+                        // now can check for specific types of armor like death gear being equipped
                         if (entityManager.TryGetComponentData<ArmorLevel>(entity, out ArmorLevel component))
                         {
                             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
@@ -60,27 +54,6 @@ namespace RPGAddOnsEx.Hooks
                             buffer.Add(itemClone);
                             Plugin.Logger.LogInfo("Modification complete.");
                         }
-                        /*
-                        if (entityManager.TryGetComponentData<Equipment>(entity, out Equipment component))
-                        {
-                            List<NetworkedEntity> slotEntities = new List<NetworkedEntity>
-                            {
-                                component.ArmorChestSlotEntity,
-                                component.ArmorGlovesSlotEntity,
-                                component.ArmorLegsSlotEntity,
-                                component.ArmorFootgearSlotEntity
-                            };
-                            foreach (NetworkedEntity networkedEntity in slotEntities)
-                            {
-                                Entity armorEntity = networkedEntity._Entity;
-                                if (armorEntity != Entity.Null)
-                                {
-                                    armorEntity.LogComponentTypes();
-                                }
-                            }
-                        }
-                        */
-                        // technically unequipping armor is the same thing as adding that piece of armor to a player inventory kind of?
                     }
                 }
                 entityArray.Dispose();
@@ -90,71 +63,5 @@ namespace RPGAddOnsEx.Hooks
                 Plugin.Logger.LogError(ex.Message);
             }
         }
-
-        /*
-        private static void Postfix(ModifyUnitStatBuffSystem_Spawn __instance)
-        {
-            try
-            {
-                EntityManager entityManager = __instance.EntityManager;
-
-                NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
-                Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Spawn Postfix called...");
-                foreach (Entity entity in entityArray)
-                {
-                    entity.LogComponentTypes();
-                    Plugin.Logger.LogInfo($"ArmorLevel: {Utilities.GetComponentData<ArmorLevel>(entity).Level}");
-                    Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
-                    //ForEachLambdaJobDescription entities = __instance.Entities;
-
-                    // maybe prefix will have state of equipment before armor is equipped in postfix or something?
-                    if (!entityManager.HasComponent<PlayerCharacter>(owner))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Found player...");
-
-                        if (entityManager.TryGetComponentData<Equipment>(entity, out Equipment component))
-                        {
-                            List<NetworkedEntity> slotEntities = new List<NetworkedEntity>
-                            {
-                                component.ArmorChestSlotEntity,
-                                component.ArmorGlovesSlotEntity,
-                                component.ArmorLegsSlotEntity,
-                                component.ArmorFootgearSlotEntity
-                            };
-                            foreach (NetworkedEntity networkedEntity in slotEntities)
-                            {
-                                Entity armorEntity = networkedEntity._Entity;
-                                if (armorEntity != Entity.Null)
-                                {
-                                    armorEntity.LogComponentTypes();
-                                }
-                            }
-                        }
-
-                        //Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
-                        //Equipment componentData = entityManager.GetComponentData<Equipment>(userEntity);
-                        DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
-
-                        ModifyUnitStatBuff_DOTS item = buffer[0];
-                        ModifyUnitStatBuff_DOTS itemClone = item;
-                        Plugin.Logger.LogInfo("Adding item to buffer...");
-                        itemClone.StatType = UnitStatType.PhysicalResistance;
-                        itemClone.Id = ModificationId.NewId(0);
-                        buffer.Add(itemClone);
-                        Plugin.Logger.LogInfo("Modification complete.");
-                    }
-                }
-                entityArray.Dispose();
-            }
-            catch (System.Exception ex)
-            {
-                Plugin.Logger.LogError(ex.Message);
-            }
-        }
-        */
     }
 }

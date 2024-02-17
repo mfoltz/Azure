@@ -11,7 +11,7 @@ using Unity.Collections;
 using Unity.Entities;
 
 #nullable disable
-
+/*
 namespace RPGAddonsEx.Hooks
 {
     [HarmonyPatch(typeof(BuffSystem_Spawn_Server), "OnUpdate")]
@@ -28,3 +28,4 @@ namespace RPGAddonsEx.Hooks
         }
     }
 }
+*/
