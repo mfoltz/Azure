@@ -17,7 +17,7 @@ using Random = System.Random;
 namespace RPGAddOnsEx.Hooks
 {
     [HarmonyPatch]
-    internal class VBloodSystem
+    internal class VBloodConsumed
     {
         [HarmonyPatch(typeof(VBloodSystem), nameof(VBloodSystem.OnUpdate))]
         [HarmonyPrefix]
@@ -37,14 +37,14 @@ namespace RPGAddOnsEx.Hooks
                     if (!VWorld.Server.EntityManager.TryGetComponentData(_event.Target, out PlayerCharacter playerData)) continue;
 
                     // there were 2 events from 1 kill, what does this imply?
-                    Plugin.Logger.LogInfo($"Processing event: {_event}"); // Log details about each event
+                    //Plugin.Logger.LogInfo($"Processing event: {_event}"); // Log details about each event
 
                     //EntityQuery query = __instance.__ConsumeBloodJob_entityQuery; //this seems to be the player entity as it did not have a unit level component
                     //NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
 
                     Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
                     string vBloodName = __instance._PrefabCollectionSystem._PrefabDataLookup[_event.Source].AssetName.ToString();
-                    Plugin.Logger.LogInfo($"VBlood name format: {vBloodName}"); // Log details about each event
+                    //Plugin.Logger.LogInfo($"VBlood name format: {vBloodName}"); // Log details about each event
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
@@ -62,52 +62,12 @@ namespace RPGAddOnsEx.Hooks
                         UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
                         Entity characterEntity = usermodel.FromCharacter.Character;
                         float3 playerPosition = usermodel.Position;
-                        // ascension location number 1
 
-                        // check if player is inside these bounds with LOGIC and SCIENCE
-                        if (vBloodName == "CHAR_Manticore_VBlood")
-                        {
-                            //check player positions
-
-                            float3 divineLocation1NWCorner = new(-1397.987f, 20f, -1221.586f);
-                            float3 divineLocation1SWCorner = new(-1386.987f, 20.48779f, -1221.781f);
-                            float3 divineLocation1NECorner = new(-1398.22f, 20.56775f, -1214.962f);
-                            float3 divineLocation1SECorner = new(-1386.954f, 20.0773f, -1214.544f);
-                            var usersEnum = GameData.Users.Online;
-                            var usersList = GameData.Users.Online.ToList();
-                            for (int i = 0; i < usersList.Count; i++)
-                            {
-                                var online = usersList[i];
-                                var playerPosition1 = online.Position;
-                                if (PositionChecker.IsWithinArea(playerPosition1, divineLocation1NWCorner, divineLocation1SWCorner, divineLocation1NECorner, divineLocation1SECorner))
-                                {
-                                    //check for mats
-                                    //check for ascension level
-                                    //ascend player
-                                    //add buff
-                                    //add points
-                                    //save data
-                                    //send message
-                                    //return
-                                }
-                            }
-                        }
-                        if (vBloodName == "CHAR_Cursed_MountainBeast_VBlood")
-                        {
-                            //check player positions
-                        }
-                        if (vBloodName == "CHAR_Gloomrot_Monster_VBlood")
-                        {
-                            //check player positions
-                        }
-
-                        //
                         // so what all do I need to define a zone... wonder if it's easier to make a circle around a point with a radius or 4 points for a square
                         if (vBloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
                         {
                             if (Plugin.shardDrop)
                             {
-                                //add solarus shard to player inventory
                                 Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
 
                                 PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
@@ -118,6 +78,7 @@ namespace RPGAddOnsEx.Hooks
                                 }
                                 AddItemToInventory(shard, 1, usermodel);
                             }
+                            //add solarus shard to player inventory
                         }
                         if (entityManager.TryGetComponentData(user, out User component))
                         {
@@ -213,7 +174,6 @@ namespace RPGAddOnsEx.Hooks
             {
                 points += 1;
             }
-
             //I could probably make a cooldown timer or something but instead since there are two events happening Im just gonna divide the points by 2 and call it a day
             return points / 2;
         }
