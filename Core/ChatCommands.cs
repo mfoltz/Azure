@@ -39,7 +39,7 @@ namespace RPGAddOnsEx.Core
                     {
                         // Reset the user's progress
                         var buffsToWipe = DataStructures.playerRanks[SteamID].Buffs;
-                        DataStructures.playerRanks[SteamID] = new RankData(0, 0, []);
+                        DataStructures.playerRanks[SteamID] = new RankData(0, 0, [], 0);
                         foreach (var buff in buffsToWipe)
                         {
                             PrefabGUID buffguid = new(buff);
@@ -106,7 +106,7 @@ namespace RPGAddOnsEx.Core
                             return;
                         }
                         // make data for them if none found
-                        RankData rankData = new(0, points, []);
+                        RankData rankData = new(0, points, [], 0);
                         if (rankData.Points > rankData.Rank * 1000 + 1000)
                         {
                             rankData.Points = rankData.Rank * 1000 + 1000;
@@ -188,7 +188,7 @@ namespace RPGAddOnsEx.Core
                     }
                     else
                     {
-                        RankData rankData = new(rank, 0, []);
+                        RankData rankData = new(rank, 0, [], 0);
                         /*
                         for (int i = 0; i <= rank; i++)
                         {

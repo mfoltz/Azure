@@ -14,12 +14,15 @@ namespace RPGAddOnsEx.Augments.RankUp
 
         public DateTime LastAbilityUse { get; set; }
 
-        public RankData(int rank, int points, List<int> buffs)
+        public int RankSpell { get; set; }
+
+        public RankData(int rank, int points, List<int> buffs, int rankSpell)
         {
             Rank = rank;
             Points = points;
             Buffs = buffs;
             LastAbilityUse = DateTime.MinValue; // Initialize to ensure it's always set
+            RankSpell = rankSpell;
         }
     }
 

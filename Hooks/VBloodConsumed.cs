@@ -121,7 +121,7 @@ namespace RPGAddOnsEx.Hooks
                                     else
                                     {
                                         // create new data then add points
-                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), []);
+                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0);
                                         DataStructures.playerRanks.Add(SteamID, rankData);
                                         ChatCommands.SavePlayerRanks();
                                     }
@@ -200,7 +200,7 @@ namespace RPGAddOnsEx.Hooks
             else
             {
                 counter += points;
-                string toSend = "You've earned " + counter.ToString() + " 1rank points!";
+                string toSend = "You've earned " + counter.ToString() + " rank points!";
                 ServerChatUtils.SendSystemMessageToClient(entityManager, user, toSend);
                 counter = 0;
                 return points;

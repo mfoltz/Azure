@@ -117,7 +117,7 @@ namespace RPGAddOnsEx.Core
             PlayerPrestige = Config.Bind("Config", "PlayerPrestige", true, "Enable player prestige").Value;
             PlayerRankUp = Config.Bind("Config", "PlayerRankUp", true, "Enable player rank up").Value;
 
-            rankCommandsCooldown = Config.Bind("Config", "RankCommandsCooldown", 0, "Cooldown for rank commands in minutes").Value;
+            rankCommandsCooldown = Config.Bind("Config", "RankCommandsCooldown", 0, "Cooldown for rank commands in hours").Value;
 
             shardDrop = Config.Bind("Config", "ShardDrop", true, "Enable shard drop from Solarus").Value;
 

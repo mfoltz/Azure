@@ -4,6 +4,7 @@ using ProjectM;
 using ProjectM.Gameplay;
 using ProjectM.Network;
 using ProjectM.Shared;
+using RPGAddOnsEx.Augments.RankUp;
 using RPGAddOnsEx.Core;
 using Unity.Collections;
 using Unity.Entities;
@@ -13,7 +14,7 @@ using Plugin = RPGAddOnsEx.Core.Plugin;
 #nullable disable
 // almost ready for live maybe
 
-namespace RPGAddOnsEx.Hooks_WIP
+namespace RPGAddOnsEx.Hooks
 {
     [HarmonyPatch(typeof(ReplaceAbilityOnSlotSystem), "OnUpdate")]
     public class ReplaceAbilityOnSlotSystem_Patch
@@ -32,7 +33,6 @@ namespace RPGAddOnsEx.Hooks_WIP
                 }
                 else
                 {
-                    // if legendaryspellmodcomponent then weapon, if not then spell drag
                     if (entityManager.HasComponent<WeaponLevel>(entity))
                     {
                         Plugin.Logger.LogInfo("Player equipping weapon, attempting to replace ability in buffer...");
@@ -40,13 +40,33 @@ namespace RPGAddOnsEx.Hooks_WIP
                         DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
                         ReplaceAbilityOnSlotBuff item = buffer[2];
                         ReplaceAbilityOnSlotBuff newItem = item;
-                        PrefabGUID prefabGUID = new(1438305657); // slashers camoflauge
-                        newItem.NewGroupId = prefabGUID;
-                        buffer[2] = newItem;
-                        newItem.Slot = 3;
-                        buffer.Add(newItem);
-                        Plugin.Logger.LogInfo("Modification complete.");
+                        Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                        User user = entityManager.GetComponentData<User>(userEntity);
+                        ulong steamID = user.PlatformId;
+                        if (DataStructures.playerRanks.TryGetValue(steamID, out RankData data))
+                        {
+                            Plugin.Logger.LogInfo($"Player rank: {data}");
+                            if (data.RankSpell == 0)
+                            {
+                                // no rank spell
+                                return;
+                            }
+                            else
+                            {
+                                Plugin.Logger.LogInfo("Adding chosen rank spell to shift...");
+                                PrefabGUID prefabGUID = new(data.RankSpell); //
+                                newItem.NewGroupId = prefabGUID;
+                                newItem.Slot = 3;
+                                buffer.Add(newItem);
+                                Plugin.Logger.LogInfo("Modification complete.");
+                            }
+                        }
+                        else
+                        {
+                            Plugin.Logger.LogInfo("Player rank not found.");
+                        }
                     }
+                    /*
                     else
                     {
                         // spell drag?
@@ -62,6 +82,7 @@ namespace RPGAddOnsEx.Hooks_WIP
                         //buffer.Add(newItem);
                         Plugin.Logger.LogInfo("Modification complete.");
                     }
+                    */
                 }
             }
             entityArray.Dispose();

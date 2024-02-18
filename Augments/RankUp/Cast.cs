@@ -10,6 +10,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VampireCommandFramework;
 using DateTime = System.DateTime;
+using Plugin = RPGAddOnsEx.Core.Plugin;
 using TimeSpan = System.TimeSpan;
 
 #nullable disable
@@ -19,7 +20,7 @@ namespace RPGAddOnsEx.Augments.RankUp
     [CommandGroup(name: "casting", shortHand: "c")]
     internal class CastCommands
     {
-        private static readonly int cd = 0; //cd in hours
+        private static readonly double cd = Plugin.rankCommandsCooldown; //cd in hours
 
         [Command("cast", null, null, "Cast any ability", null, true)]
         public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
@@ -97,8 +98,9 @@ namespace RPGAddOnsEx.Augments.RankUp
             */
 
             // need to put in a check for the player's rank or ascension or whatever this is going to be
-
-            [Command(name: "firespinner", shortHand: "4", adminOnly: false, usage: "", description: "")]
+            // want these to assign the given rank spell to shift, hmmm
+            // add spell choice data to the rank up data
+            [Command(name: "firespinner", shortHand: "4", adminOnly: false, usage: ".4", description: "Rank spell to set to shift when swapping weapons.")]
             public static void FireSpinnerCast(ChatCommandContext ctx)
             {
                 // going to use Rank for now until the ascension system is created
@@ -125,14 +127,15 @@ namespace RPGAddOnsEx.Augments.RankUp
 
                         PrefabGUID firespinner_cast = new PrefabGUID(1217615468);
                         FoundPrefabGuid foundPrefabGuid = new(firespinner_cast);
-                        CastCommand(ctx, foundPrefabGuid, null);
+                        rankData.RankSpell = 1217615468;
+                        //CastCommand(ctx, foundPrefabGuid, null);
                         ChatCommands.SavePlayerRanks();
                     }
                     else
                     {
                         var waited = DateTime.UtcNow - rankData.LastAbilityUse;
                         var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
+                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
                     }
                 }
                 else
@@ -141,7 +144,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 }
             }
 
-            [Command(name: "batstorm", shortHand: "3", adminOnly: false, usage: "", description: "")]
+            [Command(name: "batstorm", shortHand: "3", adminOnly: false, usage: ".3", description: "Rank spell to set to shift when swapping weapons.")]
             public static void BatStormCast(ChatCommandContext ctx)
             {
                 Entity character = ctx.Event.SenderCharacterEntity;
@@ -162,14 +165,15 @@ namespace RPGAddOnsEx.Augments.RankUp
 
                         PrefabGUID batstorm_cast = new PrefabGUID(-254080557);
                         FoundPrefabGuid foundPrefabGuid = new(batstorm_cast);
-                        CastCommand(ctx, foundPrefabGuid, null);
+                        rankData.RankSpell = -254080557;
+                        //CastCommand(ctx, foundPrefabGuid, null);
                         ChatCommands.SavePlayerRanks();
                     }
                     else
                     {
                         var waited = DateTime.UtcNow - rankData.LastAbilityUse;
                         var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
+                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
                     }
                 }
                 else
@@ -193,7 +197,7 @@ namespace RPGAddOnsEx.Augments.RankUp
             }
             */
 
-            [Command(name: "batwhirlwind", shortHand: "1", adminOnly: false, usage: "", description: "")]
+            [Command(name: "batwhirlwind", shortHand: "1", adminOnly: false, usage: ".1", description: "Rank spell to set to shift when swapping weapons.")]
             public static void BatWhirlwindCast(ChatCommandContext ctx)
             {
                 Entity character = ctx.Event.SenderCharacterEntity;
@@ -215,14 +219,15 @@ namespace RPGAddOnsEx.Augments.RankUp
 
                         PrefabGUID batwhirlwind_cast = new PrefabGUID(-1698981316);
                         FoundPrefabGuid foundPrefabGuid = new(batwhirlwind_cast);
-                        CastCommand(ctx, foundPrefabGuid, null);
+                        rankData.RankSpell = -1698981316;
+                        //CastCommand(ctx, foundPrefabGuid, null);
                         ChatCommands.SavePlayerRanks();
                     }
                     else
                     {
                         var waited = DateTime.UtcNow - rankData.LastAbilityUse;
                         var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
+                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
                     }
                 }
                 else
@@ -231,7 +236,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 }
             }
 
-            [Command(name: "lightnova", shortHand: "2", adminOnly: false, usage: "", description: "")]
+            [Command(name: "lightnova", shortHand: "2", adminOnly: false, usage: ".2", description: "Rank spell to set to shift when swapping weapons.")]
             public static void LightNovaCast(ChatCommandContext ctx)
             {
                 Entity character = ctx.Event.SenderCharacterEntity;
@@ -251,14 +256,15 @@ namespace RPGAddOnsEx.Augments.RankUp
                         DataStructures.playerRanks[SteamID] = rankData;
                         PrefabGUID lightnova_cast = new PrefabGUID(114484622);
                         FoundPrefabGuid foundPrefabGuid = new(lightnova_cast);
-                        CastCommand(ctx, foundPrefabGuid, null);
+                        rankData.RankSpell = 114484622;
+                        //CastCommand(ctx, foundPrefabGuid, null);
                         ChatCommands.SavePlayerRanks();
                     }
                     else
                     {
                         var waited = DateTime.UtcNow - rankData.LastAbilityUse;
                         var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
+                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
                     }
                 }
                 else
@@ -267,7 +273,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 }
             }
 
-            [Command(name: "wispdance", shortHand: "5", adminOnly: false, usage: "", description: "")]
+            [Command(name: "wispdance", shortHand: "5", adminOnly: false, usage: ".5", description: "Rank spell to set to shift when swapping weapons.")]
             public static void WispDanceCast(ChatCommandContext ctx)
             {
                 Entity character = ctx.Event.SenderCharacterEntity;
@@ -287,14 +293,15 @@ namespace RPGAddOnsEx.Augments.RankUp
                         DataStructures.playerRanks[SteamID] = rankData;
                         PrefabGUID wispdance_cast = new PrefabGUID(-1574537639);
                         FoundPrefabGuid foundPrefabGuid = new(wispdance_cast);
-                        CastCommand(ctx, foundPrefabGuid, null);
+                        rankData.RankSpell = -1574537639;
+                        //CastCommand(ctx, foundPrefabGuid, null);
                         ChatCommands.SavePlayerRanks();
                     }
                     else
                     {
                         var waited = DateTime.UtcNow - rankData.LastAbilityUse;
                         var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
+                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
                     }
                 }
                 else
