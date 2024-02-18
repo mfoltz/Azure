@@ -40,9 +40,26 @@ namespace RPGAddOnsEx.Hooks_WIP
                         DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
                         ReplaceAbilityOnSlotBuff item = buffer[2];
                         ReplaceAbilityOnSlotBuff newItem = item;
-                        PrefabGUID prefabGUID = new(1438305657);
+                        PrefabGUID prefabGUID = new(1438305657); // slashers camoflauge
                         newItem.NewGroupId = prefabGUID;
                         buffer[2] = newItem;
+                        newItem.Slot = 3;
+                        buffer.Add(newItem);
+                        Plugin.Logger.LogInfo("Modification complete.");
+                    }
+                    else
+                    {
+                        // spell drag?
+                        Plugin.Logger.LogInfo("Player equipping spell, attempting to replace ability in buffer...");
+                        DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
+                        ReplaceAbilityOnSlotBuff item = buffer[0];
+                        ReplaceAbilityOnSlotBuff newItem = item;
+                        PrefabGUID prefabGUID = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_AbilityGroup; //
+                        newItem.NewGroupId = prefabGUID;
+                        Plugin.Logger.LogInfo(item.Slot.ToString());
+                        buffer[0] = newItem;
+                        //newItem.Slot = 3;
+                        //buffer.Add(newItem);
                         Plugin.Logger.LogInfo("Modification complete.");
                     }
                 }

@@ -19,13 +19,13 @@ namespace RPGAddOnsEx.Hooks
     [HarmonyPatch]
     internal class VBloodConsumed
     {
-        private int counter = 0;
+        private static int counter = 0;
 
         [HarmonyPatch(typeof(VBloodSystem), nameof(VBloodSystem.OnUpdate))]
         [HarmonyPrefix]
         public static void OnUpdate(ProjectM.VBloodSystem __instance)
         {
-            Plugin.Logger.LogInfo("VBloodSystem OnUpdate called...");
+            //Plugin.Logger.LogInfo("VBloodSystem OnUpdate called...");
 
             // for whatever reason one vblood kill triggers 2 events so make a cooldown or something
             // maybe one event for the vblood and one for the player
@@ -192,9 +192,19 @@ namespace RPGAddOnsEx.Hooks
             }
             // message player points earned
             EntityManager entityManager = VWorld.Server.EntityManager;
-            string toSend = "You've earned " + points.ToString() + "rank points!";
-            ServerChatUtils.SendSystemMessageToClient(entityManager, user, toSend);
-            return points;
+            if (counter == 0)
+            {
+                counter += points;
+                return points;
+            }
+            else
+            {
+                counter += points;
+                string toSend = "You've earned " + counter.ToString() + " 1rank points!";
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, toSend);
+                counter = 0;
+                return points;
+            }
         }
 
         public static void AddItemToInventory(PrefabGUID guid, int amount, UserModel user)
