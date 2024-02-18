@@ -19,13 +19,19 @@ namespace RPGAddOnsEx.Hooks
     [HarmonyPatch]
     internal class VBloodConsumed
     {
+        private int counter = 0;
+
         [HarmonyPatch(typeof(VBloodSystem), nameof(VBloodSystem.OnUpdate))]
         [HarmonyPrefix]
         public static void OnUpdate(ProjectM.VBloodSystem __instance)
         {
+            Plugin.Logger.LogInfo("VBloodSystem OnUpdate called...");
+
             // for whatever reason one vblood kill triggers 2 events so make a cooldown or something
+            // maybe one event for the vblood and one for the player
             if (!__instance.EventList.IsEmpty)
             {
+                // is OnUpdate happening twice or is there just 2 events per kill?
                 var check = __instance.EventList.Length.ToString();
                 //Plugin.Logger.LogInfo($"EventList events: {check}"); // Log details about each event
 
@@ -104,7 +110,7 @@ namespace RPGAddOnsEx.Hooks
                                         if (data.Points < data.Rank * 1000 + 1000)
                                         {
                                             // calculate points, should probably make this a method
-                                            data.Points += GetPoints(playerLevel, unitLevel);
+                                            data.Points += GetPoints(playerLevel, unitLevel, component);
                                             if (data.Points >= data.Rank * 1000 + 1000)
                                             {
                                                 data.Points = data.Rank * 1000 + 1000;
@@ -115,7 +121,7 @@ namespace RPGAddOnsEx.Hooks
                                     else
                                     {
                                         // create new data then add points
-                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel), []);
+                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), []);
                                         DataStructures.playerRanks.Add(SteamID, rankData);
                                         ChatCommands.SavePlayerRanks();
                                     }
@@ -131,7 +137,7 @@ namespace RPGAddOnsEx.Hooks
             }
         }
 
-        public static int GetPoints(int playerLevel, int unitLevel)
+        public static int GetPoints(int playerLevel, int unitLevel, User user)
         {
             int delta = playerLevel - unitLevel;
             // base points equals 10 - delta.
@@ -174,8 +180,21 @@ namespace RPGAddOnsEx.Hooks
             {
                 points += 1;
             }
-            //I could probably make a cooldown timer or something but instead since there are two events happening Im just gonna divide the points by 2 and call it a day
-            return points / 2;
+            if (Plugin.rankPointsModifier)
+            {
+                // multiply points gained
+                points *= Plugin.rankPointsFactor;
+            }
+            else
+            {
+                // divide points gained
+                points /= Plugin.rankPointsFactor;
+            }
+            // message player points earned
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            string toSend = "You've earned " + points.ToString() + "rank points!";
+            ServerChatUtils.SendSystemMessageToClient(entityManager, user, toSend);
+            return points;
         }
 
         public static void AddItemToInventory(PrefabGUID guid, int amount, UserModel user)

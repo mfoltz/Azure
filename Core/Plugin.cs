@@ -60,6 +60,8 @@ namespace RPGAddOnsEx.Core
         public static bool shardDrop;
 
         public static int rankCommandsCooldown;
+        public static bool rankPointsModifier; //true for multiply points gained and false for divide points gained
+        public static int rankPointsFactor; // int to divide or muliply by
 
         public override void Load()
         {
@@ -118,6 +120,10 @@ namespace RPGAddOnsEx.Core
             rankCommandsCooldown = Config.Bind("Config", "RankCommandsCooldown", 0, "Cooldown for rank commands in minutes").Value;
 
             shardDrop = Config.Bind("Config", "ShardDrop", true, "Enable shard drop from Solarus").Value;
+
+            rankPointsModifier = Config.Bind("Config", "RankPointsModifier", true, "True for multiply, false for divide").Value;
+            rankPointsFactor = Config.Bind("Config", "RankPointsFactor", 1, "Factor to multiply or divide rank points by").Value;
+
             if (!Directory.Exists(ConfigPath))
             {
                 Directory.CreateDirectory(ConfigPath);
