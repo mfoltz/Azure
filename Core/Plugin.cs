@@ -59,6 +59,8 @@ namespace RPGAddOnsEx.Core
 
         public static bool shardDrop;
 
+        public static int rankCommandsCooldown;
+
         public override void Load()
         {
             Instance = this;
@@ -108,6 +110,12 @@ namespace RPGAddOnsEx.Core
             deathSetBonus = Config.Bind("Config", "DeathSetBonus", 35317589, "Set bonus to apply to the death set, bloodmoon by default if enabled").Value;
             extraStatType = Config.Bind("Config", "ExtraStatType", "SpellPower", "Stat type to add to the death set").Value;
             extraStatValue = Config.Bind("Config", "ExtraStatValue", 5, "Stat value to add to the death set").Value;
+
+            PlayerAscension = Config.Bind("Config", "PlayerAscension", false, "Enable player ascension").Value;
+            PlayerPrestige = Config.Bind("Config", "PlayerPrestige", true, "Enable player prestige").Value;
+            PlayerRankUp = Config.Bind("Config", "PlayerRankUp", true, "Enable player rank up").Value;
+
+            rankCommandsCooldown = Config.Bind("Config", "RankCommandsCooldown", 0, "Cooldown for rank commands in minutes").Value;
 
             shardDrop = Config.Bind("Config", "ShardDrop", true, "Enable shard drop from Solarus").Value;
             if (!Directory.Exists(ConfigPath))
