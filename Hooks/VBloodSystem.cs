@@ -103,18 +103,21 @@ namespace RPGAddOnsEx.Hooks
 
                         //
                         // so what all do I need to define a zone... wonder if it's easier to make a circle around a point with a radius or 4 points for a square
-                        if (vBloodName == "CHAR_ChurchOfLight_Paladin_VBlood" && Plugin.shardDrop)
+                        if (vBloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
                         {
-                            //add solarus shard to player inventory
-                            Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
-
-                            PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
-                            // sure I should properly fix the vblood 2 for 1 kill event thing orrrr I coould just keep doing simple bandaid fixes like this
-                            if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
+                            if (Plugin.shardDrop)
                             {
-                                InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, shard, 1);
+                                //add solarus shard to player inventory
+                                Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
+
+                                PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
+                                // sure I should properly fix the vblood 2 for 1 kill event thing orrrr I coould just keep doing simple bandaid fixes like this
+                                if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
+                                {
+                                    InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, shard, 1);
+                                }
+                                AddItemToInventory(shard, 1, usermodel);
                             }
-                            AddItemToInventory(shard, 1, usermodel);
                         }
                         if (entityManager.TryGetComponentData(user, out User component))
                         {
@@ -210,9 +213,9 @@ namespace RPGAddOnsEx.Hooks
             {
                 points += 1;
             }
-            points = (int)(points / 1.5);
+
             //I could probably make a cooldown timer or something but instead since there are two events happening Im just gonna divide the points by 2 and call it a day
-            return points;
+            return points / 2;
         }
 
         public static void AddItemToInventory(PrefabGUID guid, int amount, UserModel user)

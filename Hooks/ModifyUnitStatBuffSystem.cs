@@ -28,7 +28,7 @@ namespace RPGAddOnsEx.Hooks
             {
                 EntityManager entityManager = __instance.EntityManager;
                 NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
-                Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Spawn Prefix called...");
+                //Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Spawn Prefix called...");
                 foreach (Entity entity in entityArray)
                 {
                     //Plugin.Logger.LogInfo($"ArmorLevel: {Utilities.GetComponentData<ArmorLevel>(entity).Level}");
@@ -45,24 +45,24 @@ namespace RPGAddOnsEx.Hooks
                         // now can check for specific types of armor like death gear being equipped
                         if (entityManager.TryGetComponentData(entity, out ArmorLevel component))
                         {
-                            Plugin.Logger.LogInfo($"ArmorLevel {(int)component.Level} found...");
+                            //Plugin.Logger.LogInfo($"ArmorLevel {(int)component.Level} found...");
                             //could also do if armor level == 90
 
                             if ((int)component.Level == 90)
                             {
                                 // this should add 5 sp per piece of death set equipped
-                                Plugin.Logger.LogInfo("Player equipping piece of death set...");
+                                //Plugin.Logger.LogInfo("Player equipping piece of death set...");
                                 Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                                 User user = entityManager.GetComponentData<User>(userEntity);
                                 DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
-                                Plugin.Logger.LogInfo("Adding stat...");
+                                //Plugin.Logger.LogInfo("Adding stat...");
                                 //ModifyUnitStatBuff_DOTS item = buffer[0];
                                 //ModifyUnitStatBuff_DOTS newItem = item;
                                 ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatType);
                                 // will be spell power by default if no match from config
                                 newItem.Value = Plugin.extraStatValue;
                                 buffer.Add(newItem);
-                                Plugin.Logger.LogInfo("Addition complete.");
+                                //Plugin.Logger.LogInfo("Addition complete.");
                             }
                         }
                     }
@@ -89,7 +89,7 @@ namespace RPGAddOnsEx.Hooks
             {
                 EntityManager entityManager = __instance.EntityManager;
                 NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
-                Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Destroy Prefix called...");
+                //Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Destroy Prefix called...");
                 foreach (Entity entity in entityArray)
                 {
                     entity.LogComponentTypes();
@@ -102,14 +102,14 @@ namespace RPGAddOnsEx.Hooks
                     {
                         if (entityManager.TryGetComponentData(entity, out ArmorLevel component))
                         {
-                            Plugin.Logger.LogInfo($"ArmorLevel {(int)component.Level} found...");
+                            //Plugin.Logger.LogInfo($"ArmorLevel {(int)component.Level} found...");
                             if ((int)component.Level == 90)
                             {
-                                Plugin.Logger.LogInfo("Player unequipping piece of death set...");
+                                //Plugin.Logger.LogInfo("Player unequipping piece of death set...");
                                 Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                                 User user = entityManager.GetComponentData<User>(userEntity);
                                 DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
-                                Plugin.Logger.LogInfo("Removing stat...");
+                                //Plugin.Logger.LogInfo("Removing stat...");
                                 for (int i = 0; i < buffer.Length; i++)
                                 {
                                     ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatType);
@@ -117,7 +117,7 @@ namespace RPGAddOnsEx.Hooks
                                     if (buffer[i].StatType == type && buffer[i].Id.Id == 0)
                                     {
                                         buffer.RemoveAt(i);
-                                        Plugin.Logger.LogInfo("Removal complete.");
+                                        //Plugin.Logger.LogInfo("Removal complete.");
                                     }
                                 }
                             }
