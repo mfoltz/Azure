@@ -129,6 +129,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                         FoundPrefabGuid foundPrefabGuid = new(firespinner_cast);
                         rankData.RankSpell = 1217615468;
                         //CastCommand(ctx, foundPrefabGuid, null);
+                        Plugin.Logger.LogInfo("Rank spell set to 4.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -167,6 +168,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                         FoundPrefabGuid foundPrefabGuid = new(batstorm_cast);
                         rankData.RankSpell = -254080557;
                         //CastCommand(ctx, foundPrefabGuid, null);
+                        Plugin.Logger.LogInfo("Rank spell set to 3.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -221,6 +223,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                         FoundPrefabGuid foundPrefabGuid = new(batwhirlwind_cast);
                         rankData.RankSpell = -1698981316;
                         //CastCommand(ctx, foundPrefabGuid, null);
+                        Plugin.Logger.LogInfo("Rank spell set to 1.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -258,6 +261,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                         FoundPrefabGuid foundPrefabGuid = new(lightnova_cast);
                         rankData.RankSpell = 114484622;
                         //CastCommand(ctx, foundPrefabGuid, null);
+                        Plugin.Logger.LogInfo("Rank spell set to 2.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -295,6 +299,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                         FoundPrefabGuid foundPrefabGuid = new(wispdance_cast);
                         rankData.RankSpell = -1574537639;
                         //CastCommand(ctx, foundPrefabGuid, null);
+                        Plugin.Logger.LogInfo("Rank spell set to 5.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else

@@ -200,7 +200,9 @@ namespace RPGAddOnsEx.Hooks
             else
             {
                 counter += points;
-                string toSend = "You've earned " + counter.ToString() + " rank points!";
+                string counterString = counter.ToString();
+                var colorString = RPGAddOnsEx.Core.FontColors.White(counterString);
+                string toSend = "You've earned " + colorString + " rank points!";
                 ServerChatUtils.SendSystemMessageToClient(entityManager, user, toSend);
                 counter = 0;
                 return points;

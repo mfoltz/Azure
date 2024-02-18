@@ -35,11 +35,27 @@ namespace RPGAddOnsEx.Hooks
                 {
                     if (entityManager.HasComponent<WeaponLevel>(entity))
                     {
-                        Plugin.Logger.LogInfo("Player equipping weapon, attempting to replace ability in buffer...");
+                        Plugin.Logger.LogInfo("Player equipping weapon, adding rank spell to shift...");
                         // should be 3 items in the buffer for a weapon
                         DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
                         ReplaceAbilityOnSlotBuff item = buffer[2];
                         ReplaceAbilityOnSlotBuff newItem = item;
+                        // reaper check
+                        // also need an unarmed check to verify unequip vs equip
+                        PrefabGUID reaperMeleeAttack = new(784360484);
+                        Plugin.Logger.LogInfo($"ReplaceGroupId: {buffer[0].ReplaceGroupId.GuidHash.ToString()}");
+                        if (buffer[0].ReplaceGroupId == reaperMeleeAttack)
+                        {
+                            Plugin.Logger.LogInfo("Reaper equipped, replacing abilities...");
+                            ReplaceAbilityOnSlotBuff primaryWeaponSkill = buffer[1];
+                            ReplaceAbilityOnSlotBuff newPrimaryWeaponSkill = primaryWeaponSkill;
+                            newPrimaryWeaponSkill.NewGroupId = new PrefabGUID(1952822626);
+                            buffer[1] = newPrimaryWeaponSkill;
+                            ReplaceAbilityOnSlotBuff secondaryWeaponSkill = buffer[2];
+                            ReplaceAbilityOnSlotBuff newSecondaryWeaponSkill = secondaryWeaponSkill;
+                            newSecondaryWeaponSkill.NewGroupId = new PrefabGUID(-135509259);
+                            buffer[2] = newSecondaryWeaponSkill;
+                        }
                         Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                         User user = entityManager.GetComponentData<User>(userEntity);
                         ulong steamID = user.PlatformId;
