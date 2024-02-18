@@ -35,11 +35,11 @@ namespace RPGAddOnsEx.Core
                 {
                     SteamID = component.PlatformId;
 
-                    if (DataStructures.playerRanks.ContainsKey(SteamID))
+                    if (Databases.playerRanks.ContainsKey(SteamID))
                     {
                         // Reset the user's progress
-                        var buffsToWipe = DataStructures.playerRanks[SteamID].Buffs;
-                        DataStructures.playerRanks[SteamID] = new RankData(0, 0, [], 0);
+                        var buffsToWipe = Databases.playerRanks[SteamID].Buffs;
+                        Databases.playerRanks[SteamID] = new RankData(0, 0, [], 0, []);
                         foreach (var buff in buffsToWipe)
                         {
                             PrefabGUID buffguid = new(buff);
@@ -79,7 +79,7 @@ namespace RPGAddOnsEx.Core
                 {
                     SteamID = component.PlatformId;
 
-                    if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
+                    if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                     {
                         // Set the user's rank points, prevent more points than rank allows
                         data.Points = points;
@@ -92,7 +92,7 @@ namespace RPGAddOnsEx.Core
                         {
                             data.Points = data.Rank * 1000 + 1000;
                         }
-                        DataStructures.playerRanks[SteamID] = data;
+                        Databases.playerRanks[SteamID] = data;
                         ChatCommands.SavePlayerRanks();
                         // Save the updated rank data
 
@@ -106,12 +106,12 @@ namespace RPGAddOnsEx.Core
                             return;
                         }
                         // make data for them if none found
-                        RankData rankData = new(0, points, [], 0);
+                        RankData rankData = new(0, points, [], 0, []);
                         if (rankData.Points > rankData.Rank * 1000 + 1000)
                         {
                             rankData.Points = rankData.Rank * 1000 + 1000;
                         }
-                        DataStructures.playerRanks.Add(SteamID, rankData);
+                        Databases.playerRanks.Add(SteamID, rankData);
                         ChatCommands.SavePlayerRanks();
                         ctx.Reply($"Rank points for player {playerName} have been set to {points}.");
                     }
@@ -156,7 +156,7 @@ namespace RPGAddOnsEx.Core
                                            .Select(m => int.Parse(m.Value))
                                            .ToList();
                     var counter = 0;
-                    if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
+                    if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                     {
                         data.Rank = rank;
                         data.Points = 0;
@@ -181,14 +181,14 @@ namespace RPGAddOnsEx.Core
                         }
                         data.Buffs = playerBuffs;
 
-                        DataStructures.playerRanks[SteamID] = data;
+                        Databases.playerRanks[SteamID] = data;
 
                         SavePlayerRanks();
                         ctx.Reply($"Rank for player {playerName} has been set to {rank}, they can use .rpg bs to apply their buffs.");
                     }
                     else
                     {
-                        RankData rankData = new(rank, 0, [], 0);
+                        RankData rankData = new(rank, 0, [], 0, []);
                         /*
                         for (int i = 0; i <= rank; i++)
                         {
@@ -209,7 +209,7 @@ namespace RPGAddOnsEx.Core
                             //WillisCore.Helper.BuffPlayerByName(playerName, buffguid, 0, true);
                         }
                         data.Buffs = playerBuffs;
-                        DataStructures.playerRanks.Add(SteamID, rankData);
+                        Databases.playerRanks.Add(SteamID, rankData);
 
                         SavePlayerRanks();
                         ctx.Reply($"Rank for player {playerName} has been set to {rank}, they can use .rpg bs to apply their buffs.");
@@ -236,7 +236,7 @@ namespace RPGAddOnsEx.Core
             var SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
 
-            if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
                 if (data.Rank >= Plugin.MaxRanks)
                 {
@@ -251,7 +251,10 @@ namespace RPGAddOnsEx.Core
                 {
                     double percentage = 100 * ((double)data.Points / (data.Rank * 1000 + 1000));
                     string integer = ((int)percentage).ToString();
-                    ctx.Reply($"You have {data.Points} out of the {data.Rank * 1000 + 1000} points required to increase your rank. ({integer}%)");
+                    var colorString = RPGAddOnsEx.Core.FontColors.Yellow(integer);
+                    string colorPoints1 = RPGAddOnsEx.Core.FontColors.White(data.Points.ToString());
+                    string colorPoints2 = RPGAddOnsEx.Core.FontColors.White((data.Rank * 1000 + 1000).ToString());
+                    ctx.Reply($"You have {colorPoints1} out of the {colorPoints2} points required to increase your rank. ({colorString}%)");
                 }
             }
             else
@@ -274,7 +277,7 @@ namespace RPGAddOnsEx.Core
             var SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
 
-            if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
                 //
                 try
@@ -311,11 +314,20 @@ namespace RPGAddOnsEx.Core
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
+            if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
                 double percentage = 100 * ((double)data.Points / (data.Rank * 1000 + 1000));
                 string integer = ((int)percentage).ToString();
-                ctx.Reply($"You have {data.Points} out of the {data.Rank * 1000 + 1000} points required to increase your rank. ({integer}%)");
+                var colorString = RPGAddOnsEx.Core.FontColors.Yellow(integer);
+                string colorPoints1 = RPGAddOnsEx.Core.FontColors.White(data.Points.ToString());
+                string colorPoints2 = RPGAddOnsEx.Core.FontColors.White((data.Rank * 1000 + 1000).ToString());
+                string colorString1 = RPGAddOnsEx.Core.FontColors.Red("max");
+                if (data.Rank >= Plugin.MaxRanks)
+                {
+                    ctx.Reply($"You have reached {colorString1} rank.");
+                    return;
+                }
+                ctx.Reply($"You have {colorPoints1} out of the {colorPoints2} points required to increase your rank. ({colorString}%)");
             }
             else
             {
@@ -338,7 +350,7 @@ namespace RPGAddOnsEx.Core
                 {
                     SteamID = component.PlatformId;
 
-                    if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
+                    if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                     {
                         ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Rank: {data.Rank}, Points: {data.Points}");
                     }
@@ -369,7 +381,7 @@ namespace RPGAddOnsEx.Core
             ulong SteamID = user.PlatformId;
 
             // check if player has prestiged
-            if (DataStructures.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
             {
                 // handle applying chosen visual buff
                 PrestigeSystem.PrestigeFunctions.BuffChecker(ctx, buff, data);
@@ -407,7 +419,7 @@ namespace RPGAddOnsEx.Core
             var user = ctx.Event.User;
             ulong SteamID = user.PlatformId;
 
-            if (DataStructures.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+            if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
             {
                 ctx.Reply($"Your current prestige count is: {data.Prestiges}");
             }
@@ -433,10 +445,10 @@ namespace RPGAddOnsEx.Core
                 {
                     SteamID = component.PlatformId;
 
-                    if (DataStructures.playerPrestige.ContainsKey(SteamID))
+                    if (Databases.playerPrestige.ContainsKey(SteamID))
                     {
                         // Reset the user's progress
-                        DataStructures.playerPrestige[SteamID] = new PrestigeData(0, 0);
+                        Databases.playerPrestige[SteamID] = new PrestigeData(0, 0);
                         SavePlayerPrestige();
 
                         ctx.Reply($"Prestige data for player {playerName} has been reset.");
@@ -469,7 +481,7 @@ namespace RPGAddOnsEx.Core
                 {
                     SteamID = component.PlatformId;
 
-                    if (DataStructures.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+                    if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
                     {
                         ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Prestige Count: {data.Prestiges}, Visual: {data.PlayerBuff}");
                     }
@@ -512,7 +524,7 @@ namespace RPGAddOnsEx.Core
                 {
                     SteamID = component.PlatformId;
 
-                    if (DataStructures.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+                    if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
                     {
                         data.Prestiges = count;
                         ChatCommands.SavePlayerPrestige();
@@ -522,7 +534,7 @@ namespace RPGAddOnsEx.Core
                     {
                         // create new data for player
                         PrestigeData prestigeData = new PrestigeData(count, 0);
-                        DataStructures.playerPrestige.Add(SteamID, prestigeData);
+                        Databases.playerPrestige.Add(SteamID, prestigeData);
                         //data.Prestiges = count;
                         ChatCommands.SavePlayerPrestige();
                         ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Prestige Count: {count}");
@@ -550,12 +562,12 @@ namespace RPGAddOnsEx.Core
             string name = user.CharacterName.ToString();
             ulong SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
-            if (DataStructures.playerDivinity.TryGetValue(SteamID, out DivineData data))
+            if (Databases.playerDivinity.TryGetValue(SteamID, out DivineData data))
             {
                 if (Ascension.AscensionCheck(ctx, name, SteamID, data))
                 {
                     // if requirements are met handle ascension appropriately for path, level, etc
-                    Ascension.AscendPlayer(ctx, name, SteamID, data);
+                    //Ascension.AscendPlayer(ctx, name, SteamID, data);
                 }
                 else
                 {
@@ -568,11 +580,11 @@ namespace RPGAddOnsEx.Core
                 // handle creating new data for player
                 DivineData divineData = new(0, 0);
 
-                DataStructures.playerDivinity.Add(SteamID, divineData);
+                Databases.playerDivinity.Add(SteamID, divineData);
                 // check if requirements are met and ascend them if yes, if not reply with not met
                 if (Ascension.AscensionCheck(ctx, name, SteamID, divineData))
                 {
-                    Ascension.AscendPlayer(ctx, name, SteamID, divineData);
+                    //Ascension.AscendPlayer(ctx, name, SteamID, divineData);
                 }
                 else
                 {
@@ -592,9 +604,9 @@ namespace RPGAddOnsEx.Core
             }
             RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
             ulong SteamID = ctx.User.PlatformId;
-            if (DataStructures.playerDivinity.ContainsKey(SteamID))
+            if (Databases.playerDivinity.ContainsKey(SteamID))
             {
-                DataStructures.playerDivinity[SteamID] = new DivineData(0, 0); // Reset the divinity data
+                Databases.playerDivinity[SteamID] = new DivineData(0, 0); // Reset the divinity data
                 SavePlayerDivinity(); // Save changes
                 ctx.Reply($"Divinity data for {playerName} has been reset.");
             }
@@ -617,16 +629,16 @@ namespace RPGAddOnsEx.Core
             {
                 ulong SteamID = ctx.User.PlatformId;
                 // Check if divinity data exists for the player and update or create as necessary
-                if (DataStructures.playerDivinity.ContainsKey(SteamID))
+                if (Databases.playerDivinity.ContainsKey(SteamID))
                 {
                     // Update existing divinity data
-                    DataStructures.playerDivinity[SteamID] = new DivineData(divinityLevel, path);
+                    Databases.playerDivinity[SteamID] = new DivineData(divinityLevel, path);
                     ctx.Reply($"Divinity level for {playerName} set to {divinityLevel} with path {path}.");
                 }
                 else
                 {
                     // Create new divinity data
-                    DataStructures.playerDivinity.Add(SteamID, new DivineData(divinityLevel, path));
+                    Databases.playerDivinity.Add(SteamID, new DivineData(divinityLevel, path));
                     ctx.Reply($"Divinity level for {playerName} initialized to {divinityLevel} with path {path}.");
                 }
                 SavePlayerDivinity(); // Save changes to persistent storage
@@ -881,13 +893,13 @@ namespace RPGAddOnsEx.Core
             Plugin.Logger.LogWarning($"PlayerPrestige found: {json1}");
             try
             {
-                DataStructures.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json1);
+                Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json1);
                 Plugin.Logger.LogWarning("PlayerPrestige Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                DataStructures.playerPrestige = new Dictionary<ulong, PrestigeData>();
+                Databases.playerPrestige = new Dictionary<ulong, PrestigeData>();
                 Plugin.Logger.LogWarning("PlayerPrestige Created");
             }
             if (!File.Exists(Plugin.PlayerRanksJson))
@@ -901,13 +913,13 @@ namespace RPGAddOnsEx.Core
 
             try
             {
-                DataStructures.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json2);
+                Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json2);
                 Plugin.Logger.LogWarning("PlayerRanks Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                DataStructures.playerRanks = new Dictionary<ulong, RankData>();
+                Databases.playerRanks = new Dictionary<ulong, RankData>();
                 Plugin.Logger.LogWarning("PlayerRanks Created");
             }
             if (!File.Exists(Plugin.PlayerDivinityJson))
@@ -920,30 +932,30 @@ namespace RPGAddOnsEx.Core
 
             try
             {
-                DataStructures.playerDivinity = JsonSerializer.Deserialize<Dictionary<ulong, DivineData>>(json3);
+                Databases.playerDivinity = JsonSerializer.Deserialize<Dictionary<ulong, DivineData>>(json3);
                 Plugin.Logger.LogWarning("PlayerDivinity populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                DataStructures.playerDivinity = new Dictionary<ulong, DivineData>();
+                Databases.playerDivinity = new Dictionary<ulong, DivineData>();
                 Plugin.Logger.LogWarning("PlayerDivinity Created");
             }
         }
 
         public static void SavePlayerPrestige()
         {
-            File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(DataStructures.playerPrestige));
+            File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(Databases.playerPrestige));
         }
 
         public static void SavePlayerRanks()
         {
-            File.WriteAllText(Plugin.PlayerRanksJson, JsonSerializer.Serialize(DataStructures.playerRanks));
+            File.WriteAllText(Plugin.PlayerRanksJson, JsonSerializer.Serialize(Databases.playerRanks));
         }
 
         public static void SavePlayerDivinity()
         {
-            File.WriteAllText(Plugin.PlayerDivinityJson, JsonSerializer.Serialize(DataStructures.playerDivinity));
+            File.WriteAllText(Plugin.PlayerDivinityJson, JsonSerializer.Serialize(Databases.playerDivinity));
         }
     }
 }

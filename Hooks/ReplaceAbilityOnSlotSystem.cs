@@ -6,6 +6,7 @@ using ProjectM.Network;
 using ProjectM.Shared;
 using RPGAddOnsEx.Augments.RankUp;
 using RPGAddOnsEx.Core;
+using Steamworks;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Entities.CodeGeneratedJobForEach;
@@ -35,70 +36,115 @@ namespace RPGAddOnsEx.Hooks
                 {
                     if (entityManager.HasComponent<WeaponLevel>(entity))
                     {
-                        Plugin.Logger.LogInfo("Player equipping weapon, adding rank spell to shift...");
+                        // this also fires when unequipping a weapon, need to check for that
+                        // use buffer length to determine appropriate modification
+                        // if buffer length is 3 then it's a weapon equip, if buffer length is 1 then it's a weapon unequip
+
                         // should be 3 items in the buffer for a weapon
+
                         DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
-                        ReplaceAbilityOnSlotBuff item = buffer[2];
-                        ReplaceAbilityOnSlotBuff newItem = item;
-                        // reaper check
-                        // also need an unarmed check to verify unequip vs equip
-                        PrefabGUID reaperMeleeAttack = new(784360484);
-                        Plugin.Logger.LogInfo($"ReplaceGroupId: {buffer[0].ReplaceGroupId.GuidHash.ToString()}");
-                        if (buffer[0].ReplaceGroupId == reaperMeleeAttack)
+                        if (buffer.Length == 3)
                         {
-                            Plugin.Logger.LogInfo("Reaper equipped, replacing abilities...");
-                            ReplaceAbilityOnSlotBuff primaryWeaponSkill = buffer[1];
-                            ReplaceAbilityOnSlotBuff newPrimaryWeaponSkill = primaryWeaponSkill;
-                            newPrimaryWeaponSkill.NewGroupId = new PrefabGUID(1952822626);
-                            buffer[1] = newPrimaryWeaponSkill;
-                            ReplaceAbilityOnSlotBuff secondaryWeaponSkill = buffer[2];
-                            ReplaceAbilityOnSlotBuff newSecondaryWeaponSkill = secondaryWeaponSkill;
-                            newSecondaryWeaponSkill.NewGroupId = new PrefabGUID(-135509259);
-                            buffer[2] = newSecondaryWeaponSkill;
-                        }
-                        Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
-                        User user = entityManager.GetComponentData<User>(userEntity);
-                        ulong steamID = user.PlatformId;
-                        if (DataStructures.playerRanks.TryGetValue(steamID, out RankData data))
-                        {
-                            Plugin.Logger.LogInfo($"Player rank: {data}");
-                            if (data.RankSpell == 0)
+                            Plugin.Logger.LogInfo("Player equipping weapon, adding rank spell to shift...");
+                            ReplaceAbilityOnSlotBuff item = buffer[2];
+                            ReplaceAbilityOnSlotBuff newItem = item;
+                            Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                            User user = entityManager.GetComponentData<User>(userEntity);
+                            ulong steamID = user.PlatformId;
+                            if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
                             {
-                                // no rank spell
-                                return;
+                                //Plugin.Logger.LogInfo($"Player rank: {data}");
+
+                                if (data.RankSpell == 0)
+                                {
+                                    // no rank spell
+                                    return;
+                                }
+                                else
+                                {
+                                    Plugin.Logger.LogInfo("Adding rank spell to shift...");
+                                    PrefabGUID prefabGUID = new(data.RankSpell); //
+                                    newItem.NewGroupId = prefabGUID;
+                                    newItem.Slot = 3;
+                                    buffer.Add(newItem);
+                                    Plugin.Logger.LogInfo("Modification complete.");
+                                    return;
+                                }
                             }
                             else
                             {
-                                Plugin.Logger.LogInfo("Adding chosen rank spell to shift...");
-                                PrefabGUID prefabGUID = new(data.RankSpell); //
-                                newItem.NewGroupId = prefabGUID;
-                                newItem.Slot = 3;
-                                buffer.Add(newItem);
-                                Plugin.Logger.LogInfo("Modification complete.");
+                                Plugin.Logger.LogInfo("Player rank not found.");
                             }
                         }
                         else
                         {
-                            Plugin.Logger.LogInfo("Player rank not found.");
+                            if (buffer.Length == 1)
+                            {
+                                Plugin.Logger.LogInfo("Player unequipping weapon, replacing unarmed melee attack...");
+                                ReplaceAbilityOnSlotBuff item = buffer[0];
+                                ReplaceAbilityOnSlotBuff newItem = item;
+                                Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                                User user = entityManager.GetComponentData<User>(userEntity);
+                                ulong steamID = user.PlatformId;
+                                if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
+                                {
+                                    //Plugin.Logger.LogInfo($"Player rank: {data}");
+                                    if (buffer.Length == 1)
+                                    {
+                                        // this should be unarmed
+                                        if (data.RankSpell == 0)
+                                        {
+                                            // no rank spell
+                                            return;
+                                        }
+                                        else
+                                        {
+                                            PrefabGUID prefabGUID = new(data.RankSpell); //
+                                            newItem.NewGroupId = prefabGUID;
+                                            buffer[0] = newItem;
+                                            newItem.Slot = 1;
+                                            newItem.NewGroupId = new(-358319417);
+                                            buffer.Add(newItem);
+                                            prefabGUID = new(-2053450457);
+                                            // copy spells equipped to unarmed bar, then player could swap other skills?
+                                            //
+                                            newItem.NewGroupId = prefabGUID;
+                                            newItem.Slot = 4;
+                                            buffer.Add(newItem);
+                                            //newItem.Slot = 4;
+                                            //buffer.Add(newItem);
+                                            Plugin.Logger.LogInfo("Modification complete.");
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Plugin.Logger.LogInfo("Player rank not found.");
+                                }
+                            }
                         }
                     }
-                    /*
                     else
                     {
-                        // spell drag?
-                        Plugin.Logger.LogInfo("Player equipping spell, attempting to replace ability in buffer...");
+                        // spell drag
+                        // intercept this and keep record of last 2 spell choices a player has made that they to use in unarmed slots?
                         DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
-                        ReplaceAbilityOnSlotBuff item = buffer[0];
-                        ReplaceAbilityOnSlotBuff newItem = item;
-                        PrefabGUID prefabGUID = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_AbilityGroup; //
-                        newItem.NewGroupId = prefabGUID;
-                        Plugin.Logger.LogInfo(item.Slot.ToString());
-                        buffer[0] = newItem;
-                        //newItem.Slot = 3;
-                        //buffer.Add(newItem);
-                        Plugin.Logger.LogInfo("Modification complete.");
+                        Plugin.Logger.LogInfo("Spell change detected..."); // try to check for ultimate being equipped? use that as trigger for this
+                        Plugin.Logger.LogInfo($"Buffer length: {buffer.Length}");
+                        //Plugin.Logger.LogInfo($"Slot: {buffer[0].Slot}");
+                        for (int i = 0; i < buffer.Length; i++)
+                        {
+                            Plugin.Logger.LogInfo($"Slot: {buffer[i].Slot}");
+                        }
+                        entity.LogComponentTypes();
+                        //ReplaceAbilityOnSlotBuff item = buffer[0];
+                        //ReplaceAbilityOnSlotBuff newItem = item;
+                        Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                        User user = entityManager.GetComponentData<User>(userEntity);
+                        ulong steamID = user.PlatformId;
+
+                        return;
                     }
-                    */
                 }
             }
             entityArray.Dispose();

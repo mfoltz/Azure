@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace RPGAddOnsEx.Core
 {
-    public class DataStructures
+    public class Databases
     {
         public static JsonSerializerOptions JSON_options = new()
         {

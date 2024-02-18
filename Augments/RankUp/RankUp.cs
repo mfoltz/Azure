@@ -16,13 +16,16 @@ namespace RPGAddOnsEx.Augments.RankUp
 
         public int RankSpell { get; set; }
 
-        public RankData(int rank, int points, List<int> buffs, int rankSpell)
+        public List<int> Spells { get; set; } = new List<int>();
+
+        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells)
         {
             Rank = rank;
             Points = points;
             Buffs = buffs;
             LastAbilityUse = DateTime.MinValue; // Initialize to ensure it's always set
             RankSpell = rankSpell;
+            Spells = spells;
         }
     }
 

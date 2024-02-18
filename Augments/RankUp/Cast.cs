@@ -110,7 +110,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 Entity character = ctx.Event.SenderCharacterEntity;
                 ulong SteamID = ctx.Event.User.PlatformId;
 
-                if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
                 {
                     if (rankData.Rank < 4)
                     {
@@ -123,13 +123,13 @@ namespace RPGAddOnsEx.Augments.RankUp
                     {
                         // Update LastAbilityUse to current time
                         rankData.LastAbilityUse = DateTime.UtcNow;
-                        DataStructures.playerRanks[SteamID] = rankData; // Save changes to RankData
+                        Databases.playerRanks[SteamID] = rankData; // Save changes to RankData
 
                         PrefabGUID firespinner_cast = new PrefabGUID(1217615468);
                         FoundPrefabGuid foundPrefabGuid = new(firespinner_cast);
                         rankData.RankSpell = 1217615468;
                         //CastCommand(ctx, foundPrefabGuid, null);
-                        Plugin.Logger.LogInfo("Rank spell set to 4.");
+                        ctx.Reply("Rank spell set to 4.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -151,7 +151,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 Entity character = ctx.Event.SenderCharacterEntity;
                 ulong SteamID = ctx.Event.User.PlatformId;
 
-                if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
                 {
                     if (rankData.Rank < 3)
                     {
@@ -162,13 +162,13 @@ namespace RPGAddOnsEx.Augments.RankUp
                     if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
                     {
                         rankData.LastAbilityUse = DateTime.UtcNow; // Update last use time
-                        DataStructures.playerRanks[SteamID] = rankData; // Save updated RankData
+                        Databases.playerRanks[SteamID] = rankData; // Save updated RankData
 
                         PrefabGUID batstorm_cast = new PrefabGUID(-254080557);
                         FoundPrefabGuid foundPrefabGuid = new(batstorm_cast);
                         rankData.RankSpell = -254080557;
                         //CastCommand(ctx, foundPrefabGuid, null);
-                        Plugin.Logger.LogInfo("Rank spell set to 3.");
+                        ctx.Reply("Rank spell set to 3.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -205,7 +205,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 Entity character = ctx.Event.SenderCharacterEntity;
                 ulong SteamID = ctx.Event.User.PlatformId;
 
-                if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
                 {
                     if (rankData.Rank < 1)
                     {
@@ -217,13 +217,13 @@ namespace RPGAddOnsEx.Augments.RankUp
                     {
                         // Ability can be cast
                         rankData.LastAbilityUse = DateTime.UtcNow; // Update the last use time
-                        DataStructures.playerRanks[SteamID] = rankData; // Ensure rank data is updated
+                        Databases.playerRanks[SteamID] = rankData; // Ensure rank data is updated
 
                         PrefabGUID batwhirlwind_cast = new PrefabGUID(-1698981316);
                         FoundPrefabGuid foundPrefabGuid = new(batwhirlwind_cast);
                         rankData.RankSpell = -1698981316;
                         //CastCommand(ctx, foundPrefabGuid, null);
-                        Plugin.Logger.LogInfo("Rank spell set to 1.");
+                        ctx.Reply("Rank spell set to 1.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -245,7 +245,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 Entity character = ctx.Event.SenderCharacterEntity;
                 ulong SteamID = ctx.Event.User.PlatformId;
 
-                if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
                 {
                     if (rankData.Rank < 2)
                     {
@@ -256,7 +256,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                     if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
                     {
                         rankData.LastAbilityUse = DateTime.UtcNow;
-                        DataStructures.playerRanks[SteamID] = rankData;
+                        Databases.playerRanks[SteamID] = rankData;
                         PrefabGUID lightnova_cast = new PrefabGUID(114484622);
                         FoundPrefabGuid foundPrefabGuid = new(lightnova_cast);
                         rankData.RankSpell = 114484622;
@@ -283,7 +283,7 @@ namespace RPGAddOnsEx.Augments.RankUp
                 Entity character = ctx.Event.SenderCharacterEntity;
                 ulong SteamID = ctx.Event.User.PlatformId;
 
-                if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
                 {
                     if (rankData.Rank < 5)
                     {
@@ -294,12 +294,12 @@ namespace RPGAddOnsEx.Augments.RankUp
                     if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
                     {
                         rankData.LastAbilityUse = DateTime.UtcNow;
-                        DataStructures.playerRanks[SteamID] = rankData;
+                        Databases.playerRanks[SteamID] = rankData;
                         PrefabGUID wispdance_cast = new PrefabGUID(-1574537639);
                         FoundPrefabGuid foundPrefabGuid = new(wispdance_cast);
                         rankData.RankSpell = -1574537639;
                         //CastCommand(ctx, foundPrefabGuid, null);
-                        Plugin.Logger.LogInfo("Rank spell set to 5.");
+                        ctx.Reply("Rank spell set to 5.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else

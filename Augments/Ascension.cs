@@ -34,6 +34,7 @@ namespace RPGAddOnsEx.Augments
             }
         }
 
+        /*
         public static void AscendPlayer(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
         {
             int preHealth = 0;
@@ -65,5 +66,6 @@ namespace RPGAddOnsEx.Augments
 
             ChatCommands.SavePlayerDivinity();
         }
+        */
     }
 }

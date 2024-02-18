@@ -27,11 +27,13 @@ namespace RPGAddOnsEx.Core
         public static readonly string PlayerRanksJson = Path.Combine(Plugin.ConfigPath, "player_ranks.json");
         public static readonly string PlayerDivinityJson = Path.Combine(Plugin.ConfigPath, "player_divinity.json");
 
+        /*
         public static int ExtraHealth;
         public static int ExtraPhysicalPower;
         public static int ExtraSpellPower;
         public static int ExtraPhysicalResistance;
         public static int ExtraSpellResistance;
+        */
 
         public static int MaxPrestiges;
         public static int MaxRanks;

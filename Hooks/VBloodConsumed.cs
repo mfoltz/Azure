@@ -102,9 +102,9 @@ namespace RPGAddOnsEx.Hooks
                             else
                             {
                                 // check for database existence just in case. if it exists, and the player key can be found, check for points < max points before adding points. if not, create new database and add points
-                                if (DataStructures.playerRanks != null)
+                                if (Databases.playerRanks != null)
                                 {
-                                    if (DataStructures.playerRanks.TryGetValue(SteamID, out RankData data))
+                                    if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                                     {
                                         // this is where max points is derived and checked. level 0 max is 1000, level 1 max is 2000, etc
                                         if (data.Points < data.Rank * 1000 + 1000)
@@ -121,8 +121,8 @@ namespace RPGAddOnsEx.Hooks
                                     else
                                     {
                                         // create new data then add points
-                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0);
-                                        DataStructures.playerRanks.Add(SteamID, rankData);
+                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, []);
+                                        Databases.playerRanks.Add(SteamID, rankData);
                                         ChatCommands.SavePlayerRanks();
                                     }
                                 }

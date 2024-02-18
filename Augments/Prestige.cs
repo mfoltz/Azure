@@ -30,10 +30,10 @@ namespace RPGAddOnsEx.Augments
             if (ExperienceSystem.getLevel(SteamID) >= ExperienceSystem.MaxLevel)
             {
                 // check for null reference
-                if (DataStructures.playerPrestige != null)
+                if (Databases.playerPrestige != null)
                 {
                     // check for player data and reset level if below max resets else create data and reset level
-                    if (DataStructures.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
+                    if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
                     {
                         if (data.Prestiges >= Plugin.MaxPrestiges && Plugin.MaxPrestiges != -1)
                         {
@@ -48,9 +48,9 @@ namespace RPGAddOnsEx.Augments
                         // create new data then call prestige level function
 
                         PrestigeData prestigeData = new PrestigeData(0, 0);
-                        DataStructures.playerPrestige.Add(SteamID, prestigeData);
+                        Databases.playerPrestige.Add(SteamID, prestigeData);
                         ChatCommands.SavePlayerPrestige();
-                        data = DataStructures.playerPrestige[SteamID];
+                        data = Databases.playerPrestige[SteamID];
                         PrestigeFunctions.PlayerPrestige(ctx, playerName, SteamID, data);
                         return;
                     }

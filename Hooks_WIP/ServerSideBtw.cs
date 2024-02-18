@@ -17,7 +17,6 @@ using VRising.GameData.Models;
 using VRising.GameData;
 
 // WIP
-
 /*
 namespace ServerSideBtw
 {
@@ -110,14 +109,6 @@ namespace ServerSideBtw
 
             public ManagedCharacterHUD GetManagedCharacterHUD(World world, BaseEntityModel entityModel)
             {
-                // Check for valid PrefabGUID
-                PrefabGUID? prefabGUID = entityModel.PrefabGUID;
-                if (!prefabGUID.HasValue)
-                {
-                    Plugin.Logger.LogError("EntityModel's PrefabGUID is null.");
-                    return null;
-                }
-
                 // Access the GameDataSystem to retrieve the ManagedDataRegistry
                 ManagedDataRegistry managedDataRegistry = world.GetExistingSystem<GameDataSystem>().ManagedDataRegistry;
 
@@ -315,5 +306,4 @@ namespace ServerSideBtw
         }
     }
 }
-
 */
