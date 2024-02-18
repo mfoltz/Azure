@@ -210,8 +210,9 @@ namespace RPGAddOnsEx.Hooks
             {
                 points += 1;
             }
+            points = (int)(points / 1.5);
             //I could probably make a cooldown timer or something but instead since there are two events happening Im just gonna divide the points by 2 and call it a day
-            return points / 2;
+            return points;
         }
 
         public static void AddItemToInventory(PrefabGUID guid, int amount, UserModel user)

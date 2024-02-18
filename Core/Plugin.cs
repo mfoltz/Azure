@@ -82,18 +82,21 @@ namespace RPGAddOnsEx.Core
         private void InitConfig()
         {
             // Initialize configuration settings
+            /*
             ExtraHealth = Config.Bind("Config", "ExtraHealth", 0, "Extra health on reset").Value;
             ExtraPhysicalPower = Config.Bind("Config", "ExtraPhysicalPower", 0, "Extra physical power awarded on reset").Value;
             ExtraSpellPower = Config.Bind("Config", "ExtraSpellPower", 0, "Extra spell power awarded on reset").Value;
             ExtraPhysicalResistance = Config.Bind("Config", "ExtraPhysicalResistance", 0, "Extra physical resistance awarded on reset").Value;
             ExtraSpellResistance = Config.Bind("Config", "ExtraSpellResistance", 0, "Extra spell resistance awarded on reset").Value;
+            */
 
             MaxPrestiges = Config.Bind("Config", "MaxPrestiges", -1, "Maximum number of times players can prestige their level. -1 is infinite").Value;
-            MaxRanks = Config.Bind("Config", "MaxRanks", 9, "Maximum number of times players can rank up.").Value;
+            MaxRanks = Config.Bind("Config", "MaxRanks", 5, "Maximum number of times players can rank up.").Value;
 
             ItemReward = Config.Bind("Config", "ItemRewards", true, "Gives specified item/quantity to players when prestiging if enabled.").Value;
-            ItemPrefab = Config.Bind("Config", "ItemPrefab", -77477508, "Item prefab to give players when resetting. Onyx tears default").Value;
+            ItemPrefab = Config.Bind("Config", "ItemPrefab", -77477508, "Item prefab to give players when resetting. Demon fragments default").Value;
             ItemQuantity = Config.Bind("Config", "ItemQuantity", 1, "Item quantity to give players when resetting.").Value;
+            ItemMultiplier = Config.Bind("Config", "ItemMultiplier", true, "Multiplies the item quantity by the player's prestige if enabled.").Value;
 
             BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsReset", true, "Grants permanent buff to players when resetting if enabled.").Value;
             BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", true, "Grants permanent buff to players when prestiging if enabled.").Value;

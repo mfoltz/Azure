@@ -11,7 +11,7 @@ using Plugin = RPGAddOnsEx.Core.Plugin;
 #nullable disable
 // almost ready for live maybe
 
-namespace RPGAddOnsEx.Hooks_WIP
+namespace RPGAddOnsEx.Hooks
 {
     [HarmonyPatch(typeof(ModifyUnitStatBuffSystem_Spawn), "OnUpdate")]
     public class ModifyUnitStatBuffSystem_Spawn_Patch
