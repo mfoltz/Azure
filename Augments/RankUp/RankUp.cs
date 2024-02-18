@@ -16,9 +16,11 @@ namespace RPGAddOnsEx.Augments.RankUp
 
         public int RankSpell { get; set; }
 
-        public List<int> Spells { get; set; } = new List<int>();
+        public List<PrefabGUID> Spells { get; set; } = new List<PrefabGUID>();
 
-        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells)
+        public bool FishingPole { get; set; }
+
+        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<PrefabGUID> spells, bool fishingPole)
         {
             Rank = rank;
             Points = points;
@@ -26,6 +28,7 @@ namespace RPGAddOnsEx.Augments.RankUp
             LastAbilityUse = DateTime.MinValue; // Initialize to ensure it's always set
             RankSpell = rankSpell;
             Spells = spells;
+            FishingPole = fishingPole;
         }
     }
 
@@ -47,13 +50,16 @@ namespace RPGAddOnsEx.Augments.RankUp
                 if (buffname != "0") // this is a way to skip a buff, leave buffs you want skipped as 0s in config
                 {
                     WillisCore.Helper.BuffPlayerByName(playerName, buffguid, 0, true);
-                    ctx.Reply($"You've been granted a permanent buff: {buffname}");
+                    string colorString = RPGAddOnsEx.Core.FontColors.Green(buffname);
+                    ctx.Reply($"You've been granted a permanent buff: {colorString}");
                 }
             }
             data.Rank++;
             data.Points = 0;
             data.Buffs = playerBuffs;
-            ctx.Reply($"Congratulations {playerName}! You have increased your PvE rank to {data.Rank}.");
+            string rankString = RPGAddOnsEx.Core.FontColors.Yellow(data.Rank.ToString());
+            string playerString = RPGAddOnsEx.Core.FontColors.Blue(playerName);
+            ctx.Reply($"Congratulations {playerString}! You have increased your PvE rank to {rankString}.");
             //lightning bolt goes here
 
             PrefabGUID lightning = new PrefabGUID(1365358996);

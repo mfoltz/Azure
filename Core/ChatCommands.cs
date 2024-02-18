@@ -1,13 +1,17 @@
 ﻿using Bloodstone.API;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.UI;
 using RPGAddOnsEx.Augments;
 using RPGAddOnsEx.Augments.RankUp;
+using Stunlock.Core;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.AssetBundlePatching;
+using UnityEngine.SceneManagement;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
@@ -39,7 +43,7 @@ namespace RPGAddOnsEx.Core
                     {
                         // Reset the user's progress
                         var buffsToWipe = Databases.playerRanks[SteamID].Buffs;
-                        Databases.playerRanks[SteamID] = new RankData(0, 0, [], 0, []);
+                        Databases.playerRanks[SteamID] = new RankData(0, 0, [], 0, [], false);
                         foreach (var buff in buffsToWipe)
                         {
                             PrefabGUID buffguid = new(buff);
@@ -106,7 +110,7 @@ namespace RPGAddOnsEx.Core
                             return;
                         }
                         // make data for them if none found
-                        RankData rankData = new(0, points, [], 0, []);
+                        RankData rankData = new(0, points, [], 0, [], false);
                         if (rankData.Points > rankData.Rank * 1000 + 1000)
                         {
                             rankData.Points = rankData.Rank * 1000 + 1000;
@@ -188,7 +192,7 @@ namespace RPGAddOnsEx.Core
                     }
                     else
                     {
-                        RankData rankData = new(rank, 0, [], 0, []);
+                        RankData rankData = new(rank, 0, [], 0, [], false);
                         /*
                         for (int i = 0; i <= rank; i++)
                         {
@@ -793,69 +797,6 @@ namespace RPGAddOnsEx.Core
         }
 
         /*
-        [Command(name: "statChange", shortHand: "sc", adminOnly: true, usage: "", description: "buffer modification testing")]
-        public static void statChangeCommand(ChatCommandContext ctx)
-        {
-            var user = ctx.Event.User;
-            var player = ctx.Event.SenderCharacterEntity;
-            string name = user.CharacterName.ToString();
-            var SteamID = user.PlatformId;
-
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            var userModel = GameData.Users.GetUserByCharacterName(name);
-
-            ItemModel noctumChest = userModel.Equipment.Chest; //ItemModel is an EntityModel which is an entity/prefabGUID/BaseEntityModel structure
-            Entity entity = noctumChest.Entity;
-
-            var equippable = Utilities.GetComponentData<Equippable>(entity);
-            Entity equipBuff = equippable.EquipBuff;
-
-            var modifyUnitStatBuff = equipBuff.ReadBuffer<ModifyUnitStatBuff_DOTS>();
-            var item = modifyUnitStatBuff[0];
-
-            item.StatType = UnitStatType.AttackSpeed;
-            modifyUnitStatBuff[0] = item;
-
-            ctx.Reply("Test complete.");
-        }
-
-        [Command(name: "suntoggle", shortHand: "st", adminOnly: true, usage: "", description: "Toggles the Sun on and off.")]
-        public static void ToggleSun(ChatCommandContext ctx)
-        {
-            Plugin.Logger.LogInfo("[ToggleSun] Function triggered.");
-
-            var allObjects = FindAllObjects();
-            foreach (var obj in allObjects)
-            {
-                if (obj.name == "SceneLightingGameObjects")
-                {
-                    GameObject gameObject = obj as GameObject;
-                    if (gameObject != null)
-                    {
-                        var sunParent = gameObject.transform.GetChild(1);
-                        if (sunParent != null)
-                        {
-                            // Toggling based on the sun's own active state
-                            bool currentSunState = sunParent.gameObject.activeSelf;
-                            sunParent.gameObject.SetActive(!currentSunState);
-
-                            Plugin.Logger.LogInfo($"[ToggleSun] Sun toggled. New active state: {!currentSunState}.");
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo("[ToggleSun] Sun object (child of 'SceneLightingGameObjects') not found.");
-                        }
-                        ctx.Reply("Sun toggled.");
-                        return;
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("[ToggleSun] 'SceneLightingGameObjects' found but cast to GameObject failed.");
-                    }
-                }
-            }
-            Plugin.Logger.LogInfo("[ToggleSun] Valid 'SceneLightingGameObjects' not found.");
-        }
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
         public static void TestCommand(ChatCommandContext ctx)
         {
@@ -866,9 +807,37 @@ namespace RPGAddOnsEx.Core
                 User = senderUserEntity,
                 Character = Character
             };
-            ManagedDataRegistry managedDataRegistry = VRising.GameData.GameData.Systems.ManagedDataRegistry;
-            GameDataSystem gameDataSystem = VRising.GameData.GameData.Systems.GameDataSystem;
+            string foxtrot = "C:/Program Files (x86)/Steam/steamapps/common/VRising/VRising_Data/StreamingAssets/SubScenes/4ff50e526a7a0fe4cb2b9ad0350d9a91.3.entities";
+            string delta = "C:/Program Files (x86)/Steam/steamapps/common/VRising/VRising_Data/StreamingAssets/SubScenes/7528d604a62efac4e9f11fa4190b5cf7.0.entities";
+            // is each subscene composed of a set of entities?
+            try
+            {
+                Plugin.Logger.LogInfo("Loading subscenes");
+                AssetBundle assetFoxtrot = AssetBundle.LoadFromFileAsync(foxtrot).assetBundle;
+                AssetBundle assetDelta = AssetBundle.LoadFromFileAsync(delta).assetBundle;
+                var test = AssetBundle.GetAllLoadedAssetBundles();
 
+                AssetIncludeLabel assetIncludeLabel = new AssetIncludeLabel();
+                SceneManager.LoadSceneAsync("HudSubScene", LoadSceneMode.Additive);
+                Resources.LoadAsync(foxtrot);
+                Resources.LoadAsync(delta);
+                Plugin.Logger.LogInfo("Loading complete");
+            }
+            catch (Exception ex)
+            {
+                ctx.Reply($"Error loading subscene: {ex}");
+            }
+            Plugin.Logger.LogInfo("Locating HUDCanvas...");
+            GameObject hudCanvasPrefab = Resources.Load<GameObject>("HUDCanvas");
+            if (hudCanvasPrefab == null)
+            {
+                Plugin.Logger.LogError("HUD Canvas prefab not found.");
+            }
+            else
+            {
+                Plugin.Logger.LogInfo("HUD Canvas prefab found.");
+            }
+        }
         */
 
         public static Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<UnityEngine.Object> FindAllObjects()

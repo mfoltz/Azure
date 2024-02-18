@@ -62,7 +62,6 @@ namespace RPGAddOnsEx.Hooks
                                 }
                                 else
                                 {
-                                    Plugin.Logger.LogInfo("Adding rank spell to shift...");
                                     PrefabGUID prefabGUID = new(data.RankSpell); //
                                     newItem.NewGroupId = prefabGUID;
                                     newItem.Slot = 3;
@@ -80,41 +79,60 @@ namespace RPGAddOnsEx.Hooks
                         {
                             if (buffer.Length == 1)
                             {
-                                Plugin.Logger.LogInfo("Player unequipping weapon, replacing unarmed melee attack...");
+                                // this should be unarmed based on the buffer length
+                                // it could also be equipping a fishing pole, so we want to modify unarmed when unequipping the fishing pole specifically
                                 ReplaceAbilityOnSlotBuff item = buffer[0];
                                 ReplaceAbilityOnSlotBuff newItem = item;
                                 Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                                 User user = entityManager.GetComponentData<User>(userEntity);
                                 ulong steamID = user.PlatformId;
-                                if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
+                                if (entityManager.TryGetComponentData(entity, out WeaponLevel component))
                                 {
-                                    //Plugin.Logger.LogInfo($"Player rank: {data}");
-                                    if (buffer.Length == 1)
+                                    PrefabGUID prefabGUID = new(-1016182556);
+                                    if (buffer[0].NewGroupId == prefabGUID)
                                     {
-                                        // this should be unarmed
-                                        if (data.RankSpell == 0)
+                                        // fishing pole equipped
+                                        // if I want to do it like this will need to keep track of player's last equipped weapon but only in the case
+                                        // of a fishing pole being equipped which is right here, neat
+                                        if (Databases.playerRanks.TryGetValue(steamID, out RankData rankData))
                                         {
-                                            // no rank spell
-                                            return;
+                                            rankData.FishingPole = true;
+                                            ChatCommands.SavePlayerRanks();
                                         }
                                         else
                                         {
-                                            PrefabGUID prefabGUID = new(data.RankSpell); //
-                                            newItem.NewGroupId = prefabGUID;
-                                            buffer[0] = newItem;
-                                            newItem.Slot = 1;
-                                            newItem.NewGroupId = new(-358319417);
-                                            buffer.Add(newItem);
-                                            prefabGUID = new(-2053450457);
-                                            // copy spells equipped to unarmed bar, then player could swap other skills?
-                                            //
-                                            newItem.NewGroupId = prefabGUID;
-                                            newItem.Slot = 4;
-                                            buffer.Add(newItem);
-                                            //newItem.Slot = 4;
-                                            //buffer.Add(newItem);
-                                            Plugin.Logger.LogInfo("Modification complete.");
+                                            Plugin.Logger.LogInfo("Player rank not found.");
+                                            return;
                                         }
+                                    }
+                                }
+                                Plugin.Logger.LogInfo("Player unequipping weapon, modifying slots if fishing pole was equipped...");
+
+                                if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
+                                {
+                                    //Plugin.Logger.LogInfo($"Player rank: {data}");
+                                    if (!data.FishingPole)
+                                    {
+                                        // if not true that means player is not unequipping a fishing rod, return
+                                        Plugin.Logger.LogInfo("Player not unequipping fishing pole, returning...");
+                                        return;
+                                    }
+
+                                    try
+                                    {
+                                        PrefabGUID spell1 = data.Spells[5];
+                                        PrefabGUID spell2 = data.Spells[6];
+                                        newItem.Slot = 1;
+                                        newItem.NewGroupId = spell1;
+                                        buffer.Add(newItem);
+                                        newItem.Slot = 4;
+                                        newItem.NewGroupId = spell2;
+                                        buffer.Add(newItem);
+                                        Plugin.Logger.LogInfo("Modification complete.");
+                                    }
+                                    catch (System.Exception ex)
+                                    {
+                                        Plugin.Logger.LogError(ex.Message);
                                     }
                                 }
                                 else
@@ -126,24 +144,58 @@ namespace RPGAddOnsEx.Hooks
                     }
                     else
                     {
-                        // spell drag
-                        // intercept this and keep record of last 2 spell choices a player has made that they to use in unarmed slots?
-                        DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
-                        Plugin.Logger.LogInfo("Spell change detected..."); // try to check for ultimate being equipped? use that as trigger for this
-                        Plugin.Logger.LogInfo($"Buffer length: {buffer.Length}");
-                        //Plugin.Logger.LogInfo($"Slot: {buffer[0].Slot}");
-                        for (int i = 0; i < buffer.Length; i++)
-                        {
-                            Plugin.Logger.LogInfo($"Slot: {buffer[i].Slot}");
-                        }
-                        entity.LogComponentTypes();
-                        //ReplaceAbilityOnSlotBuff item = buffer[0];
-                        //ReplaceAbilityOnSlotBuff newItem = item;
                         Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                         User user = entityManager.GetComponentData<User>(userEntity);
                         ulong steamID = user.PlatformId;
+                        // spell equip
+                        // intercept this and keep record of last 2 spell choices a player has made to use in unarmed slots? and stick rank spell on shift
+                        // activate this by equipping fishingpole lol
+                        DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
+                        Plugin.Logger.LogInfo("Spell change detected...");
+                        if (buffer[0].Slot == 5)
+                        {
+                            // add to playerdata for unarmed spell 1
+                            if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
+                            {
+                                //data.Spells[buffer[0].Slot] = buffer[0].NewGroupId;
+                                if (data.Spells.Count! > 0)
+                                {
+                                    data.Spells.Add(buffer[0].NewGroupId);
+                                    ChatCommands.SavePlayerRanks();
+                                }
+                                else
+                                {
+                                    data.Spells[0] = buffer[0].NewGroupId;
+                                    ChatCommands.SavePlayerRanks();
+                                }
+                            }
+                            else
+                            {
+                                Plugin.Logger.LogInfo("Player rank not found.");
+                            }
+                        }
 
-                        return;
+                        if (buffer[0].Slot == 6)
+                        {
+                            if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
+                            {
+                                //data.Spells[buffer[0].Slot] = buffer[0].NewGroupId;
+                                if (data.Spells.Count! > 1)
+                                {
+                                    data.Spells.Add(buffer[0].NewGroupId);
+                                    ChatCommands.SavePlayerRanks();
+                                }
+                                else
+                                {
+                                    data.Spells[1] = buffer[0].NewGroupId;
+                                    ChatCommands.SavePlayerRanks();
+                                }
+                            }
+                            else
+                            {
+                                Plugin.Logger.LogInfo("Player rank not found.");
+                            }
+                        }
                     }
                 }
             }

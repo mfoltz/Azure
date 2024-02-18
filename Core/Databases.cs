@@ -1,6 +1,5 @@
 ﻿using RPGAddOnsEx.Augments;
 using RPGAddOnsEx.Augments.RankUp;
-
 using System.Text.Json;
 
 namespace RPGAddOnsEx.Core
