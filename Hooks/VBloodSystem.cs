@@ -17,7 +17,7 @@ using Random = System.Random;
 namespace RPGAddOnsEx.Hooks
 {
     [HarmonyPatch]
-    internal class VBloodConsumed
+    internal class VBloodSystem
     {
         private static int counter = 0;
 

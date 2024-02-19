@@ -740,13 +740,13 @@ namespace RPGAddOnsEx.Core
                     if (check)
                     {
                         // item was present and removed, add it back
-                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                     else
                     {
                         // item was not present and should be added
-                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                 }
@@ -783,62 +783,27 @@ namespace RPGAddOnsEx.Core
                     if (check)
                     {
                         // item was present and removed, add it back
-                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                     else
                     {
                         // item was not present and should be added
-                        RPGAddOnsEx.Hooks.VBloodConsumed.AddItemToInventory(prefabGUID, 1, userModel);
+                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                 }
             }
         }
 
-        /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
-        public static void TestCommand(ChatCommandContext ctx)
+        public unsafe void TestCommand(ChatCommandContext ctx)
         {
-            Entity senderUserEntity = ctx.Event.SenderUserEntity;
-            Entity Character = ctx.Event.SenderCharacterEntity;
-            FromCharacter fromCharacter = new FromCharacter()
-            {
-                User = senderUserEntity,
-                Character = Character
-            };
-            string foxtrot = "C:/Program Files (x86)/Steam/steamapps/common/VRising/VRising_Data/StreamingAssets/SubScenes/4ff50e526a7a0fe4cb2b9ad0350d9a91.3.entities";
-            string delta = "C:/Program Files (x86)/Steam/steamapps/common/VRising/VRising_Data/StreamingAssets/SubScenes/7528d604a62efac4e9f11fa4190b5cf7.0.entities";
-            // is each subscene composed of a set of entities?
-            try
-            {
-                Plugin.Logger.LogInfo("Loading subscenes");
-                AssetBundle assetFoxtrot = AssetBundle.LoadFromFileAsync(foxtrot).assetBundle;
-                AssetBundle assetDelta = AssetBundle.LoadFromFileAsync(delta).assetBundle;
-                var test = AssetBundle.GetAllLoadedAssetBundles();
-
-                AssetIncludeLabel assetIncludeLabel = new AssetIncludeLabel();
-                SceneManager.LoadSceneAsync("HudSubScene", LoadSceneMode.Additive);
-                Resources.LoadAsync(foxtrot);
-                Resources.LoadAsync(delta);
-                Plugin.Logger.LogInfo("Loading complete");
-            }
-            catch (Exception ex)
-            {
-                ctx.Reply($"Error loading subscene: {ex}");
-            }
-            Plugin.Logger.LogInfo("Locating HUDCanvas...");
-            GameObject hudCanvasPrefab = Resources.Load<GameObject>("HUDCanvas");
-            if (hudCanvasPrefab == null)
-            {
-                Plugin.Logger.LogError("HUD Canvas prefab not found.");
-            }
-            else
-            {
-                Plugin.Logger.LogInfo("HUD Canvas prefab found.");
-            }
+            SpawnUIPrefabOnLoad spawnUIPrefabOnLoad = new SpawnUIPrefabOnLoad();
+            GameObject prefabInstance = GameObject.Instantiate(spawnUIPrefabOnLoad.ReferencePrefab);
+            Plugin.Logger.LogInfo($"{prefabInstance.name}");
+            Plugin.Logger.LogInfo($"Test complete.");
         }
-        */
 
         public static Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<UnityEngine.Object> FindAllObjects()
         {
