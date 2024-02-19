@@ -796,6 +796,7 @@ namespace RPGAddOnsEx.Core
             }
         }
 
+        /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
         public unsafe void TestCommand(ChatCommandContext ctx)
         {
@@ -804,6 +805,7 @@ namespace RPGAddOnsEx.Core
             Plugin.Logger.LogInfo($"{prefabInstance.name}");
             Plugin.Logger.LogInfo($"Test complete.");
         }
+        */
 
         public static Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<UnityEngine.Object> FindAllObjects()
         {
