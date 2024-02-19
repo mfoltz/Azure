@@ -1,4 +1,4 @@
-﻿namespace RPGAddOnsEx.Core
+﻿namespace DismantleDenier.Core
 {
     internal class FontColors
     {

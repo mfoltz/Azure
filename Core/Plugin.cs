@@ -13,7 +13,6 @@ using System.Text.Json;
 
 namespace RPGAddOnsEx.Core
 {
-    [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]
     [BepInDependency("gg.deca.VampireCommandFramework")]
     public class Plugin : BasePlugin, IRunOnInitialized
@@ -22,48 +21,7 @@ namespace RPGAddOnsEx.Core
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
-        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns/player_data");
-        public static readonly string PlayerPrestigeJson = Path.Combine(Plugin.ConfigPath, "player_prestige.json");
-        public static readonly string PlayerRanksJson = Path.Combine(Plugin.ConfigPath, "player_ranks.json");
-        public static readonly string PlayerDivinityJson = Path.Combine(Plugin.ConfigPath, "player_divinity.json");
-
-        /*
-        public static int ExtraHealth;
-        public static int ExtraPhysicalPower;
-        public static int ExtraSpellPower;
-        public static int ExtraPhysicalResistance;
-        public static int ExtraSpellResistance;
-        */
-
-        public static int MaxPrestiges;
-        public static int MaxRanks;
-
-        public static bool PlayerAscension;
-        public static bool PlayerPrestige;
-        public static bool PlayerRankUp;
-
-        public static bool ItemReward;
-        public static int ItemPrefab;
-        public static int ItemQuantity;
-        public static bool ItemMultiplier;
-
-        public static bool BuffRewardsPrestige;
-        public static bool BuffRewardsRankUp;
-        public static string BuffPrefabsPrestige;
-        public static string BuffPrefabsRankUp;
-
-        public static bool modifyDeathSetBonus;
-        public static bool modifyDeathSetStats;
-
-        public static int deathSetBonus;
-        public static string extraStatType;
-        public static int extraStatValue;
-
-        public static bool shardDrop;
-
-        public static int rankCommandsCooldown;
-        public static bool rankPointsModifier; //true for multiply points gained and false for divide points gained
-        public static int rankPointsFactor; // int to divide or muliply by
+        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "DismantleDenier");
 
         public override void Load()
         {

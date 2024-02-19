@@ -12,7 +12,7 @@ using Plugin = RPGAddOnsEx.Core.Plugin;
 
 //WIP
 
-namespace RPGAddOnsEx.Hooks_WIP
+namespace DismantleDenier.Hooks
 {
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.HandleDismantleTileModelEvents))]
     public static class PlaceTileModelSystem_Patch
