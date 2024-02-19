@@ -2,8 +2,6 @@
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.UI;
-using RPGAddOnsEx.Augments;
-using RPGAddOnsEx.Augments.RankUp;
 using Stunlock.Core;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -13,9 +11,6 @@ using UnityEngine;
 using UnityEngine.Experimental.AssetBundlePatching;
 using UnityEngine.SceneManagement;
 using VampireCommandFramework;
-using VRising.GameData;
-using VRising.GameData.Models;
-using WillisCore;
 
 namespace RPGAddOnsEx.Core
 {

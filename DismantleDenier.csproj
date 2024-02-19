@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	<AssemblyName>RPGAddOnsEx</AssemblyName>
+	<AssemblyName>DismantleDenier</AssemblyName>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<LangVersion>latest</LangVersion>
@@ -31,12 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="AdminCommands">
-      <HintPath>..\..\..\Downloads\test\AdminCommands.dll</HintPath>
-    </Reference>
-    <Reference Include="RPGMods">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRising\VRising_Server\BepInEx\plugins\RPGMods.dll</HintPath>
-    </Reference>
     <Reference Include="VRising.GameData">
       <HintPath>VRising.GameData.dll</HintPath>
     </Reference>

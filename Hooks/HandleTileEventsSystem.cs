@@ -1,5 +1,4 @@
-﻿using AdminCommands;
-using HarmonyLib;
+﻿using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
 using RPGAddOnsEx.Core;
@@ -73,8 +72,8 @@ namespace DismantleDenier.Hooks
                     }
                 }
             }
-            // Disallow dismantling by default?
-            return false;
+            // Allow or disallow dismantling by default? Not sure if this matters since I can't think of a scenario where this would be called unless NPCs build tiles when we aren't looking :P
+            return true;
         }
     }
 }
