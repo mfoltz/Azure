@@ -58,6 +58,7 @@ namespace RPGAddOnsEx.Hooks
                                 if (data.RankSpell == 0)
                                 {
                                     // no rank spell
+
                                     return;
                                 }
                                 else
@@ -98,6 +99,7 @@ namespace RPGAddOnsEx.Hooks
                                         {
                                             rankData.FishingPole = true;
                                             ChatCommands.SavePlayerRanks();
+                                            return;
                                         }
                                         else
                                         {
@@ -120,8 +122,9 @@ namespace RPGAddOnsEx.Hooks
 
                                     try
                                     {
-                                        PrefabGUID spell1 = data.Spells[5];
-                                        PrefabGUID spell2 = data.Spells[6];
+                                        Plugin.Logger.LogInfo("3");
+                                        PrefabGUID spell1 = new(data.Spells[0]);
+                                        PrefabGUID spell2 = new(data.Spells[1]);
                                         newItem.Slot = 1;
                                         newItem.NewGroupId = spell1;
                                         buffer.Add(newItem);
@@ -129,6 +132,7 @@ namespace RPGAddOnsEx.Hooks
                                         newItem.NewGroupId = spell2;
                                         buffer.Add(newItem);
                                         Plugin.Logger.LogInfo("Modification complete.");
+                                        data.FishingPole = false;
                                     }
                                     catch (System.Exception ex)
                                     {
@@ -152,22 +156,16 @@ namespace RPGAddOnsEx.Hooks
                         // activate this by equipping fishingpole lol
                         DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
                         Plugin.Logger.LogInfo("Spell change detected...");
+                        Plugin.Logger.LogInfo($"Buffer length: {buffer.Length}");
+
                         if (buffer[0].Slot == 5)
                         {
+                            Plugin.Logger.LogInfo("1");
                             // add to playerdata for unarmed spell 1
                             if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
                             {
-                                //data.Spells[buffer[0].Slot] = buffer[0].NewGroupId;
-                                if (data.Spells.Count! > 0)
-                                {
-                                    data.Spells.Add(buffer[0].NewGroupId);
-                                    ChatCommands.SavePlayerRanks();
-                                }
-                                else
-                                {
-                                    data.Spells[0] = buffer[0].NewGroupId;
-                                    ChatCommands.SavePlayerRanks();
-                                }
+                                data.Spells[0] = buffer[0].NewGroupId.GuidHash;
+                                ChatCommands.SavePlayerRanks();
                             }
                             else
                             {
@@ -177,19 +175,11 @@ namespace RPGAddOnsEx.Hooks
 
                         if (buffer[0].Slot == 6)
                         {
+                            Plugin.Logger.LogInfo("2");
                             if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
                             {
-                                //data.Spells[buffer[0].Slot] = buffer[0].NewGroupId;
-                                if (data.Spells.Count! > 1)
-                                {
-                                    data.Spells.Add(buffer[0].NewGroupId);
-                                    ChatCommands.SavePlayerRanks();
-                                }
-                                else
-                                {
-                                    data.Spells[1] = buffer[0].NewGroupId;
-                                    ChatCommands.SavePlayerRanks();
-                                }
+                                data.Spells[1] = buffer[0].NewGroupId.GuidHash;
+                                ChatCommands.SavePlayerRanks();
                             }
                             else
                             {

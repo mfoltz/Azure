@@ -16,11 +16,11 @@ namespace RPGAddOnsEx.Augments.RankUp
 
         public int RankSpell { get; set; }
 
-        public List<PrefabGUID> Spells { get; set; } = new List<PrefabGUID>();
+        public List<int> Spells { get; set; } = new List<int>();
 
         public bool FishingPole { get; set; }
 
-        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<PrefabGUID> spells, bool fishingPole)
+        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells, bool fishingPole)
         {
             Rank = rank;
             Points = points;
