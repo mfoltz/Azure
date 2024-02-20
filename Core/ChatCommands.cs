@@ -21,8 +21,10 @@ using VampireCommandFramework;
 namespace DismantleDenier.Core
 {
     [CommandGroup(name: "ddcommands", shortHand: "dd")]
-    internal class ChatCommands
+    public class ChatCommands
     {
+        public static bool tfbFlag;
+
         public static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)5,
@@ -32,7 +34,7 @@ namespace DismantleDenier.Core
         public static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)16,
-            Value = Plugin.buildingPlacementRestrictions
+            Value = false
         };
 
         public static SetDebugSettingEvent CastleLimitsDisabledSetting = new SetDebugSettingEvent()
@@ -46,30 +48,44 @@ namespace DismantleDenier.Core
         {
             User user = ctx.Event.User;
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            ChatCommands.BuildingCostsDebugSetting.Value = !ChatCommands.BuildingCostsDebugSetting.Value;
-            existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-            ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = !ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value;
-            existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
-            ChatCommands.CastleLimitsDisabledSetting.Value = !ChatCommands.CastleLimitsDisabledSetting.Value;
-            existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
-            if (!ChatCommands.BuildingCostsDebugSetting.Value)
+            if (!ResourceFunctions.tfbFlag)
             {
+                ResourceFunctions.tfbFlag = true;
+                ChatCommands.BuildingCostsDebugSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
+                ChatCommands.CastleLimitsDisabledSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
+                if (Plugin.buildingPlacementRestrictions)
+                {
+                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
+                }
                 string enabledColor = DismantleDenier.Core.FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
             }
             else
             {
+                ResourceFunctions.tfbFlag = false;
+                ChatCommands.BuildingCostsDebugSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
+                ChatCommands.CastleLimitsDisabledSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
+                if (Plugin.buildingPlacementRestrictions)
+                {
+                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
+                }
                 string disabledColor = DismantleDenier.Core.FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
 
-        [Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes in castle territories.")]
+        [Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
             EntityManager entityManager = VWorld.Server.EntityManager;
-            DismantleDenier.Core.ResourceFunctions.SearchAndDestroyCastleResourceNodes();
+            DismantleDenier.Core.ResourceFunctions.SearchAndDestroyResourceNodes();
 
             ctx.Reply("All found resource nodes have been destroyed.");
         }
@@ -77,7 +93,9 @@ namespace DismantleDenier.Core
 
     public class ResourceFunctions
     {
-        public static void SearchAndDestroyCastleResourceNodes()
+        public static bool tfbFlag = false;
+
+        public static void SearchAndDestroyResourceNodes()
         {
             int counter = 0;
             bool includeDisabled = true;
@@ -99,7 +117,7 @@ namespace DismantleDenier.Core
                     //Plugin.Logger.LogInfo($"Resource node found: {entity}");
 
                     Utilities.AddComponent<DestroyTag>(entity);
-                    VWorld.Server.EntityManager.DestroyEntity(entity);
+                    //VWorld.Server.EntityManager.DestroyEntity(entity);
                     counter += 1;
                 }
             }
