@@ -71,7 +71,7 @@ namespace DismantleDenier.Core
             EntityManager entityManager = VWorld.Server.EntityManager;
             DismantleDenier.Core.ResourceFunctions.SearchAndDestroyCastleResourceNodes();
 
-            ctx.Reply("All resource nodes in buildable castle territories have been destroyed.");
+            ctx.Reply("All found resource nodes have been destroyed.");
         }
     }
 
