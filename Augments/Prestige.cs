@@ -185,7 +185,9 @@ namespace RPGAddOnsEx.Augments
 
                     var (itemName, itemguid) = ItemCheck();
                     RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, itemQuantity);
-                    ctx.Reply($"You've been awarded with: {itemQuantity} {itemName}");
+                    string quantityString = RPGAddOnsEx.Core.FontColors.Yellow(itemQuantity.ToString());
+                    string itemString = RPGAddOnsEx.Core.FontColors.Purple(itemName);
+                    ctx.Reply($"You've been awarded with: {quantityString} {itemName}");
                 }
                 //ApplyResists(ctx, playerName, SteamID, data);
                 data.Prestiges++;

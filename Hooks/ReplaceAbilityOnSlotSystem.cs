@@ -37,6 +37,7 @@ namespace RPGAddOnsEx.Hooks
                     else
                     {
                         if (entityManager.HasComponent<WeaponLevel>(entity))
+
                         {
                             // this also fires when unequipping a weapon, need to check for that
                             // use buffer length to determine appropriate modification
@@ -195,7 +196,7 @@ namespace RPGAddOnsEx.Hooks
             }
             catch (System.Exception ex)
             {
-                Plugin.Logger.LogError(ex.Message);
+                Plugin.Logger.LogInfo(ex.Message);
             }
         }
     }
