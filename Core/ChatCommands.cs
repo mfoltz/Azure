@@ -48,16 +48,16 @@ namespace DismantleDenier.Core
         {
             User user = ctx.Event.User;
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            if (!ResourceFunctions.tfbFlag)
+            if (!ChatCommands.tfbFlag)
             {
-                ResourceFunctions.tfbFlag = true;
-                ChatCommands.BuildingCostsDebugSetting.Value = tfbFlag;
+                ChatCommands.tfbFlag = true;
+                ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                ChatCommands.CastleLimitsDisabledSetting.Value = tfbFlag;
+                ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
                 if (Plugin.buildingPlacementRestrictions)
                 {
-                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = tfbFlag;
+                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
                 }
                 string enabledColor = DismantleDenier.Core.FontColors.Green("enabled");
@@ -65,14 +65,14 @@ namespace DismantleDenier.Core
             }
             else
             {
-                ResourceFunctions.tfbFlag = false;
-                ChatCommands.BuildingCostsDebugSetting.Value = tfbFlag;
+                ChatCommands.tfbFlag = false;
+                ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                ChatCommands.CastleLimitsDisabledSetting.Value = tfbFlag;
+                ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
                 if (Plugin.buildingPlacementRestrictions)
                 {
-                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = tfbFlag;
+                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
                 }
                 string disabledColor = DismantleDenier.Core.FontColors.Red("disabled");
@@ -93,8 +93,6 @@ namespace DismantleDenier.Core
 
     public class ResourceFunctions
     {
-        public static bool tfbFlag = false;
-
         public static void SearchAndDestroyResourceNodes()
         {
             int counter = 0;

@@ -46,7 +46,7 @@ namespace DismantleDenier.Core
         {
             // Initialize configuration settings
 
-            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "Enable or disable placement restrictions. I suspect this might have something to do with the overgrowth.").Value;
+            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", false, "Enable or disable placement restrictions. I suspect this might have something to do with the overgrowth.").Value;
             if (!Directory.Exists(ConfigPath))
             {
                 Directory.CreateDirectory(ConfigPath);

@@ -71,7 +71,6 @@ namespace DismantleDenier.Hooks
                     }
                 }
             }
-            // Allow or disallow dismantling by default? Not sure if this matters since I can't think of a scenario where this would be called unless NPCs build tiles when we aren't looking :P
             return false;
         }
     }
