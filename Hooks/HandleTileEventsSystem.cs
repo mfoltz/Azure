@@ -57,19 +57,19 @@ namespace DismantleDenier.Hooks
                 }
                 else
                 {
-                    Plugin.Logger.LogInfo("Intercepting dismantle event...");
+                    //Plugin.Logger.LogInfo("Intercepting dismantle event...");
                     Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
                     User user = entityManager.GetComponentData<User>(userEntity);
                     string name = user.CharacterName.ToString();
                     UserModel userModel = GameData.Users.GetUserByCharacterName(name);
                     if (!VRising.GameData.Methods.UserModelMethods.IsInCastle(userModel) && !user.IsAdmin)
                     {
-                        Plugin.Logger.LogInfo("Player is not in their castle and not an admin, dismantling not allowed.");
+                        //Plugin.Logger.LogInfo("Player is not in their castle and not an admin, dismantling not allowed.");
                         return new FakeBoolean(false, false);
                     }
                     else
                     {
-                        Plugin.Logger.LogInfo("Dismantling allowed.");
+                        //Plugin.Logger.LogInfo("Dismantling allowed.");
                         return new FakeBoolean(false, true);
                     }
                 }
