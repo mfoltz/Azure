@@ -52,14 +52,14 @@ namespace DismantleDenier.Core
             existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
             ChatCommands.CastleLimitsDisabledSetting.Value = !ChatCommands.CastleLimitsDisabledSetting.Value;
             existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
-            if (ChatCommands.BuildingCostsDebugSetting.Value)
+            if (!ChatCommands.BuildingCostsDebugSetting.Value)
             {
                 string enabledColor = DismantleDenier.Core.FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
             }
             else
             {
-                string disabledColor = DismantleDenier.Core.FontColors.Red("enabled");
+                string disabledColor = DismantleDenier.Core.FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
