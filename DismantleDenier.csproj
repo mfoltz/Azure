@@ -31,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="AdminCommands">
+      <HintPath>..\..\..\Downloads\AdminCommands.dll</HintPath>
+    </Reference>
     <Reference Include="VRising.GameData">
       <HintPath>VRising.GameData.dll</HintPath>
     </Reference>

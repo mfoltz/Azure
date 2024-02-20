@@ -9,9 +9,11 @@ using UnityEngine;
 using VampireCommandFramework;
 using UnityEngine.SceneManagement;
 using System.Text.Json;
+using VRising.GameData;
 
 namespace DismantleDenier.Core
 {
+    [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]
     [BepInDependency("gg.deca.VampireCommandFramework")]
     public class Plugin : BasePlugin, IRunOnInitialized
@@ -31,8 +33,13 @@ namespace DismantleDenier.Core
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
             InitConfig();
-
+            DismantleDenier.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
+            GameData.OnInitialize += GameDataOnInitialize;
             Plugin.Logger.LogInfo("Plugin DismantleDenier is loaded!");
+        }
+
+        private void GameDataOnInitialize(World world)
+        {
         }
 
         private void InitConfig()

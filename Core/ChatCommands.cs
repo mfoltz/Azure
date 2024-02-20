@@ -1,7 +1,10 @@
-﻿using Bloodstone.API;
+﻿using AdminCommands;
+using Bloodstone.API;
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Network;
+using ProjectM.Scripting;
+using ProjectM.Tiles;
 using ProjectM.UI;
 using Stunlock.Core;
 using System.Text.Json;
@@ -76,13 +79,12 @@ namespace DismantleDenier.Core
     {
         public static void SearchAndDestroyCastleResourceNodes()
         {
+            int counter = 0;
             bool includeDisabled = true;
             var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
             {
                 All = new ComponentType[] {
-                        ComponentType.ReadOnly<EntityCategory>(),
-                        ComponentType.ReadOnly<LocalToWorld>(),
-                        ComponentType.ReadOnly<CastleTerritoryTiles>(),
+                        ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
                     },
                 Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
             });
@@ -91,15 +93,22 @@ namespace DismantleDenier.Core
             foreach (var entity in resourceNodeEntities)
             {
                 var entityCategory = VWorld.Server.EntityManager.GetComponentData<EntityCategory>(entity);
-                var castleTerritoryTiles = VWorld.Server.EntityManager.GetComponentData<CastleTerritoryTiles>(entity);
-                Plugin.Logger.LogInfo($"InsideBuildableTerritory: {castleTerritoryTiles.InsideBuildableTerritory} | ResourceLevel: {entityCategory.MainCategory}");
-                if (entityCategory.MainCategory == MainEntityCategory.Resource && castleTerritoryTiles.InsideBuildableTerritory)
+                if (entityCategory.MainCategory == MainEntityCategory.Resource)
                 {
-                    Plugin.Logger.LogInfo($"Resource node found: {entity}");
+                    //entity.LogComponentTypes();
+                    //Plugin.Logger.LogInfo($"Resource node found: {entity}");
+                    ResourceFunctions.AddDestroyTag(entity);
                     VWorld.Server.EntityManager.DestroyEntity(entity);
+                    counter += 1;
                 }
             }
+            Plugin.Logger.LogInfo($"Resource nodes destroyed: {counter}");
             resourceNodeEntities.Dispose();
+        }
+
+        public static void AddDestroyTag(Entity entity)
+        {
+            entity.Add<DestroyTag>();
         }
     }
 }
