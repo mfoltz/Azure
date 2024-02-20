@@ -22,7 +22,7 @@ namespace DismantleDenier.Core
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
-        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "DismantleDenier");
+        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "DismantleDenied");
         public static bool buildingPlacementRestrictions;
 
         public override void Load()
@@ -46,7 +46,7 @@ namespace DismantleDenier.Core
         {
             // Initialize configuration settings
 
-            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", false, "Enable or disable placement restrictions. I suspect this might have something to do with the overgrowth.").Value;
+            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "Enable or disable building placement restrictions. Not sure what this one adds to the table so it's optional.").Value;
             if (!Directory.Exists(ConfigPath))
             {
                 Directory.CreateDirectory(ConfigPath);

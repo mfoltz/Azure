@@ -30,16 +30,19 @@ namespace DismantleDenier.Hooks
                 allowDismantling = ProcessDismantlingEvents(entityManager, dismantleArray);
 
                 dismantleArray.Dispose();
+                if (!allowDismantling)
+                {
+                    return false;
+                }
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError(ex.Message);
             }
-
             return allowDismantling;
         }
 
-        private static bool ProcessDismantlingEvents(EntityManager entityManager, NativeArray<Entity> dismantleArray)
+        private static FakeBoolean ProcessDismantlingEvents(EntityManager entityManager, NativeArray<Entity> dismantleArray)
         {
             foreach (Entity entity in dismantleArray)
             {
@@ -62,16 +65,30 @@ namespace DismantleDenier.Hooks
                     if (!VRising.GameData.Methods.UserModelMethods.IsInCastle(userModel) && !user.IsAdmin)
                     {
                         Plugin.Logger.LogInfo("Player is not in their castle and not an admin, dismantling not allowed.");
-                        return false; // Dismantling not allowed
+                        return new FakeBoolean(false, false);
                     }
                     else
                     {
                         Plugin.Logger.LogInfo("Dismantling allowed.");
-                        return true; // Dismantling allowed
+                        return new FakeBoolean(false, true);
                     }
                 }
             }
-            return false;
+            return new FakeBoolean(false, false);
+        }
+    }
+
+    public struct FakeBoolean(bool value, bool isFake)
+    {
+        private bool _value = value;
+        private bool _isFake = isFake;
+
+        public bool Value => _value;
+        public bool IsFake => _isFake;
+
+        public static implicit operator bool(FakeBoolean fakeBoolean)
+        {
+            return fakeBoolean._value;
         }
     }
 }
