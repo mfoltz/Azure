@@ -1,4 +1,4 @@
-﻿namespace DismantleDenier.Core
+﻿namespace DismantleDenied.Core
 {
     internal class FontColors
     {

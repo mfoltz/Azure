@@ -9,7 +9,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using Unity.Collections;
 
-namespace DismantleDenier.Core
+namespace DismantleDenied.Core
 {
     public static class Utilities
     {

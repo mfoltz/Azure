@@ -18,7 +18,7 @@ using UnityEngine.Experimental.AssetBundlePatching;
 using UnityEngine.SceneManagement;
 using VampireCommandFramework;
 
-namespace DismantleDenier.Core
+namespace DismantleDenied.Core
 {
     [CommandGroup(name: "ddcommands", shortHand: "dd")]
     public class ChatCommands
@@ -60,7 +60,7 @@ namespace DismantleDenier.Core
                     ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
                 }
-                string enabledColor = DismantleDenier.Core.FontColors.Green("enabled");
+                string enabledColor = DismantleDenied.Core.FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
             }
             else
@@ -75,17 +75,17 @@ namespace DismantleDenier.Core
                     ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
                 }
-                string disabledColor = DismantleDenier.Core.FontColors.Red("disabled");
+                string disabledColor = DismantleDenied.Core.FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
 
-        [Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes.")]
+        //[Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
             EntityManager entityManager = VWorld.Server.EntityManager;
-            DismantleDenier.Core.ResourceFunctions.SearchAndDestroyResourceNodes();
+            DismantleDenied.Core.ResourceFunctions.SearchAndDestroyResourceNodes();
 
             ctx.Reply("All found resource nodes have been destroyed.");
         }

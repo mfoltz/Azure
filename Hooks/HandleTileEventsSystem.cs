@@ -1,4 +1,4 @@
-﻿using DismantleDenier.Core;
+﻿using DismantleDenied.Core;
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
@@ -10,7 +10,7 @@ using VRising.GameData.Models;
 
 //WIP
 
-namespace DismantleDenier.Hooks
+namespace DismantleDenied.Hooks
 {
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.HandleDismantleTileModelEvents))]
     public static class PlaceTileModelSystem_Patch
