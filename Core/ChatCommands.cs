@@ -88,8 +88,6 @@ namespace DismantleDenier.Core
                     },
                 Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
             });
-            var entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
-            var entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
 
             var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
             foreach (var entity in resourceNodeEntities)
@@ -100,8 +98,7 @@ namespace DismantleDenier.Core
                     //entity.LogComponentTypes();
                     //Plugin.Logger.LogInfo($"Resource node found: {entity}");
 
-                    DestroyTag destroyTag = new DestroyTag();
-                    entityCommandBuffer.AddComponent<DestroyTag>(entity, destroyTag);
+                    Utilities.AddComponent<DestroyTag>(entity);
                     VWorld.Server.EntityManager.DestroyEntity(entity);
                     counter += 1;
                 }
