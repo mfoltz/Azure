@@ -1,18 +1,21 @@
 ﻿using Bloodstone.API;
 using ProjectM;
+using ProjectM.CastleBuilding;
 using ProjectM.Network;
 using ProjectM.UI;
 using Stunlock.Core;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Experimental.AssetBundlePatching;
 using UnityEngine.SceneManagement;
 using VampireCommandFramework;
 
-namespace RPGAddOnsEx.Core
+namespace DismantleDenier.Core
 {
     [CommandGroup(name: "ddcommands", shortHand: "dd")]
     internal class ChatCommands
@@ -26,7 +29,7 @@ namespace RPGAddOnsEx.Core
         public static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)16,
-            Value = false
+            Value = Plugin.buildingPlacementRestrictions
         };
 
         public static SetDebugSettingEvent CastleLimitsDisabledSetting = new SetDebugSettingEvent()
@@ -56,6 +59,52 @@ namespace RPGAddOnsEx.Core
                 string disabledColor = DismantleDenier.Core.FontColors.Red("enabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
+        }
+
+        [Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes in castle territories.")]
+        public static void DestroyResourcesCommand(ChatCommandContext ctx)
+        {
+            User user = ctx.Event.User;
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            DismantleDenier.Core.ResourceFunctions.SearchAndDestroyCastleResourceNodes();
+
+            ctx.Reply("All resource nodes in buildable castle territories have been destroyed.");
+        }
+    }
+
+    public class ResourceFunctions
+    {
+        public static void SearchAndDestroyCastleResourceNodes()
+        {
+            bool includeDisabled = true;
+            var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            {
+                All = new ComponentType[] {
+                        ComponentType.ReadOnly<EntityCategory>(),
+                        ComponentType.ReadOnly<LocalToWorld>(),
+                        ComponentType.ReadOnly<CastleTerritoryTiles>(),
+                    },
+                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+            });
+
+            var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+            foreach (var entity in resourceNodeEntities)
+            {
+                var entityCategory = VWorld.Server.EntityManager.GetComponentData<EntityCategory>(entity);
+                var castleTerritoryTiles = VWorld.Server.EntityManager.GetComponentData<CastleTerritoryTiles>(entity);
+                Plugin.Logger.LogInfo($"InsideBuildableTerritory: {castleTerritoryTiles.InsideBuildableTerritory} | ResourceLevel: {entityCategory.ResourceLevel}");
+                if (IsInteger(entityCategory) && castleTerritoryTiles.InsideBuildableTerritory)
+                {
+                    Plugin.Logger.LogInfo($"Resource node found: {entity}");
+                    VWorld.Server.EntityManager.DestroyEntity(entity);
+                }
+            }
+            resourceNodeEntities.Dispose();
+        }
+
+        public static bool IsInteger(object obj)
+        {
+            return obj is int;
         }
     }
 }

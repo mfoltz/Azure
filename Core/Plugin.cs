@@ -10,7 +10,7 @@ using VampireCommandFramework;
 using UnityEngine.SceneManagement;
 using System.Text.Json;
 
-namespace RPGAddOnsEx.Core
+namespace DismantleDenier.Core
 {
     [BepInDependency("gg.deca.Bloodstone")]
     [BepInDependency("gg.deca.VampireCommandFramework")]

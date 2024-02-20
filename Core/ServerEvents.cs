@@ -2,7 +2,7 @@
 using ProjectM;
 using Unity.Entities;
 
-namespace RPGAddOnsEx.Core
+namespace DismantleDenier.Core
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 

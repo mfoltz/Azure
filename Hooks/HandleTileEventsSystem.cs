@@ -1,13 +1,12 @@
-﻿using HarmonyLib;
+﻿using DismantleDenier.Core;
+using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
-using RPGAddOnsEx.Core;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine.TextCore;
 using VRising.GameData;
 using VRising.GameData.Models;
-using Plugin = RPGAddOnsEx.Core.Plugin;
 
 //WIP
 
