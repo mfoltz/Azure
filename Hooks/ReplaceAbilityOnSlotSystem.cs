@@ -1,9 +1,11 @@
 ﻿using AdminCommands;
+using Bloodstone.API;
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Gameplay;
 using ProjectM.Network;
 using ProjectM.Shared;
+using ProjectM.UI;
 using RPGAddOnsEx.Augments.RankUp;
 using RPGAddOnsEx.Core;
 using Steamworks;
@@ -139,7 +141,7 @@ namespace RPGAddOnsEx.Hooks
                                         }
                                         catch (System.Exception ex)
                                         {
-                                            Plugin.Logger.LogError(ex.Message);
+                                            Plugin.Logger.LogInfo(ex.Message);
                                         }
                                     }
                                     else
@@ -156,17 +158,23 @@ namespace RPGAddOnsEx.Hooks
                             ulong steamID = user.PlatformId;
                             // spell equip
                             // intercept this and keep record of last 2 spell choices a player has made to use in unarmed slots? and stick rank spell on shift
-                            // activate this by equipping fishingpole lol
+                            // activate this by unequipping fishingpole lol
                             DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
                             Plugin.Logger.LogInfo("Spell change detected...");
-                            Plugin.Logger.LogInfo($"Buffer length: {buffer.Length}");
+                            //Plugin.Logger.LogInfo($"Buffer length: {buffer.Length}");
 
                             if (buffer[0].Slot == 5)
                             {
-                                Plugin.Logger.LogInfo("1");
-                                // add to playerdata for unarmed spell 1
+                                //Plugin.Logger.LogInfo("1");
+                                // add to playerdata for unarmed spell
                                 if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
                                 {
+                                    if (data.Spells == null)
+                                    {
+                                        RankData newData = data;
+                                        newData.Spells = [0, 0];
+                                    }
+
                                     data.Spells[0] = buffer[0].NewGroupId.GuidHash;
                                     ChatCommands.SavePlayerRanks();
                                 }
@@ -178,9 +186,14 @@ namespace RPGAddOnsEx.Hooks
 
                             if (buffer[0].Slot == 6)
                             {
-                                Plugin.Logger.LogInfo("2");
+                                //Plugin.Logger.LogInfo("2");
                                 if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
                                 {
+                                    if (data.Spells == null)
+                                    {
+                                        RankData newData = data;
+                                        newData.Spells = [0, 0];
+                                    }
                                     data.Spells[1] = buffer[0].NewGroupId.GuidHash;
                                     ChatCommands.SavePlayerRanks();
                                 }
