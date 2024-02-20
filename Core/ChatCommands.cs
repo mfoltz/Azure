@@ -162,6 +162,11 @@ namespace RPGAddOnsEx.Core
                     var counter = 0;
                     if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                     {
+                        if (data.Rank > 0)
+                        {
+                            ctx.Reply("Player already has a rank, use .rpg wpr to reset their rank.");
+                            return;
+                        }
                         data.Rank = rank;
                         data.Points = 0;
                         /*
