@@ -92,19 +92,14 @@ namespace DismantleDenier.Core
             {
                 var entityCategory = VWorld.Server.EntityManager.GetComponentData<EntityCategory>(entity);
                 var castleTerritoryTiles = VWorld.Server.EntityManager.GetComponentData<CastleTerritoryTiles>(entity);
-                Plugin.Logger.LogInfo($"InsideBuildableTerritory: {castleTerritoryTiles.InsideBuildableTerritory} | ResourceLevel: {entityCategory.ResourceLevel}");
-                if (IsInteger(entityCategory) && castleTerritoryTiles.InsideBuildableTerritory)
+                Plugin.Logger.LogInfo($"InsideBuildableTerritory: {castleTerritoryTiles.InsideBuildableTerritory} | ResourceLevel: {entityCategory.MainCategory}");
+                if (entityCategory.MainCategory == MainEntityCategory.Resource && castleTerritoryTiles.InsideBuildableTerritory)
                 {
                     Plugin.Logger.LogInfo($"Resource node found: {entity}");
                     VWorld.Server.EntityManager.DestroyEntity(entity);
                 }
             }
             resourceNodeEntities.Dispose();
-        }
-
-        public static bool IsInteger(object obj)
-        {
-            return obj is int;
         }
     }
 }
