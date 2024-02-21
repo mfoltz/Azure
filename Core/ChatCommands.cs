@@ -2,8 +2,10 @@
 using Bloodstone.API;
 using ProjectM;
 using ProjectM.CastleBuilding;
+using ProjectM.Gameplay.Scripting;
 using ProjectM.Network;
 using ProjectM.Scripting;
+using ProjectM.Terrain;
 using ProjectM.Tiles;
 using ProjectM.UI;
 using Stunlock.Core;
@@ -37,6 +39,12 @@ namespace DismantleDenied.Core
             Value = false
         };
 
+        public static SetDebugSettingEvent CastleHeartConnectionRequirementDisabled = new SetDebugSettingEvent()
+        {
+            SettingType = (DebugSettingType)27,
+            Value = false
+        };
+
         public static SetDebugSettingEvent CastleLimitsDisabledSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)31,
@@ -55,6 +63,12 @@ namespace DismantleDenied.Core
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
                 ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
+
+                if (Plugin.castleHeartConnectionRequirement)
+                {
+                    ChatCommands.CastleHeartConnectionRequirementDisabled.Value = ChatCommands.tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleHeartConnectionRequirementDisabled);
+                }
                 if (Plugin.buildingPlacementRestrictions)
                 {
                     ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
@@ -70,6 +84,13 @@ namespace DismantleDenied.Core
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
                 ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
+
+                if (Plugin.castleHeartConnectionRequirement)
+                {
+                    ChatCommands.CastleHeartConnectionRequirementDisabled.Value = ChatCommands.tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleHeartConnectionRequirementDisabled);
+                }
+
                 if (Plugin.buildingPlacementRestrictions)
                 {
                     ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
@@ -83,44 +104,66 @@ namespace DismantleDenied.Core
         //[Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
+            // maybe if I set their health to 0 instead of destroying them? hmm
             User user = ctx.Event.User;
+            Entity killer = ctx.Event.SenderUserEntity;
             EntityManager entityManager = VWorld.Server.EntityManager;
-            DismantleDenied.Core.ResourceFunctions.SearchAndDestroyResourceNodes();
+            //ResourceFunctions.SearchAndDestroy(killer, ctx);
 
             ctx.Reply("All found resource nodes have been destroyed.");
         }
-    }
 
-    public class ResourceFunctions
-    {
-        public static void SearchAndDestroyResourceNodes()
+        public class ResourceFunctions
         {
-            int counter = 0;
-            bool includeDisabled = true;
-            var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            /*
+            public static unsafe void SearchAndDestroy(Entity killer, ChatCommandContext ctx)
             {
-                All = new ComponentType[] {
-                        ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-                    },
-                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-            });
+                EntityManager entityManager = VWorld.Server.EntityManager;
 
-            var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-            foreach (var entity in resourceNodeEntities)
-            {
-                var entityCategory = VWorld.Server.EntityManager.GetComponentData<EntityCategory>(entity);
-                if (entityCategory.MainCategory == MainEntityCategory.Resource)
+                MapZoneCollectionSystem mapZoneCollectionSystem = VWorld.Server.GetExistingSystem<MapZoneCollectionSystem>();
+                MapZoneCollection mapZoneCollection = mapZoneCollectionSystem.GetMapZoneCollection();
+
+                PlayCommandsSystem_Server playCommandsSystem = VWorld.Server.GetExistingSystem<PlayCommandsSystem_Server>();
+                EntityQuery serverTimeQuery = playCommandsSystem._ServerTime._SingletonQuery;
+                int counter = 0;
+
+                if (serverTimeQuery.CalculateEntityCount() == 1)
                 {
-                    //entity.LogComponentTypes();
-                    //Plugin.Logger.LogInfo($"Resource node found: {entity}");
-
-                    Utilities.AddComponent<DestroyTag>(entity);
-                    //VWorld.Server.EntityManager.DestroyEntity(entity);
-                    counter += 1;
+                    var serverTimeEntity = serverTimeQuery.GetSingletonEntity();
+                    var serverTime = Utilities.GetComponentData<ServerTime>(serverTimeEntity);
+                     double currentTime = serverTime.TimeOnServer; // Or whichever field is appropriate
                 }
+
+                bool includeDisabled = true;
+                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = new ComponentType[] {
+                        ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+                        ComponentType.ReadOnly<Health>(),
+                        ComponentType.ReadOnly<TilePosition>(),
+                    },
+                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                });
+
+                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+
+                foreach (var entity in resourceNodeEntities)
+                {
+                    TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(entity);
+                    float2 worldFloat = SpaceConversion.TileToWorld(tilePosition.Tile.x, tilePosition.Tile.y);
+                    int2 worldTile = SpaceConversion.WorldToTile(worldFloat.x, worldFloat.y);
+
+                    if (CastleTerritoryExtensions.TryGetCastleTerritory(mapZoneCollection, entityManager, worldTile, out CastleTerritory castleTerritory))
+                    {
+                        // This resource is within a castle territory, proceed with destruction
+                        StatChangeUtility.KillEntity(entityManager, entity, killer, currentTime, false);
+                        counter++;
+                    }
+                }
+                Plugin.Logger.LogInfo($"Resource nodes destroyed: {counter}");
+                resourceNodeEntities.Dispose();
             }
-            Plugin.Logger.LogInfo($"Resource nodes destroyed: {counter}");
-            resourceNodeEntities.Dispose();
+            */
         }
     }
 }

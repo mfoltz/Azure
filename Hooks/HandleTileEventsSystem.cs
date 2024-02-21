@@ -19,6 +19,7 @@ namespace DismantleDenied.Hooks
 
         public static bool Prefix(PlaceTileModelSystem __instance)
         {
+            // Assume dismantling is disallowed by default.
             bool allowDismantling = false;
 
             try
@@ -30,65 +31,55 @@ namespace DismantleDenied.Hooks
                 allowDismantling = ProcessDismantlingEvents(entityManager, dismantleArray);
 
                 dismantleArray.Dispose();
-                if (!allowDismantling)
-                {
-                    return false;
-                }
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError(ex.Message);
+                // On exception, we maintain the default stance of not allowing dismantling.
             }
+
+            // Return the result of processing. If true, dismantling is allowed; if false, it's disallowed.
             return allowDismantling;
         }
 
-        private static FakeBoolean ProcessDismantlingEvents(EntityManager entityManager, NativeArray<Entity> dismantleArray)
+        private static bool ProcessDismantlingEvents(EntityManager entityManager, NativeArray<Entity> dismantleArray)
         {
             foreach (Entity entity in dismantleArray)
             {
                 if (processedEntities.Contains(entity))
                 {
-                    continue; // Skip to the next iteration if entity has already been processed
+                    continue; // Skip already processed entities
                 }
+
                 processedEntities.Add(entity);
-                if (!Utilities.HasComponent<FromCharacter>(entity))
+
+                // Only proceed if the entity has a FromCharacter component
+                if (Utilities.HasComponent<FromCharacter>(entity))
                 {
-                    continue;
-                }
-                else
-                {
-                    //Plugin.Logger.LogInfo("Intercepting dismantle event...");
+                    Plugin.Logger.LogInfo("Intercepting dismantle event...");
                     Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
                     User user = entityManager.GetComponentData<User>(userEntity);
                     string name = user.CharacterName.ToString();
                     UserModel userModel = GameData.Users.GetUserByCharacterName(name);
-                    if (!VRising.GameData.Methods.UserModelMethods.IsInCastle(userModel) && !user.IsAdmin)
+
+                    // Check if the user is an admin or in their castle to allow dismantling
+                    if (user.IsAdmin || VRising.GameData.Methods.UserModelMethods.IsInCastle(userModel))
                     {
-                        //Plugin.Logger.LogInfo("Player is not in their castle and not an admin, dismantling not allowed.");
-                        return new FakeBoolean(false, false);
+                        Plugin.Logger.LogInfo("Dismantling allowed.");
+                        return true; // Allow dismantling for admins or users in their castle
                     }
                     else
                     {
-                        //Plugin.Logger.LogInfo("Dismantling allowed.");
-                        return new FakeBoolean(false, true);
+                        Plugin.Logger.LogInfo("Player is not in their castle and not an admin, dismantling not allowed.");
+                        // If not an admin and not in their castle, do not allow dismantling.
+                        // Since we want to disallow unless specifically allowed, we don't immediately return false here,
+                        // as other entities in the array might meet the criteria.
                     }
                 }
             }
-            return new FakeBoolean(false, false);
-        }
-    }
 
-    public struct FakeBoolean(bool value, bool isFake)
-    {
-        private bool _value = value;
-        private bool _isFake = isFake;
-
-        public bool Value => _value;
-        public bool IsFake => _isFake;
-
-        public static implicit operator bool(FakeBoolean fakeBoolean)
-        {
-            return fakeBoolean._value;
+            // Default to disallowing dismantling if no entities specifically allow it.
+            return false;
         }
     }
 }

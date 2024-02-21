@@ -24,6 +24,7 @@ namespace DismantleDenied.Core
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "DismantleDenied");
         public static bool buildingPlacementRestrictions;
+        public static bool castleHeartConnectionRequirement;
 
         public override void Load()
         {
@@ -35,7 +36,7 @@ namespace DismantleDenied.Core
             InitConfig();
             DismantleDenied.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
             GameData.OnInitialize += GameDataOnInitialize;
-            Plugin.Logger.LogInfo("Plugin DismantleDenier is loaded!");
+            Plugin.Logger.LogInfo("Plugin DismantleDenied is loaded!");
         }
 
         private void GameDataOnInitialize(World world)
@@ -46,7 +47,8 @@ namespace DismantleDenied.Core
         {
             // Initialize configuration settings
 
-            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "Enable or disable building placement restrictions. Not sure what this one adds to the table so it's optional.").Value;
+            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled.").Value;
+            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", true, "True to allow modification, otherwise will not be toggled.").Value;
             if (!Directory.Exists(ConfigPath))
             {
                 Directory.CreateDirectory(ConfigPath);
