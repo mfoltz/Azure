@@ -112,7 +112,6 @@ namespace DismantleDenied.Hooks
             {
                 EntityManager entityManager = __instance.EntityManager;
                 NativeArray<Entity> dismantleArray = __instance._DismantleTileQuery.ToEntityArray(Allocator.Temp);
-
                 // Process dismantling events
                 allowDismantling = ProcessDismantlingEvents(entityManager, dismantleArray, networkIdToEntityMap);
 
@@ -140,8 +139,9 @@ namespace DismantleDenied.Hooks
                     }
 
                     processedEntities.Add(entity);
-                    //entity.LogComponentTypes();
-                    NetworkId targetNetworkId = Utilities.GetComponentData<NetworkId>(entity);
+                    entity.LogComponentTypes();
+                    DismantleTileModelEvent dismantleTileModelEvent = Utilities.GetComponentData<DismantleTileModelEvent>(entity);
+                    NetworkId targetNetworkId = dismantleTileModelEvent.Target;
                     // Only proceed if the entity has a FromCharacter component
                     if (networkIdToEntityMap.TryGetValue(targetNetworkId, out Entity targetEntity))
                     {
