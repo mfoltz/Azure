@@ -101,7 +101,7 @@ namespace DismantleDenied.Core
 
     public static class CastleTerritoryCache
     {
-        private static Dictionary<float2, Entity> BlockTileToTerritory = new();
+        public static Dictionary<float2, Entity> BlockTileToTerritory = new();
         public static int TileToBlockDivisor = 10;
 
         public static void Initialize()
@@ -109,6 +109,7 @@ namespace DismantleDenied.Core
             var entities = Helper.GetEntitiesByComponentTypes<CastleTerritoryBlocks>();
             foreach (var entity in entities)
             {
+                entity.LogComponentTypes();
                 var buffer = entity.ReadBuffer<CastleTerritoryBlocks>();
                 foreach (var block in buffer)
                 {
@@ -135,6 +136,11 @@ namespace DismantleDenied.Core
         public static bool TryGetCastleTerritory(float2 blockTileCoordinates, out Entity territoryEntity)
         {
             // Attempt to retrieve the territory entity based on block tile coordinates
+            Plugin.Logger.LogInfo($"{blockTileCoordinates.yx}");
+            for (int i = 0; i < BlockTileToTerritory.Count;)
+            {
+                Plugin.Logger.LogInfo(BlockTileToTerritory[i]);
+            }
             return BlockTileToTerritory.TryGetValue(blockTileCoordinates, out territoryEntity);
         }
 

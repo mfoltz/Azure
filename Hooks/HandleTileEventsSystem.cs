@@ -1,4 +1,5 @@
-﻿using Bloodstone.API;
+﻿using AdminCommands;
+using Bloodstone.API;
 using DismantleDenied.Core;
 using HarmonyLib;
 using ProjectM;
@@ -11,6 +12,7 @@ using Unity.Mathematics;
 using UnityEngine.TextCore;
 using VRising.GameData;
 using VRising.GameData.Models;
+using Plugin = DismantleDenied.Core.Plugin;
 
 //WIP
 
@@ -101,7 +103,7 @@ namespace DismantleDenied.Hooks
     {
         private static HashSet<Entity> processedEntities = new HashSet<Entity>();
 
-        public static bool Prefix(PlaceTileModelSystem __instance)
+        public static bool Prefix(PlaceTileModelSystem __instance, NativeHashMap<NetworkId, Entity> networkIdToEntityMap)
         {
             // Assume dismantling is disallowed by default.
             bool allowDismantling = false;
@@ -112,7 +114,7 @@ namespace DismantleDenied.Hooks
                 NativeArray<Entity> dismantleArray = __instance._DismantleTileQuery.ToEntityArray(Allocator.Temp);
 
                 // Process dismantling events
-                allowDismantling = ProcessDismantlingEvents(entityManager, dismantleArray);
+                allowDismantling = ProcessDismantlingEvents(entityManager, dismantleArray, networkIdToEntityMap);
 
                 dismantleArray.Dispose();
             }
@@ -126,7 +128,7 @@ namespace DismantleDenied.Hooks
             return allowDismantling;
         }
 
-        private static bool ProcessDismantlingEvents(EntityManager entityManager, NativeArray<Entity> dismantleArray)
+        private static bool ProcessDismantlingEvents(EntityManager entityManager, NativeArray<Entity> dismantleArray, NativeHashMap<NetworkId, Entity> networkIdToEntityMap)
         {
             try
             {
@@ -138,18 +140,19 @@ namespace DismantleDenied.Hooks
                     }
 
                     processedEntities.Add(entity);
-
+                    //entity.LogComponentTypes();
+                    NetworkId targetNetworkId = Utilities.GetComponentData<NetworkId>(entity);
                     // Only proceed if the entity has a FromCharacter component
-                    if (Utilities.HasComponent<FromCharacter>(entity) && Utilities.HasComponent<TilePosition>(entity))
+                    if (networkIdToEntityMap.TryGetValue(targetNetworkId, out Entity targetEntity))
                     {
                         Plugin.Logger.LogInfo("Intercepting dismantle event...");
                         Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
                         User user = entityManager.GetComponentData<User>(userEntity);
                         string name = user.CharacterName.ToString();
                         UserModel userModel = GameData.Users.GetUserByCharacterName(name);
-
+                        targetEntity.LogComponentTypes();
                         // Convert entity's tile position to block tile coordinates
-                        TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(entity);
+                        TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(targetEntity);
                         float2 blockTileCoordinates = tilePosition.Tile / CastleTerritoryCache.TileToBlockDivisor;
 
                         Entity territoryEntity;
@@ -157,7 +160,7 @@ namespace DismantleDenied.Hooks
                         if (CastleTerritoryCache.TryGetCastleTerritory(blockTileCoordinates, out territoryEntity))
                         {
                             // Further checks to ensure the territory entity matches the player's castle territory
-                            Plugin.Logger.LogInfo("Dismantling allowed within player's territory.");
+                            Plugin.Logger.LogInfo("Dismantling allowed if object is in player's territory.");
                             return true;
                         }
                         else
@@ -173,6 +176,7 @@ namespace DismantleDenied.Hooks
                 Plugin.Logger.LogInfo(ex.Message);
                 return false;
             }
+            //Plugin.Logger.LogInfo("Defaulting to no dismantle...");
             return false;
             // Default to disallowing dismantling if no entities specifically allow it.
         }
