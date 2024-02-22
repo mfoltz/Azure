@@ -8,6 +8,9 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Transforms;
 using Unity.Collections;
+using Unity.Mathematics;
+using WillisCore;
+using static WillisCore.PlayerService;
 
 namespace DismantleDenied.Core
 {
@@ -93,6 +96,92 @@ namespace DismantleDenied.Core
                 Marshal.FreeHGlobal(ptr);
             }
             return byteArray;
+        }
+    }
+
+    public static class CastleTerritoryCache
+    {
+        private static Dictionary<float2, Entity> BlockTileToTerritory = new();
+        public static int TileToBlockDivisor = 10;
+
+        public static void Initialize()
+        {
+            var entities = Helper.GetEntitiesByComponentTypes<CastleTerritoryBlocks>();
+            foreach (var entity in entities)
+            {
+                var buffer = entity.ReadBuffer<CastleTerritoryBlocks>();
+                foreach (var block in buffer)
+                {
+                    BlockTileToTerritory[block.BlockCoordinate] = entity;
+                }
+            }
+        }
+
+        public static bool TryGetCastleTerritory(Player player, out Entity territoryEntity)
+        {
+            return TryGetCastleTerritory(player.Character, out territoryEntity);
+        }
+
+        public static bool TryGetCastleTerritory(Entity entity, out Entity territoryEntity)
+        {
+            if (entity.Has<TilePosition>())
+            {
+                return BlockTileToTerritory.TryGetValue(entity.Read<TilePosition>().Tile / TileToBlockDivisor, out territoryEntity);
+            }
+            territoryEntity = default;
+            return false;
+        }
+
+        public static bool TryGetCastleTerritory(float2 blockTileCoordinates, out Entity territoryEntity)
+        {
+            // Attempt to retrieve the territory entity based on block tile coordinates
+            return BlockTileToTerritory.TryGetValue(blockTileCoordinates, out territoryEntity);
+        }
+
+        public static void AddTerritory(Entity territoryEntity, EntityManager entityManager)
+        {
+            try
+            {
+                if (entityManager.HasComponent<CastleTerritoryBlocks>(territoryEntity))
+                {
+                    var buffer = entityManager.GetBuffer<CastleTerritoryBlocks>(territoryEntity);
+                    foreach (var block in buffer)
+                    {
+                        // Calculate the tile coordinate from block coordinate.
+                        float2 tileCoordinate = block.BlockCoordinate / TileToBlockDivisor;
+
+                        // Update or add the territory entity associated with this tile coordinate.
+                        BlockTileToTerritory[tileCoordinate] = territoryEntity;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogInfo($"Unable to remove territory from cache {ex}");
+            }
+        }
+
+        public static void RemoveTerritory(Entity territoryEntity, EntityManager entityManager)
+        {
+            try
+            {
+                if (entityManager.HasComponent<CastleTerritoryBlocks>(territoryEntity))
+                {
+                    var buffer = entityManager.GetBuffer<CastleTerritoryBlocks>(territoryEntity);
+                    foreach (var block in buffer)
+                    {
+                        // Calculate the tile coordinate from block coordinate.
+                        float2 tileCoordinate = block.BlockCoordinate / TileToBlockDivisor;
+
+                        // Remove the territory entity associated with this tile coordinate if it exists.
+                        BlockTileToTerritory.Remove(tileCoordinate);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogInfo($"Unable to remove territory from cache {ex}");
+            }
         }
     }
 }

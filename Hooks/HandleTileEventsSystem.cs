@@ -1,9 +1,13 @@
-﻿using DismantleDenied.Core;
+﻿using Bloodstone.API;
+using DismantleDenied.Core;
 using HarmonyLib;
 using ProjectM;
+using ProjectM.CastleBuilding;
+using ProjectM.Gameplay.Systems;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine.TextCore;
 using VRising.GameData;
 using VRising.GameData.Models;
@@ -12,6 +16,86 @@ using VRising.GameData.Models;
 
 namespace DismantleDenied.Hooks
 {
+    [HarmonyPatch(typeof(SpawnCastleHeartSystem))]
+    public static class SpawnCastleHeartSystemPatch
+    {
+        [HarmonyPatch("OnUpdate"), HarmonyPostfix]
+        public static void OnUpdatePostfix(SpawnCastleHeartSystem __instance)
+        {
+            try
+            {
+                // retrieve territoryEntity and entityManager
+                Entity territoryEntity;
+                EntityManager entityManager = VWorld.Server.EntityManager;
+                NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
+                foreach (Entity entity in entityArray)
+                {
+                    // Only proceed if the entity has a EntityOwner component
+                    if (Utilities.HasComponent<EntityOwner>(entity))
+                    {
+                        Entity owner = Utilities.GetComponentData<EntityOwner>(entity);
+                        if (CastleTerritoryCache.TryGetCastleTerritory(owner, out territoryEntity))
+                        {
+                            // update territory cache
+                            Plugin.Logger.LogInfo("Adding to territory cache...");
+                            CastleTerritoryCache.AddTerritory(territoryEntity, entityManager);
+                        }
+                        else
+                        {
+                            // reinitialize if needed
+                            Plugin.Logger.LogInfo("Reinitializing territory cache...");
+                            CastleTerritoryCache.Initialize();
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogInfo(e);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(DestroyCastleHeartSystem))]
+    public static class DestroyCastleHeartSystemPatch
+    {
+        [HarmonyPatch("OnUpdate"), HarmonyPostfix]
+        public static void OnUpdatePostfix(DestroyCastleHeartSystem __instance)
+        {
+            try
+            {
+                // retrieve territoryEntity and entityManager
+                Entity territoryEntity;
+                EntityManager entityManager = VWorld.Server.EntityManager;
+                NativeArray<Entity> entityArray = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
+                foreach (Entity entity in entityArray)
+                {
+                    // Only proceed if the entity has a EntityOwner component
+                    if (Utilities.HasComponent<EntityOwner>(entity))
+                    {
+                        Entity owner = Utilities.GetComponentData<EntityOwner>(entity);
+                        if (CastleTerritoryCache.TryGetCastleTerritory(owner, out territoryEntity))
+                        {
+                            // update territory cache
+                            Plugin.Logger.LogInfo("Removing from territory cache...");
+                            CastleTerritoryCache.RemoveTerritory(territoryEntity, entityManager);
+                        }
+                        else
+                        {
+                            // reinitialize if needed
+                            Plugin.Logger.LogInfo("Reinitializing territory cache...");
+                            CastleTerritoryCache.Initialize();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogInfo(ex.Message);
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.HandleDismantleTileModelEvents))]
     public static class PlaceTileModelSystem_Patch
     {
@@ -44,139 +128,53 @@ namespace DismantleDenied.Hooks
 
         private static bool ProcessDismantlingEvents(EntityManager entityManager, NativeArray<Entity> dismantleArray)
         {
-            foreach (Entity entity in dismantleArray)
-            {
-                if (processedEntities.Contains(entity))
-                {
-                    continue; // Skip already processed entities
-                }
-
-                processedEntities.Add(entity);
-
-                // Only proceed if the entity has a FromCharacter component
-                if (Utilities.HasComponent<FromCharacter>(entity))
-                {
-                    Plugin.Logger.LogInfo("Intercepting dismantle event...");
-                    Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
-                    User user = entityManager.GetComponentData<User>(userEntity);
-                    string name = user.CharacterName.ToString();
-                    UserModel userModel = GameData.Users.GetUserByCharacterName(name);
-
-                    // Check if the user is an admin or in their castle to allow dismantling
-                    if (user.IsAdmin || VRising.GameData.Methods.UserModelMethods.IsInCastle(userModel))
-                    {
-                        Plugin.Logger.LogInfo("Dismantling allowed.");
-                        return true; // Allow dismantling for admins or users in their castle
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Player is not in their castle and not an admin, dismantling not allowed.");
-                        // If not an admin and not in their castle, do not allow dismantling.
-                        // Since we want to disallow unless specifically allowed, we don't immediately return false here,
-                        // as other entities in the array might meet the criteria.
-                    }
-                }
-            }
-
-            // Default to disallowing dismantling if no entities specifically allow it.
-            return false;
-        }
-    }
-}
-
-/*
-                NativeArray<Entity> moveArray = __instance._MoveTileQuery.ToEntityArray(Allocator.Temp);
-                foreach (Entity entity in moveArray)
-                {
-                    entity.LogComponentTypes();
-                    if (!Utilities.HasComponent<FromCharacter>(entity))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Intercepting tileMove event...");
-                        Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
-                        User user = entityManager.GetComponentData<User>(userEntity);
-                        string name = user.CharacterName.ToString();b
-                        UserModel userModel = GameData.Users.GetUserByCharacterName(name);
-                        if (VRising.GameData.Methods.UserModelMethods.IsInCastle(userModel))
-                        {
-                            Plugin.Logger.LogInfo("Player is in their castle, moving tile allowed.");
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo("Player is not in their castle, checking if admin...");
-                            if (!user.IsAdmin)
-                            {
-                                Plugin.Logger.LogInfo("Player is not an admin, moving tile not allowed.");
-                                return;
-                            }
-                            else
-                            {
-                                Plugin.Logger.LogInfo("Player is an admin, moving tile allowed.");
-                            }
-                        }
-                    }
-                }
-                moveArray.Dispose();
-                NativeArray<Entity> editArray = __instance._StartEditQuery.ToEntityArray(Allocator.Temp);
-                foreach (Entity entity in editArray)
-                {
-                    entity.LogComponentTypes();
-                    if (!Utilities.HasComponent<FromCharacter>(entity))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Intercepting tileDismantle event...");
-                        Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
-                        User user = entityManager.GetComponentData<User>(userEntity);
-                        string name = user.CharacterName.ToString();
-                        UserModel userModel = GameData.Users.GetUserByCharacterName(name);
-                        if (VRising.GameData.Methods.UserModelMethods.IsInCastle(userModel))
-                        {
-                            Plugin.Logger.LogInfo("Player is in their castle, dismantling tile allowed.");
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo("Player is not in their castle, checking if admin...");
-                            if (!user.IsAdmin)
-                            {
-                                Plugin.Logger.LogInfo("Player is not an admin, dismantling tile not allowed.");
-                                return;
-                            }
-                        }
-                    }
-                }
-                editArray.Dispose();
-public static void Postfix(PlaceTileModelSystem __instance)
-        {
-            NativeArray<Entity> dismantleArray = __instance._DismantleTileQuery.ToEntityArray(Allocator.Temp);
             try
             {
                 foreach (Entity entity in dismantleArray)
                 {
-                    entity.LogComponentTypes();
-                    if (!Utilities.HasComponent<FromCharacter>(entity))
+                    if (processedEntities.Contains(entity))
                     {
-                        continue;
+                        continue; // Skip already processed entities
                     }
-                    if (shouldAllowDismantle)
+
+                    processedEntities.Add(entity);
+
+                    // Only proceed if the entity has a FromCharacter component
+                    if (Utilities.HasComponent<FromCharacter>(entity) && Utilities.HasComponent<TilePosition>(entity))
                     {
-                        Plugin.Logger.LogInfo("Dismantling allowed.");
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Dismantling not allowed.");
-                        return;
+                        Plugin.Logger.LogInfo("Intercepting dismantle event...");
+                        Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
+                        User user = entityManager.GetComponentData<User>(userEntity);
+                        string name = user.CharacterName.ToString();
+                        UserModel userModel = GameData.Users.GetUserByCharacterName(name);
+
+                        // Convert entity's tile position to block tile coordinates
+                        TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(entity);
+                        float2 blockTileCoordinates = tilePosition.Tile / CastleTerritoryCache.TileToBlockDivisor;
+
+                        Entity territoryEntity;
+                        // Attempt to retrieve the castle territory based on block tile coordinates
+                        if (CastleTerritoryCache.TryGetCastleTerritory(blockTileCoordinates, out territoryEntity))
+                        {
+                            // Further checks to ensure the territory entity matches the player's castle territory
+                            Plugin.Logger.LogInfo("Dismantling allowed within player's territory.");
+                            return true;
+                        }
+                        else
+                        {
+                            Plugin.Logger.LogInfo("Dismantling attempt outside player's territory.");
+                            return false;
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Plugin.Logger.LogError(ex.Message);
+                Plugin.Logger.LogInfo(ex.Message);
+                return false;
             }
+            return false;
+            // Default to disallowing dismantling if no entities specifically allow it.
         }
-                */
+    }
+}

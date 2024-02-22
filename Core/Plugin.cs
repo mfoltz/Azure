@@ -36,6 +36,7 @@ namespace DismantleDenied.Core
             InitConfig();
             DismantleDenied.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
             GameData.OnInitialize += GameDataOnInitialize;
+
             Plugin.Logger.LogInfo("Plugin DismantleDenied is loaded!");
         }
 
@@ -48,7 +49,7 @@ namespace DismantleDenied.Core
             // Initialize configuration settings
 
             buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled.").Value;
-            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", true, "True to allow modification, otherwise will not be toggled.").Value;
+            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", false, "True to allow modification, otherwise will not be toggled.").Value;
             if (!Directory.Exists(ConfigPath))
             {
                 Directory.CreateDirectory(ConfigPath);
@@ -64,6 +65,8 @@ namespace DismantleDenied.Core
 
         public void OnGameInitialized()
         {
+            CastleTerritoryCache.Initialize();
+            Plugin.Logger.LogInfo("TerritoryCache loaded");
         }
     }
 }
