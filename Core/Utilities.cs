@@ -101,7 +101,7 @@ namespace DismantleDenied.Core
 
     public static class CastleTerritoryCache
     {
-        public static Dictionary<float2, Entity> BlockTileToTerritory = new();
+        public static Dictionary<int2, Entity> BlockTileToTerritory = new();
         public static int TileToBlockDivisor = 10;
 
         public static void Initialize()
@@ -113,6 +113,7 @@ namespace DismantleDenied.Core
                 var buffer = entity.ReadBuffer<CastleTerritoryBlocks>();
                 foreach (var block in buffer)
                 {
+                    Plugin.Logger.LogInfo($"{block.BlockCoordinate}");
                     BlockTileToTerritory[block.BlockCoordinate] = entity;
                 }
             }
@@ -136,12 +137,30 @@ namespace DismantleDenied.Core
         public static bool TryGetCastleTerritory(float2 blockTileCoordinates, out Entity territoryEntity)
         {
             // Attempt to retrieve the territory entity based on block tile coordinates
-            Plugin.Logger.LogInfo($"{blockTileCoordinates.yx}");
+            Plugin.Logger.LogInfo($"Searching for block tiles coords...");
             for (int i = 0; i < BlockTileToTerritory.Count;)
             {
                 Plugin.Logger.LogInfo(BlockTileToTerritory[i]);
             }
-            return BlockTileToTerritory.TryGetValue(blockTileCoordinates, out territoryEntity);
+            bool foundYX = BlockTileToTerritory.TryGetValue((int2)blockTileCoordinates, out territoryEntity);
+            Plugin.Logger.LogInfo($"{blockTileCoordinates.yx}");
+            bool foundXY = BlockTileToTerritory.TryGetValue((int2)blockTileCoordinates, out territoryEntity);
+            Plugin.Logger.LogInfo($"{blockTileCoordinates.xy}");
+            if (foundYX)
+            {
+                return true;
+            }
+            else
+            {
+                if (foundXY)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
 
         public static void AddTerritory(Entity territoryEntity, EntityManager entityManager)
@@ -157,7 +176,7 @@ namespace DismantleDenied.Core
                         float2 tileCoordinate = block.BlockCoordinate / TileToBlockDivisor;
 
                         // Update or add the territory entity associated with this tile coordinate.
-                        BlockTileToTerritory[tileCoordinate] = territoryEntity;
+                        BlockTileToTerritory[(int2)tileCoordinate] = territoryEntity;
                     }
                 }
             }
@@ -180,7 +199,7 @@ namespace DismantleDenied.Core
                         float2 tileCoordinate = block.BlockCoordinate / TileToBlockDivisor;
 
                         // Remove the territory entity associated with this tile coordinate if it exists.
-                        BlockTileToTerritory.Remove(tileCoordinate);
+                        BlockTileToTerritory.Remove((int2)tileCoordinate);
                     }
                 }
             }

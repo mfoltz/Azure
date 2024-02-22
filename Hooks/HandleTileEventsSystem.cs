@@ -153,7 +153,7 @@ namespace DismantleDenied.Hooks
                         targetEntity.LogComponentTypes();
                         // Convert entity's tile position to block tile coordinates
                         TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(targetEntity);
-                        float2 blockTileCoordinates = tilePosition.Tile / CastleTerritoryCache.TileToBlockDivisor;
+                        int2 blockTileCoordinates = tilePosition.Tile / CastleTerritoryCache.TileToBlockDivisor;
 
                         Entity territoryEntity;
                         // Attempt to retrieve the castle territory based on block tile coordinates
