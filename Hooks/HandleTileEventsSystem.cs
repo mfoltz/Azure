@@ -139,7 +139,7 @@ namespace DismantleDenied.Hooks
                     }
 
                     processedEntities.Add(entity);
-                    entity.LogComponentTypes();
+                    //entity.LogComponentTypes();
                     DismantleTileModelEvent dismantleTileModelEvent = Utilities.GetComponentData<DismantleTileModelEvent>(entity);
                     NetworkId targetNetworkId = dismantleTileModelEvent.Target;
                     // Only proceed if the entity has a FromCharacter component
@@ -148,17 +148,18 @@ namespace DismantleDenied.Hooks
                         Plugin.Logger.LogInfo("Intercepting dismantle event...");
                         Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
                         User user = entityManager.GetComponentData<User>(userEntity);
+                        if (user.IsAdmin)
+                        {
+                            Plugin.Logger.LogInfo("Admin dismantling allowed anywhere.");
+                            return true;
+                        }
                         string name = user.CharacterName.ToString();
                         UserModel userModel = GameData.Users.GetUserByCharacterName(name);
-                        targetEntity.LogComponentTypes();
-                        // Convert entity's tile position to block tile coordinates
-                        TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(targetEntity);
-                        int2 blockTileCoordinates = tilePosition.Tile / CastleTerritoryCache.TileToBlockDivisor;
-
                         Entity territoryEntity;
                         // Attempt to retrieve the castle territory based on block tile coordinates
-                        if (CastleTerritoryCache.TryGetCastleTerritory(blockTileCoordinates, out territoryEntity))
+                        if (CastleTerritoryCache.TryGetCastleTerritory(targetEntity, out territoryEntity))
                         {
+                            territoryEntity.LogComponentTypes();
                             // Further checks to ensure the territory entity matches the player's castle territory
                             Plugin.Logger.LogInfo("Dismantling allowed if object is in player's territory.");
                             return true;
@@ -176,9 +177,81 @@ namespace DismantleDenied.Hooks
                 Plugin.Logger.LogInfo(ex.Message);
                 return false;
             }
-            //Plugin.Logger.LogInfo("Defaulting to no dismantle...");
             return false;
             // Default to disallowing dismantling if no entities specifically allow it.
+        }
+    }
+
+    [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.HandleMoveTileModelEvents))]
+    public static class PlaceTileModelSystem_MovePatch
+    {
+        public static bool Prefix(PlaceTileModelSystem __instance, NativeHashMap<NetworkId, Entity> networkIdToEntityMap)
+        {
+            bool allowMoving = false;
+
+            EntityManager entityManager = __instance.EntityManager;
+            NativeArray<Entity> moveArray = __instance._DismantleTileQuery.ToEntityArray(Allocator.Temp);
+            // Process dismantling events
+            allowMoving = ProcessMovingEvents(entityManager, moveArray, networkIdToEntityMap);
+
+            moveArray.Dispose();
+            // Implement the logic to prevent moving items built in the wild into player territories
+            return allowMoving;
+        }
+
+        public static bool ProcessMovingEvents(EntityManager entityManager, NativeArray<Entity> moveArray, NativeHashMap<NetworkId, Entity> networkIdToEntityMap)
+        {
+            try
+            {
+                foreach (Entity entity in moveArray)
+                {
+                    if (entityManager.HasComponent<NetworkId>(entity))
+                    {
+                        NetworkId networkId = entityManager.GetComponentData<NetworkId>(entity);
+                        if (networkIdToEntityMap.TryGetValue(networkId, out Entity targetEntity))
+                        {
+                            if (entityManager.HasComponent<UserOwner>(targetEntity))
+                            {
+                                Entity userEntity = entityManager.GetComponentData<FromCharacter>(entity).User;
+                                if (entityManager.HasComponent<User>(userEntity))
+                                {
+                                    User user = entityManager.GetComponentData<User>(userEntity);
+                                    // Admins can move any item.
+                                    if (user.IsAdmin)
+                                    {
+                                        Plugin.Logger.LogInfo("Admin moving allowed anywhere.");
+                                        return true;
+                                    }
+                                    Entity territoryEntity;
+                                    // Use TryGetCastleTerritory with the entity to check if it's in a territory.
+                                    if (CastleTerritoryCache.TryGetCastleTerritory(targetEntity, out territoryEntity))
+                                    {
+                                        Plugin.Logger.LogInfo("Moving allowed if object is in player's territory.");
+                                        // The item is already inside a territory, no further checks needed here.
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        // The item is outside any territory, directly use the entity to check if it's moving into a territory.
+                                        if (CastleTerritoryCache.TryGetCastleTerritory(targetEntity, out territoryEntity))
+                                        {
+                                            Plugin.Logger.LogInfo("Moving attempt from outside player's territory.");
+                                            // Attempting to move an item from the wild into a territory is not allowed.
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogInfo(ex.Message);
+                return false;
+            }
+            return false;
         }
     }
 }

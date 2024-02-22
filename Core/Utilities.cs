@@ -113,7 +113,7 @@ namespace DismantleDenied.Core
                 var buffer = entity.ReadBuffer<CastleTerritoryBlocks>();
                 foreach (var block in buffer)
                 {
-                    Plugin.Logger.LogInfo($"{block.BlockCoordinate}");
+                    //Plugin.Logger.LogInfo($"{block.BlockCoordinate}");
                     BlockTileToTerritory[block.BlockCoordinate] = entity;
                 }
             }
@@ -132,35 +132,6 @@ namespace DismantleDenied.Core
             }
             territoryEntity = default;
             return false;
-        }
-
-        public static bool TryGetCastleTerritory(float2 blockTileCoordinates, out Entity territoryEntity)
-        {
-            // Attempt to retrieve the territory entity based on block tile coordinates
-            Plugin.Logger.LogInfo($"Searching for block tiles coords...");
-            for (int i = 0; i < BlockTileToTerritory.Count;)
-            {
-                Plugin.Logger.LogInfo(BlockTileToTerritory[i]);
-            }
-            bool foundYX = BlockTileToTerritory.TryGetValue((int2)blockTileCoordinates, out territoryEntity);
-            Plugin.Logger.LogInfo($"{blockTileCoordinates.yx}");
-            bool foundXY = BlockTileToTerritory.TryGetValue((int2)blockTileCoordinates, out territoryEntity);
-            Plugin.Logger.LogInfo($"{blockTileCoordinates.xy}");
-            if (foundYX)
-            {
-                return true;
-            }
-            else
-            {
-                if (foundXY)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
         }
 
         public static void AddTerritory(Entity territoryEntity, EntityManager entityManager)
