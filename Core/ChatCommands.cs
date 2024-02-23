@@ -33,6 +33,12 @@ namespace DismantleDenied.Core
             Value = false
         };
 
+        public static SetDebugSettingEvent GlobalCastleTerritoryEnabled = new SetDebugSettingEvent()
+        {
+            SettingType = (DebugSettingType)10,
+            Value = false
+        };
+
         public static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)16,
@@ -74,6 +80,11 @@ namespace DismantleDenied.Core
                     ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
                 }
+                if (Plugin.globalCastleTerritory)
+                {
+                    ChatCommands.GlobalCastleTerritoryEnabled.Value = ChatCommands.tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.GlobalCastleTerritoryEnabled);
+                }
                 string enabledColor = DismantleDenied.Core.FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
             }
@@ -95,6 +106,11 @@ namespace DismantleDenied.Core
                 {
                     ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
+                }
+                if (Plugin.globalCastleTerritory)
+                {
+                    ChatCommands.GlobalCastleTerritoryEnabled.Value = ChatCommands.tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.GlobalCastleTerritoryEnabled);
                 }
                 string disabledColor = DismantleDenied.Core.FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");

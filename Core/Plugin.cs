@@ -25,6 +25,7 @@ namespace DismantleDenied.Core
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "DismantleDenied");
         public static bool buildingPlacementRestrictions;
         public static bool castleHeartConnectionRequirement;
+        public static bool globalCastleTerritory;
 
         public override void Load()
         {
@@ -49,7 +50,9 @@ namespace DismantleDenied.Core
             // Initialize configuration settings
 
             buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled.").Value;
-            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", false, "True to allow modification, otherwise will not be toggled.").Value;
+            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", true, "True to allow modification, otherwise will not be toggled.").Value;
+            globalCastleTerritory = Config.Bind("Config", "globalCastleTerritory", true, "True to allow modification, otherwise will not be toggled.").Value;
+
             if (!Directory.Exists(ConfigPath))
             {
                 Directory.CreateDirectory(ConfigPath);
