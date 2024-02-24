@@ -71,6 +71,8 @@ namespace V.Core.Commands
         public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
+            // want to disable resource nodes in active player territories here to avoid overgrowth
+            ResourceFunctions.SearchAndDestroy();
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             if (!tfbFlag)
             {
@@ -125,6 +127,7 @@ namespace V.Core.Commands
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
+
         }
 
         [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <PlayerName>", description: "Resets a player's rank count.")]
@@ -1143,7 +1146,7 @@ namespace V.Core.Commands
             File.WriteAllText(Plugin.PlayerDivinityJson, JsonSerializer.Serialize(Databases.playerDivinity));
         }
 
-        [Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
+        //[Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             // maybe if I set their health to 0 instead of destroying them? hmm
@@ -1153,6 +1156,17 @@ namespace V.Core.Commands
             ResourceFunctions.SearchAndDestroy();
 
             ctx.Reply("All found resource nodes in player territories have been disabled.");
+        }
+        [Command(name: "resetnodes", shortHand: "rn", adminOnly: true, usage: ".v rn", description: "Atempts to reset resource nodes if they've been disabled.")]
+        public static void ResetResourcesCommand(ChatCommandContext ctx)
+        {
+            // maybe if I set their health to 0 instead of destroying them? hmm
+            User user = ctx.Event.User;
+            Entity killer = ctx.Event.SenderUserEntity;
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            ResourceFunctions.FindAndEnable();
+
+            ctx.Reply("Resource nodes reset.");
         }
         public class ResourceFunctions
         {
@@ -1183,7 +1197,7 @@ namespace V.Core.Commands
                     }
                 }
                 resourceNodeEntities.Dispose();
-                Plugin.Logger.LogInfo($"{counter} nodes found.");
+                Plugin.Logger.LogInfo($"{counter} resource nodes disabled.");
             }
             private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
             {
@@ -1194,6 +1208,36 @@ namespace V.Core.Commands
                     return true;
                 }
                 return false;
+            }
+
+            public static unsafe void FindAndEnable()
+            {
+                EntityManager entityManager = VWorld.Server.EntityManager;
+                int counter = 0;
+                bool includeDisabled = true;
+                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = new ComponentType[] {
+                    ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+                    ComponentType.ReadOnly<TilePosition>(),
+                },
+                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                });
+
+                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+                foreach (var node in resourceNodeEntities)
+                {
+                    
+                    
+                    if (Utilities.HasComponent<Disabled>(node))
+                    {
+                        Utilities.RemoveComponent<Disabled>(node);
+                        counter += 1;
+                    }
+                    
+                }
+                resourceNodeEntities.Dispose();
+                Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
             }
 
         }

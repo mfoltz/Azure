@@ -266,7 +266,7 @@ namespace V.Augments.Rank
                         V.Data.FoundPrefabGuid foundPrefabGuid = new(lightnova_cast);
                         rankData.RankSpell = 114484622;
                         //CastCommand(ctx, foundPrefabGuid, null);
-                        Plugin.Logger.LogInfo("Rank spell set to 2.");
+                        ctx.Reply("Rank spell set to 2.");
                         ChatCommands.SavePlayerRanks();
                     }
                     else
@@ -313,6 +313,37 @@ namespace V.Augments.Rank
                         var cooldown = TimeSpan.FromHours(cd) - waited;
                         ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
                     }
+                }
+                else
+                {
+                    ctx.Reply("Your rank data could not be found.");
+                }
+            }
+            [Command(name: "cliffjump", shortHand: "0", adminOnly: false, usage: ".0", description: "Clears rank spell from shift key.")]
+            public static void CliffJumpCast(ChatCommandContext ctx)
+            {
+                Entity character = ctx.Event.SenderCharacterEntity;
+                ulong SteamID = ctx.Event.User.PlatformId;
+
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                {
+                    
+
+                    if (rankData.RankSpell != V.Data.Prefabs.AB_VampireCliffLeap_Travel_AbilityGroup.GuidHash)
+                    {
+                        Databases.playerRanks[SteamID] = rankData;
+                        PrefabGUID cliffjump = V.Data.Prefabs.AB_VampireCliffLeap_Travel_AbilityGroup;
+                        V.Data.FoundPrefabGuid foundPrefabGuid = new(cliffjump);
+                        rankData.RankSpell = cliffjump.GuidHash;
+                        //CastCommand(ctx, foundPrefabGuid, null);
+                        ctx.Reply("Cleared rank spell from shift key.");
+                        ChatCommands.SavePlayerRanks();
+                    }
+                    else
+                    {
+                        ctx.Reply("Shift key already bound to cliffjump.");
+                    }
+                    
                 }
                 else
                 {

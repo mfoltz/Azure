@@ -25,6 +25,7 @@ namespace RPGAddOnsEx.Hooks
     {
         private static void Prefix(ReplaceAbilityOnSlotSystem __instance)
         {
+            
             try
             {
                 
