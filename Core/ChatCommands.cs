@@ -22,10 +22,15 @@ using V.Augments;
 using VampireCommandFramework;
 using VRising.GameData.Models;
 using VRising.GameData;
+using System.Runtime.CompilerServices;
+using V.Data;
+using Buff = V.Data.Buff;
+using Items = V.Data.Items;
+using static V.Data.Items;
 
 namespace V.Core
 {
-    [CommandGroup(name: "v", shortHand: "v")]
+    [CommandGroup(name: "V+(Rising)", shortHand: "v")]
     public class ChatCommands
     {
         public static bool tfbFlag;
@@ -60,7 +65,7 @@ namespace V.Core
             Value = false
         };
 
-        [Command(name: "togglefreebuild", shortHand: "tfb", adminOnly: true, usage: ".dd tfb", description: "Toggles freebuild debug settings.")]
+        [Command(name: "togglefreebuild", shortHand: "tfb", adminOnly: true, usage: ".v tfb", description: "Toggles freebuild debug settings.")]
         public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -119,7 +124,8 @@ namespace V.Core
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
-        [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".rpg wpr <PlayerName>", description: "Resets a player's rank count.")]
+
+        [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <PlayerName>", description: "Resets a player's rank count.")]
         public static void WipeRanksCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerRankUp == false)
@@ -163,7 +169,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "setrankpoints", shortHand: "srp", adminOnly: true, usage: ".rpg srp <PlayerName> <Points>", description: "Sets the rank points for a specified player.")]
+        [Command(name: "setrankpoints", shortHand: "srp", adminOnly: true, usage: ".v srp <PlayerName> <Points>", description: "Sets the rank points for a specified player.")]
         public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
         {
             if (Plugin.PlayerRankUp == false)
@@ -224,7 +230,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "setplayerrank", shortHand: "spr", adminOnly: true, usage: ".rpg spr <PlayerName> <Rank>", description: "Sets the rank for a specified player.")]
+        [Command(name: "setplayerrank", shortHand: "spr", adminOnly: true, usage: ".v spr <PlayerName> <Rank>", description: "Sets the rank for a specified player.")]
         public static void SetRankCommand(ChatCommandContext ctx, string playerName, int rank)
         {
             if (Plugin.PlayerRankUp == false)
@@ -328,7 +334,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: ".rpg ru", description: "Resets your rank points and increases your rank, granting a buff if applicable.")]
+        [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: ".v ru", description: "Resets your rank points and increases your rank, granting a buff if applicable.")]
         public static void RankUpCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerRankUp == false)
@@ -356,7 +362,7 @@ namespace V.Core
                 {
                     double percentage = 100 * ((double)data.Points / (data.Rank * 1000 + 1000));
                     string integer = ((int)percentage).ToString();
-                    var colorString =  V.Core.FontColors.Yellow(integer);
+                    var colorString = V.Core.FontColors.Yellow(integer);
                     string colorPoints1 = V.Core.FontColors.White(data.Points.ToString());
                     string colorPoints2 = V.Core.FontColors.White((data.Rank * 1000 + 1000).ToString());
                     ctx.Reply($"You have {colorPoints1} out of the {colorPoints2} points required to increase your rank. ({colorString}%)");
@@ -368,7 +374,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "buffsync", shortHand: "bs", adminOnly: false, usage: ".rpg bs", description: "Attempts to check which buffs you should have from rank and apply them if you don't have them.")]
+        [Command(name: "buffsync", shortHand: "bs", adminOnly: false, usage: ".v bs", description: "Attempts to check which buffs you should have from rank and apply them if you don't have them.")]
         public static void BuffSyncCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerRankUp == false)
@@ -408,7 +414,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "getrank", shortHand: "gr", adminOnly: false, usage: ".rpg gr", description: "Displays your current rank points and progress towards the next rank along with current rank.")]
+        [Command(name: "getrank", shortHand: "gr", adminOnly: false, usage: ".v gr", description: "Displays your current rank points and progress towards the next rank along with current rank.")]
         public static void GetRankCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerRankUp == false)
@@ -440,7 +446,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "getplayerrank", shortHand: "gpr", adminOnly: true, usage: ".rpg gpr <PlayerName>", description: "Helps admins check player rank data.")]
+        [Command(name: "getplayerrank", shortHand: "gpr", adminOnly: true, usage: ".v gpr <PlayerName>", description: "Helps admins check player rank data.")]
         public static void GetPlayerRankCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerRankUp == false)
@@ -473,7 +479,7 @@ namespace V.Core
         }
 
         // prestige commands for players and admins should all be in this block unless otherwise mentioned
-        [Command(name: "visualbuff", shortHand: "vb", adminOnly: false, usage: ".rpg vb <#>", description: "Applies a visual buff you've earned through prestige.")]
+        [Command(name: "visualbuff", shortHand: "vb", adminOnly: false, usage: ".v vb <#>", description: "Applies a visual buff you've earned through prestige.")]
         public static void VisualBuffCommand(ChatCommandContext ctx, int buff)
         {
             if (Plugin.BuffRewardsPrestige == false)
@@ -497,7 +503,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: ".rpg p", description: "Resets your level to 1 after reaching max level, offering extra perks.")]
+        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: ".v p", description: "Resets your level to 1 after reaching max level, offering extra perks.")]
         public static void PrestigeCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerPrestige == false)
@@ -513,7 +519,7 @@ namespace V.Core
             PrestigeSystem.PrestigeCheck(ctx, name, SteamID);
         }
 
-        [Command(name: "getprestige", shortHand: "gp", adminOnly: false, usage: ".rpg gp", description: "Displays the number of times you've prestiged.")]
+        [Command(name: "getprestige", shortHand: "gp", adminOnly: false, usage: ".v gp", description: "Displays the number of times you've prestiged.")]
         public static void GetPrestigeCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerPrestige == false)
@@ -534,7 +540,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "wipeplayerprestige", shortHand: "wpp", adminOnly: true, usage: ".rpg wpp <PlayerName>", description: "Resets a player's prestige count.")]
+        [Command(name: "wipeplayerprestige", shortHand: "wpp", adminOnly: true, usage: ".v wpp <PlayerName>", description: "Resets a player's prestige count.")]
         public static void WipePrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerPrestige == false)
@@ -571,7 +577,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "getplayerprestige", shortHand: "gpp", adminOnly: true, usage: ".rpg gpp <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
+        [Command(name: "getplayerprestige", shortHand: "gpp", adminOnly: true, usage: ".v gpp <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
         public static void GetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerPrestige == false)
@@ -603,7 +609,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "setplayerprestige", shortHand: "spp", adminOnly: true, usage: ".rpg spp <PlayerName> <#>", description: "Sets player prestige level for specified player.")]
+        [Command(name: "setplayerprestige", shortHand: "spp", adminOnly: true, usage: ".v spp <PlayerName> <#>", description: "Sets player prestige level for specified player.")]
         public static void SetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName, int count)
         {
             if (Plugin.PlayerPrestige == false)
@@ -652,10 +658,8 @@ namespace V.Core
                 ctx.Reply("Player not found.");
             }
         }
-
-        // ascension commands for players and admins should all be in this block unless otherwise mentioned
-
-        [Command(name: "playerascend", shortHand: "asc", adminOnly: false, usage: ".rpg asc", description: "Ascends player if requirements are met.")]
+        /*
+        [Command(name: "playerascend", shortHand: "asc", adminOnly: false, usage: ".v asc", description: "Ascends player if requirements are met.")]
         public static void PlayerAscendCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerAscension == false)
@@ -699,7 +703,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "resetdivinity", shortHand: "rd", adminOnly: true, usage: ".rpg rd <PlayerName>", description: "Resets player divinity data.")]
+        [Command(name: "resetdivinity", shortHand: "rd", adminOnly: true, usage: ".v rd <PlayerName>", description: "Resets player divinity data.")]
         public static void ResetDivinityCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerAscension == false)
@@ -721,7 +725,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "setdivinity", shortHand: "sd", adminOnly: true, usage: ".rpg sd <PlayerName> <DivinityLevel> <Path>", description: "Sets the player's divinity level and path (1 for phys and 2 for spell, 0 by default).")]
+        [Command(name: "setdivinity", shortHand: "sd", adminOnly: true, usage: ".v sd <PlayerName> <DivinityLevel> <Path>", description: "Sets the player's divinity level and path (1 for phys and 2 for spell, 0 by default).")]
         public static void SetDivinityCommand(ChatCommandContext ctx, string playerName, int divinityLevel, int path)
         {
             if (Plugin.PlayerAscension == false)
@@ -753,9 +757,8 @@ namespace V.Core
                 ctx.Reply($"Player {playerName} not found.");
             }
         }
-
-
-        [Command(name: "getposition", shortHand: "pos", adminOnly: true, usage: "", description: "Returns position coordinates of player in console.")]
+        */
+        [Command(name: "getposition", shortHand: "pos", adminOnly: true, usage: ".v pos", description: "Returns position coordinates of player in console.")]
         public static void GetPosition(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -765,7 +768,7 @@ namespace V.Core
             Plugin.Logger.LogError($"{playerPosition}");
         }
 
-        [Command(name: "control", shortHand: "ctrl", adminOnly: true, usage: "", description: "Possesses VBloods or other entities, use with care.")]
+        [Command(name: "control", shortHand: "ctrl", adminOnly: true, usage: ".v ctrl", description: "Possesses VBloods or other entities, use with care.")]
         public static void ControlCommand(ChatCommandContext ctx)
         {
             Entity senderUserEntity = ctx.Event.SenderUserEntity;
@@ -807,7 +810,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "addNoctumSet", shortHand: "ans", adminOnly: true, usage: "", description: "adds noctum set to inventory if not already present")]
+        [Command(name: "addNoctumSet", shortHand: "ans", adminOnly: true, usage: ".v ans", description: "adds noctum set to inventory if not already present")]
         public static void addNoctumCommand(ChatCommandContext ctx)
         {
             // want to get ModifyUnitStatsBuff_DOTS from EquipBuff_Gloves_Base or something similar
@@ -850,7 +853,7 @@ namespace V.Core
             }
         }
 
-        [Command(name: "addDeathSet", shortHand: "ads", adminOnly: true, usage: "", description: "adds death set to inventory if not already present")]
+        [Command(name: "addDeathSet", shortHand: "ads", adminOnly: true, usage: ".v ads", description: "adds death set to inventory if not already present")]
         public static void addDeathCommand(ChatCommandContext ctx)
         {
             // want to get ModifyUnitStatsBuff_DOTS from EquipBuff_Gloves_Base or something similar
@@ -884,6 +887,398 @@ namespace V.Core
                     }
                 }
             }
+        }
+
+        [Command(name: "unlock", shortHand: "u", adminOnly: true, usage: ".v u <Player>", description: "Unlocks all the things.")]
+        public void UnlockCommand(ChatCommandContext ctx, string playerName, string unlockCategory = "all")
+        {
+            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
+            PlayerService.Player player1;
+            Entity entity1;
+            if ((object)player == null)
+            {
+                entity1 = ctx.Event.SenderUserEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity1 = player1.User;
+            }
+            Entity entity2 = entity1;
+            Entity entity3;
+            if ((object)player == null)
+            {
+                entity3 = ctx.Event.SenderCharacterEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity3 = player1.Character;
+            }
+            Entity entity4 = entity3;
+            try
+            {
+                VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                FromCharacter fromCharacter = new FromCharacter()
+                {
+                    User = entity2,
+                    Character = entity4
+                };
+                switch (unlockCategory)
+                {
+                    case "all":
+                        Helper.UnlockAll(fromCharacter);
+                        ChatCommandContext chatCommandContext1 = ctx;
+                        string str1;
+                        if ((object)player == null)
+                        {
+                            str1 = (string)null;
+                        }
+                        else
+                        {
+                            player1 = player;
+                            str1 = player1.Name;
+                        }
+                        if (str1 == null)
+                            str1 = "you";
+                        string str2 = "Unlocked everything for " + str1 + ".";
+                        chatCommandContext1.Reply(str2);
+                        break;
+
+                    case "vbloods":
+                        Helper.UnlockVBloods(fromCharacter);
+                        ChatCommandContext chatCommandContext2 = ctx;
+                        string str3;
+                        if ((object)player == null)
+                        {
+                            str3 = (string)null;
+                        }
+                        else
+                        {
+                            player1 = player;
+                            str3 = player1.Name;
+                        }
+                        if (str3 == null)
+                            str3 = "you";
+                        string str4 = "Unlocked VBloods for " + str3 + ".";
+                        chatCommandContext2.Reply(str4);
+                        break;
+
+                    case "achievements":
+                        Helper.UnlockAchievements(fromCharacter);
+                        ChatCommandContext chatCommandContext3 = ctx;
+                        string str5;
+                        if ((object)player == null)
+                        {
+                            str5 = (string)null;
+                        }
+                        else
+                        {
+                            player1 = player;
+                            str5 = player1.Name;
+                        }
+                        if (str5 == null)
+                            str5 = "you";
+                        string str6 = "Unlocked achievements for " + str5 + ".";
+                        chatCommandContext3.Reply(str6);
+                        break;
+
+                    case "research":
+                        Helper.UnlockResearch(fromCharacter);
+                        ChatCommandContext chatCommandContext4 = ctx;
+                        string str7;
+                        if ((object)player == null)
+                        {
+                            str7 = (string)null;
+                        }
+                        else
+                        {
+                            player1 = player;
+                            str7 = player1.Name;
+                        }
+                        if (str7 == null)
+                            str7 = "you";
+                        string str8 = "Unlocked research for " + str7 + ".";
+                        chatCommandContext4.Reply(str8);
+                        break;
+
+                    case "dlc":
+                        Helper.UnlockContent(fromCharacter);
+                        ChatCommandContext chatCommandContext5 = ctx;
+                        string str9;
+                        if ((object)player == null)
+                        {
+                            str9 = (string)null;
+                        }
+                        else
+                        {
+                            player1 = player;
+                            str9 = player1.Name;
+                        }
+                        if (str9 == null)
+                            str9 = "you";
+                        string str10 = "Unlocked dlc for " + str9 + ".";
+                        chatCommandContext5.Reply(str10);
+                        break;
+
+                    default:
+                        ctx.Reply("Invalid unlock type specified.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ctx.Error(ex.ToString());
+            }
+        }
+
+        [Command("bloodpotion", "bp", "{Blood Name} [quantity=1] [quality=100]", "Creates a Potion with specified Blood Type, Quality, and Quantity", null, true)]
+        public static void GiveBloodPotionCommand(ChatCommandContext ctx,V.Data.BloodType type = V.Data.BloodType.Frailed,int quantity = 1,float quality = 100f)
+        {
+            quality = Mathf.Clamp(quality, 0.0f, 100f);
+            int num;
+            Entity entity;
+            for (num = 0; num < quantity && Helper.AddItemToInventory(ctx.Event.SenderCharacterEntity, Prefabs.Item_Consumable_PrisonPotion_Bloodwine, 1, out entity); ++num)
+            {
+                StoredBlood componentData = new StoredBlood()
+                {
+                    BloodQuality = quality,
+                    BloodType = new PrefabGUID((int)type)
+                };
+                entity.Write<StoredBlood>(componentData);
+            }
+            ChatCommandContext chatCommandContext = ctx;
+            DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(81, 3);
+            interpolatedStringHandler.AppendLiteral("Got ");
+            interpolatedStringHandler.AppendFormatted<int>(num);
+            interpolatedStringHandler.AppendLiteral(" Blood Potion(s) Type <color=#ff0>");
+            interpolatedStringHandler.AppendFormatted<V.Data.BloodType>(type);
+            interpolatedStringHandler.AppendLiteral("</color> with <color=#ff0>");
+            interpolatedStringHandler.AppendFormatted<float>(quality);
+            interpolatedStringHandler.AppendLiteral("</color>% quality");
+            string stringAndClear = interpolatedStringHandler.ToStringAndClear();
+            chatCommandContext.Reply(stringAndClear);
+        }
+
+        [Command(name: "buff", shortHand: "b", adminOnly: true, usage: ".v b <PrefabGUID> <Player> <Duration> <Persists>", description: "Buff a player with a prefab name or guid")]
+        public void BuffCommand(ChatCommandContext ctx,FoundPrefabGuid buffGuid,string playerName,int duration = -1,bool persistsThroughDeath = false)
+        {
+            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
+            PlayerService.Player player1;
+            Entity entity1;
+            if ((object)player == null)
+            {
+                entity1 = ctx.Event.SenderUserEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity1 = player1.User;
+            }
+            Entity user = entity1;
+            Entity entity2;
+            if ((object)player == null)
+            {
+                entity2 = ctx.Event.SenderCharacterEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity2 = player1.Character;
+            }
+            Entity character = entity2;
+            try
+            {
+                Helper.BuffPlayer(character, user, buffGuid.Value, duration, persistsThroughDeath);
+                ctx.Reply("Added buff");
+            }
+            catch (Exception ex)
+            {
+                throw ctx.Error(ex.ToString());
+            }
+        }
+
+        [Command(name: "unbuff", shortHand: "ub", adminOnly: true, usage: ".v ub <PrefabGUID> <Player>", description: "Unlocks all the things.")]
+        public void UnbuffCommand(ChatCommandContext ctx, FoundPrefabGuid buffGuid, string playerName)
+        {
+            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
+            Helper.UnbuffCharacter((object)player != null ? player.Character : ctx.Event.SenderCharacterEntity, buffGuid.Value);
+            ctx.Reply($"Removed buff {buffGuid} from {player}.");
+        }
+
+        [Command(name: "clearbuffs", shortHand: "cb", adminOnly: true, usage: ".v cb <Player>", description: "Removes any extra buffs on a player.")]
+        public void ClearBuffs(ChatCommandContext ctx, string playerName)
+        {
+            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
+            Helper.ClearExtraBuffs((object)player != null ? player.Character : ctx.Event.SenderCharacterEntity);
+        }
+
+        [Command(name: "revive", shortHand: "r", adminOnly: true, usage: ".v r <Player>", description: "Revives player.")]
+        public void ReviveCommand(ChatCommandContext ctx, string playerName)
+        {
+            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
+            PlayerService.Player player1;
+            Entity entity1;
+            if ((object)player == null)
+            {
+                entity1 = ctx.Event.SenderCharacterEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity1 = player1.Character;
+            }
+            Entity Character = entity1;
+            Entity entity2;
+            if ((object)player == null)
+            {
+                entity2 = ctx.Event.SenderUserEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity2 = player1.User;
+            }
+            Entity User = entity2;
+            Helper.ReviveCharacter(Character, User);
+            ctx.Reply("Revived");
+        }
+
+        [Command("ping", "p", null, "Shows your latency.", null, false)]
+        public static void PingCommand(ChatCommandContext ctx, string mode = "")
+        {
+            int num = (int)((double)ctx.Event.SenderCharacterEntity.Read<Latency>().Value * 1000.0);
+            ChatCommandContext chatCommandContext = ctx;
+            DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(41, 1);
+            interpolatedStringHandler.AppendLiteral("Your latency is <color=#ffff00>");
+            interpolatedStringHandler.AppendFormatted<int>(num);
+            interpolatedStringHandler.AppendLiteral("</color>ms");
+            string stringAndClear = interpolatedStringHandler.ToStringAndClear();
+            chatCommandContext.Reply(stringAndClear);
+        }
+
+        
+
+        [Command(name: "god", shortHand: "abnormal", adminOnly: true, usage: ".v abnormal <Player>", description: "Enables godmode.")]
+        public void GodCommand(ChatCommandContext ctx, string playerName)
+        {
+            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
+            PlayerService.Player player1;
+            Entity entity1;
+            if ((object)player == null)
+            {
+                entity1 = ctx.Event.SenderUserEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity1 = player1.User;
+            }
+            Entity entity2 = entity1;
+            Entity entity3;
+            if ((object)player == null)
+            {
+                entity3 = ctx.Event.SenderCharacterEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity3 = player1.Character;
+            }
+            Entity entity4 = entity3;
+            GodCommands.PlayerSpeeds[entity4] = 15f;
+            GodCommands.PlayerProjectileSpeeds[entity4] = 10f;
+            GodCommands.PlayerProjectileRanges[entity4] = 10f;
+            MakePlayerImmaterial(entity2, entity4);
+            Helper.BuffPlayer(entity4, entity2, Prefabs.EquipBuff_ShroudOfTheForest, persistsThroughDeath: true);
+            Helper.ResetCharacter(entity4);
+            ctx.Reply("Godmode activated.");
+        }
+
+        [Command(name: "normal", shortHand: "", adminOnly: true, usage: ".v normal <Player>", description: "Disables godmode.")]
+        public void NormalCommand(ChatCommandContext ctx, string playerName)
+        {
+            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
+            PlayerService.Player player1;
+            Entity entity;
+            if ((object)player == null)
+            {
+                entity = ctx.Event.SenderUserEntity;
+            }
+            else
+            {
+                player1 = player;
+                entity = player1.User;
+            }
+            Entity Character;
+            if ((object)player == null)
+            {
+                Character = ctx.Event.SenderCharacterEntity;
+            }
+            else
+            {
+                player1 = player;
+                Character = player1.Character;
+            }
+            NormalizeCharacter(Character);
+            ctx.Reply("Godmode deactivated.");
+        }
+        private static void NormalizeCharacter(Entity Character)
+        {
+            DisableAllBuffFlags(Character);
+            GodCommands.PlayerSpeeds[Character] = 15f;
+            GodCommands.PlayerProjectileBounces[Character] = -1;
+            GodCommands.PlayerProjectileRanges[Character] = 1f;
+            GodCommands.PlayerProjectileSpeeds[Character] = 1f;
+            Helper.ClearExtraBuffs(Character);
+            MakePlayerMaterial(Character);
+        }
+        private static void MakePlayerImmaterial(Entity User, Entity Character)
+        {
+            Helper.BuffPlayer(Character, User, V.Data.Buff.AB_Blood_BloodRite_Immaterial, 0, true);
+            Entity entity;
+            if (!BuffUtility.TryGetBuff(VWorld.Server.EntityManager, Character, Prefabs.AB_Blood_BloodRite_Immaterial, out entity))
+                return;
+            ModifyMovementSpeedBuff componentData = entity.Read<ModifyMovementSpeedBuff>();
+            componentData.MoveSpeed = 1f;
+            entity.Write<ModifyMovementSpeedBuff>(componentData);
+        }
+
+        private static void MakePlayerMaterial(Entity Character)
+        {
+            Helper.UnbuffCharacter(Character, Buff.AB_Blood_BloodRite_Immaterial);
+        }
+        private static void DisableAllBuffFlags(Entity Character)
+        {
+            if (!GodCommands.PlayerBuffDictionary.ContainsKey(Character))
+                return;
+            foreach (string key in GodCommands.PlayerBuffDictionary[Character].Keys)
+            {
+                isBuffEnabled(Character, key);
+                GodCommands.PlayerBuffDictionary[Character][key] = false;
+            }
+        }
+
+        private static void DisableBuffFlag(Entity Character, string buffType)
+        {
+            if (!isBuffEnabled(Character, buffType))
+                return;
+            GodCommands.PlayerBuffDictionary[Character][buffType] = false;
+        }
+        public static bool isBuffEnabled(Entity Character, string buffType)
+        {
+            Dictionary<string, bool> dictionary;
+            if (!GodCommands.PlayerBuffDictionary.TryGetValue(Character, out dictionary))
+                GodCommands.PlayerBuffDictionary[Character] = new Dictionary<string, bool>()
+        {
+          {
+            buffType,
+            false
+          }
+        };
+            else if (!dictionary.TryGetValue(buffType, out bool _))
+                GodCommands.PlayerBuffDictionary[Character][buffType] = false;
+            return GodCommands.PlayerBuffDictionary[Character][buffType];
         }
 
         /*
@@ -984,69 +1379,91 @@ namespace V.Core
             File.WriteAllText(Plugin.PlayerDivinityJson, JsonSerializer.Serialize(Databases.playerDivinity));
         }
 
-        //[Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes.")]
+        [Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             // maybe if I set their health to 0 instead of destroying them? hmm
             User user = ctx.Event.User;
             Entity killer = ctx.Event.SenderUserEntity;
             EntityManager entityManager = VWorld.Server.EntityManager;
-            //ResourceFunctions.SearchAndDestroy(killer, ctx);
+            ResourceFunctions.SearchAndDestroy();
 
-            ctx.Reply("All found resource nodes have been destroyed.");
+            ctx.Reply("All found resource nodes in player territories have been disabled.");
         }
 
-        public class ResourceFunctions
+        public class GodCommands
         {
-            /*
-            public static unsafe void SearchAndDestroy(Entity killer, ChatCommandContext ctx)
+
+            public static Dictionary<Entity, Dictionary<string, bool>> PlayerBuffDictionary = new Dictionary<Entity, Dictionary<string, bool>>();
+            public static Dictionary<Entity, float> PlayerSpeeds = new Dictionary<Entity, float>();
+            public static Dictionary<Entity, int> PlayerHps = new Dictionary<Entity, int>();
+            public static Dictionary<Entity, float> PlayerProjectileSpeeds = new Dictionary<Entity, float>();
+            public static Dictionary<Entity, float> PlayerProjectileRanges = new Dictionary<Entity, float>();
+            public static Dictionary<Entity, int> PlayerProjectileBounces = new Dictionary<Entity, int>();
+            private const int DEFAULT_FAST_SPEED = 15;
+
+            private static List<string> GodFlags = new List<string>()
+    {
+      "immortal",
+      "nocd",
+      "speed",
+      "attackSpeed",
+      "damage",
+      "hp"
+    };
+
+            private static Dictionary<string, List<string>> groupBuffTypes = new Dictionary<string, List<string>>()
+    {
+      {
+        "god",
+        GodCommands.GodFlags
+      }
+      
+    };
+        }
+        
+
+        public class ResourceFunctions
+        {   
+            // this actually disables but destroy is much catchier
+            public static unsafe void SearchAndDestroy()
             {
                 EntityManager entityManager = VWorld.Server.EntityManager;
-
-                MapZoneCollectionSystem mapZoneCollectionSystem = VWorld.Server.GetExistingSystem<MapZoneCollectionSystem>();
-                MapZoneCollection mapZoneCollection = mapZoneCollectionSystem.GetMapZoneCollection();
-
-                PlayCommandsSystem_Server playCommandsSystem = VWorld.Server.GetExistingSystem<PlayCommandsSystem_Server>();
-                EntityQuery serverTimeQuery = playCommandsSystem._ServerTime._SingletonQuery;
                 int counter = 0;
-
-                if (serverTimeQuery.CalculateEntityCount() == 1)
-                {
-                    var serverTimeEntity = serverTimeQuery.GetSingletonEntity();
-                    var serverTime = Utilities.GetComponentData<ServerTime>(serverTimeEntity);
-                     double currentTime = serverTime.TimeOnServer; // Or whichever field is appropriate
-                }
-
                 bool includeDisabled = true;
                 var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
                 {
                     All = new ComponentType[] {
-                        ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-                        ComponentType.ReadOnly<Health>(),
-                        ComponentType.ReadOnly<TilePosition>(),
-                    },
+                    ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+                    ComponentType.ReadOnly<Health>(),
+                    ComponentType.ReadOnly<TilePosition>(),
+                },
                     Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
                 });
 
                 var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-
-                foreach (var entity in resourceNodeEntities)
+                foreach (var node in resourceNodeEntities)
                 {
-                    TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(entity);
-                    float2 worldFloat = SpaceConversion.TileToWorld(tilePosition.Tile.x, tilePosition.Tile.y);
-                    int2 worldTile = SpaceConversion.WorldToTile(worldFloat.x, worldFloat.y);
-
-                    if (CastleTerritoryExtensions.TryGetCastleTerritory(mapZoneCollection, entityManager, worldTile, out CastleTerritory castleTerritory))
+                    if (ShouldRemoveNodeBasedOnTerritory(node))
                     {
-                        // This resource is within a castle territory, proceed with destruction
-                        StatChangeUtility.KillEntity(entityManager, entity, killer, currentTime, false);
-                        counter++;
+                        // if node is in a player territory, which is updated for castle heart placement/destruction already, disable it (
+                        counter += 1;
+                        node.LogComponentTypes();
                     }
                 }
-                Plugin.Logger.LogInfo($"Resource nodes destroyed: {counter}");
                 resourceNodeEntities.Dispose();
+                Plugin.Logger.LogInfo($"{counter} nodes found.");
             }
-            */
+            private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
+            {
+                Entity territoryEntity;
+                if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
+                {
+                    return true;
+                }
+                return false;
+            }
+
         }
     }
 }

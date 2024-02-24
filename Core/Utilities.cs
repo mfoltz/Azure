@@ -182,10 +182,14 @@ namespace V.Core
 
     public static class SystemPatchUtil
     {
-        public static void CancelJob(Entity entity)
+        public static void Destroy(Entity entity)
         {
             VWorld.Server.EntityManager.AddComponent<Disabled>(entity);
             DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
+        }
+        public static void Disable(Entity entity)
+        {
+            VWorld.Server.EntityManager.AddComponent<Disabled>(entity);
         }
     }
 }

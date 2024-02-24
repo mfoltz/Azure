@@ -10,6 +10,8 @@ namespace V.Data;
 
 public static class Items
 {
+    public record struct GivenItem(PrefabGUID Value);
+
     public static List<Item> GiveableItems = new List<Item>
     {
         new Item(new PrefabGUID(1270271716), "Item_Ingredient_Battery", "Depleted Battery"),

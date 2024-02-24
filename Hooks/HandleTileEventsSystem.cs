@@ -157,7 +157,7 @@ namespace V.Hooks
             StringBuilder message = new StringBuilder("Bad vampire, no merlot! (Castle Heart placement is disabled during freebuild)");
 
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, message.ToString());
-            SystemPatchUtil.CancelJob(job);
+            SystemPatchUtil.Destroy(job);
         }
     }
 

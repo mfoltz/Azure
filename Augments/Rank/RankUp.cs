@@ -62,7 +62,8 @@ namespace V.Augments.Rank
             //lightning bolt goes here
 
             PrefabGUID lightning = new PrefabGUID(1365358996);
-            CastCommands.CastCommand(ctx, lightning, null);
+            V.Data.FoundPrefabGuid foundPrefabGuid = new(lightning);
+            CastCommands.CastCommand(ctx, foundPrefabGuid, null);
             ChatCommands.SavePlayerRanks();
             return;
         }

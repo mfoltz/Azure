@@ -12,6 +12,7 @@ using DateTime = System.DateTime;
 using Plugin = V.Core.Plugin;
 using TimeSpan = System.TimeSpan;
 using static V.Core.PlayerService;
+using V.Data;
 
 #nullable disable
 
@@ -23,7 +24,7 @@ namespace V.Augments.Rank
         private static readonly double cd = Plugin.rankCommandsCooldown; //cd in hours
 
         [Command("cast", null, null, "Cast any ability", null, true)]
-        public static void CastCommand(ChatCommandContext ctx, PrefabGUID prefabGuid, FoundPlayer player = null)
+        public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
         {
             PlayerService.Player player1;
             Entity entity1;
@@ -33,7 +34,7 @@ namespace V.Augments.Rank
             }
             else
             {
-                player1 = player;
+                player1 = player.Value;
                 entity1 = player1.User;
             }
             Entity entity2 = entity1;
@@ -44,7 +45,7 @@ namespace V.Augments.Rank
             }
             else
             {
-                player1 = player;
+                player1 = player.Value;
                 entity3 = player1.Character;
             }
             Entity entity4 = entity3;
@@ -56,7 +57,7 @@ namespace V.Augments.Rank
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             CastAbilityServerDebugEvent serverDebugEvent = new CastAbilityServerDebugEvent()
             {
-                AbilityGroup = prefabGuid,
+                AbilityGroup = prefabGuid.Value,
                 AimPosition = new Nullable_Unboxed<float3>(entity2.Read<EntityInput>().AimPosition),
                 Who = entity4.Read<NetworkId>()
             };
@@ -126,6 +127,7 @@ namespace V.Augments.Rank
                         Databases.playerRanks[SteamID] = rankData; // Save changes to RankData
 
                         PrefabGUID firespinner_cast = new PrefabGUID(1217615468);
+                        V.Data.FoundPrefabGuid foundPrefabGuid = new(firespinner_cast);
                         rankData.RankSpell = 1217615468;
                         //CastCommand(ctx, foundPrefabGuid, null);
                         ctx.Reply("Rank spell set to 4.");
@@ -164,7 +166,9 @@ namespace V.Augments.Rank
                         Databases.playerRanks[SteamID] = rankData; // Save updated RankData
 
                         PrefabGUID batstorm_cast = new PrefabGUID(-254080557);
+                        V.Data.FoundPrefabGuid foundPrefabGuid = new(batstorm_cast);
                         rankData.RankSpell = -254080557;
+
                         //CastCommand(ctx, foundPrefabGuid, null);
                         ctx.Reply("Rank spell set to 3.");
                         ChatCommands.SavePlayerRanks();
@@ -218,6 +222,7 @@ namespace V.Augments.Rank
                         Databases.playerRanks[SteamID] = rankData; // Ensure rank data is updated
 
                         PrefabGUID batwhirlwind_cast = new PrefabGUID(-1698981316);
+                        V.Data.FoundPrefabGuid foundPrefabGuid = new(batwhirlwind_cast);
                         rankData.RankSpell = -1698981316;
                         //CastCommand(ctx, foundPrefabGuid, null);
                         ctx.Reply("Rank spell set to 1.");
@@ -255,6 +260,7 @@ namespace V.Augments.Rank
                         rankData.LastAbilityUse = DateTime.UtcNow;
                         Databases.playerRanks[SteamID] = rankData;
                         PrefabGUID lightnova_cast = new PrefabGUID(114484622);
+                        V.Data.FoundPrefabGuid foundPrefabGuid = new(lightnova_cast);
                         rankData.RankSpell = 114484622;
                         //CastCommand(ctx, foundPrefabGuid, null);
                         Plugin.Logger.LogInfo("Rank spell set to 2.");
@@ -292,6 +298,7 @@ namespace V.Augments.Rank
                         rankData.LastAbilityUse = DateTime.UtcNow;
                         Databases.playerRanks[SteamID] = rankData;
                         PrefabGUID wispdance_cast = new PrefabGUID(-1574537639);
+                        V.Data.FoundPrefabGuid foundPrefabGuid = new(wispdance_cast);
                         rankData.RankSpell = -1574537639;
                         //CastCommand(ctx, foundPrefabGuid, null);
                         ctx.Reply("Rank spell set to 5.");
