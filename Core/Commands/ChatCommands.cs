@@ -104,7 +104,7 @@ namespace V.Core.Commands
                 }
                 string enabledColor = FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
-                ctx.Reply($"BuildingCosts: {ChatCommands.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictions: {ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleLimits: {ChatCommands.CastleLimitsDisabledSetting.Value}");
+                ctx.Reply($"BuildingCostsDisabled: {ChatCommands.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleLimitsDisabled: {ChatCommands.CastleLimitsDisabledSetting.Value}");
             }
             else
             {
@@ -156,7 +156,7 @@ namespace V.Core.Commands
                     {
                         // Reset the user's progress
                         var buffsToWipe = Databases.playerRanks[SteamID].Buffs;
-                        Databases.playerRanks[SteamID] = new RankData(0, 0, [], 0, [0, 0], false);
+                        Databases.playerRanks[SteamID] = new RankData(0, 0, [], 0, [0, 0],"none", false);
                         foreach (var buff in buffsToWipe)
                         {
                             PrefabGUID buffguid = new(buff);
@@ -223,7 +223,7 @@ namespace V.Core.Commands
                             return;
                         }
                         // make data for them if none found
-                        RankData rankData = new(0, points, [], 0, [0, 0], false);
+                        RankData rankData = new(0, points, [], 0, [0, 0],"none", false);
                         if (rankData.Points > rankData.Rank * 1000 + 1000)
                         {
                             rankData.Points = rankData.Rank * 1000 + 1000;
@@ -310,7 +310,7 @@ namespace V.Core.Commands
                     }
                     else
                     {
-                        RankData rankData = new(rank, 0, [], 0, [0, 0], false);
+                        RankData rankData = new(rank, 0, [], 0, [0, 0],"none", false);
                         /*
                         for (int i = 0; i <= rank; i++)
                         {

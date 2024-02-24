@@ -29,11 +29,6 @@ namespace V.Core.Commands
     {
         "immortal", "nocd", "speed", "attackSpeed", "damage", "hp"
     };
-
-        private static List<string> TrollFlags = new List<string>
-    {
-        "immortal", "nocd", "speed", "attackSpeed", "trollDamage", "hp"
-    };
         private static Dictionary<string, List<string>> groupBuffTypes = new Dictionary<string, List<string>>()
     {
         {"god", GodFlags },
@@ -76,6 +71,22 @@ namespace V.Core.Commands
             else
             {
                 ctx.Reply("projectile speed set to default");
+            }
+        }
+        [Command("damage", adminOnly: true)]
+        public void DamageCommand(ChatCommandContext ctx, FoundPlayer player = null)
+        {
+            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
+            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
+
+            DisableBuffFlag(Character, "trollDamage");
+            if (ToggleBuff(User, Character, "damage"))
+            {
+                ctx.Reply("damage mode enabled");
+            }
+            else
+            {
+                ctx.Reply("damage mode disabled");
             }
         }
         [Command("projectilerange", adminOnly: true)]
@@ -228,10 +239,8 @@ namespace V.Core.Commands
             PlayerProjectileRanges[Character] = 10f;
             MakePlayerImmaterial(User, Character);
             Helper.BuffPlayer(Character, User, Prefabs.EquipBuff_ShroudOfTheForest, -1, true);
-            Helper.ResetCooldown(Character);
-            EnableBuff(ctx, User, Character, "speed");
             EnableBuff(ctx, User, Character, "god");
-            Helper.ResetCharacter(Character);
+            //Helper.ResetCharacter(Character);
             ctx.Reply("Set to god mode");
         }
         [Command(name: "normal", shortHand: "n", adminOnly: true, usage: ".v n <Player>", description: "Turns off godmode.")]

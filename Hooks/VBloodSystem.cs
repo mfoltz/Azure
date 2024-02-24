@@ -122,7 +122,7 @@ namespace RPGAddOnsEx.Hooks
                                     else
                                     {
                                         // create new data then add points
-                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, [0, 0], false);
+                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, [0, 0],"none", false);
                                         Databases.playerRanks.Add(SteamID, rankData);
                                         ChatCommands.SavePlayerRanks();
                                     }

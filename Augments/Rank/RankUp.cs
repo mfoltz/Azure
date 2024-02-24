@@ -19,9 +19,11 @@ namespace V.Augments.Rank
 
         public List<int> Spells { get; set; } = new List<int>();
 
+        public string ClassChoice { get; set; }
+
         public bool FishingPole { get; set; }
 
-        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells, bool fishingPole)
+        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells,string classchoice, bool fishingPole)
         {
             Rank = rank;
             Points = points;
@@ -29,6 +31,7 @@ namespace V.Augments.Rank
             LastAbilityUse = DateTime.MinValue; // Initialize to ensure it's always set
             RankSpell = rankSpell;
             Spells = spells;
+            ClassChoice = classchoice;
             FishingPole = fishingPole;
         }
     }

@@ -16,6 +16,8 @@ using V.Data;
 using V.Core.Tools;
 using V.Core.Commands;
 using V.Core.Services;
+using static V.Augments.Rank.CastCommands;
+using Type = System.Type;
 
 #nullable disable
 
@@ -64,294 +66,108 @@ namespace V.Augments.Rank
             };
             existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
         }
-
-        public class VBloodSpells
+        public class RankSpellConstructor
         {
-            /*
-            [Command(name: "risenangel", shortHand: "ra", adminOnly: true, usage: "", description: "Summon the divine angel that once aided Solarus. It serves a new master now...")]
-            public static void DivineAngelCast(ChatCommandContext ctx)
+            public string Name { get; set; }
+            public PrefabGUID SpellGUID { get; set; }
+            public int RequiredRank { get; set; }
+
+            public RankSpellConstructor(string name, PrefabGUID spellGUID, int requiredRank)
             {
-                // going to use Rank for now until the ascension system is created
-                // might also cost something expensive to cast
-
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
-                {
-                    if (data.Rank < 5)
-                    {
-                        ctx.Reply("You must be rank 5 to use this ability.");
-                        return;
-                    }
-                    else
-                    {
-                        PrefabGUID angel_cast = AdminCommands.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_AbilityGroup;
-                        FoundPrefabGuid foundPrefabGuid = new(angel_cast);
-                        CastCommand(ctx, foundPrefabGuid, null);
-                        // give player virtual point once per X that caps at Y that the casting costs to simulate cooldown
-                    }
-                }
-                else
-                {
-                    ctx.Reply("You must be rank 5 to use this ability.");
-                    return;
-                }
-            }
-            */
-
-            // need to put in a check for the player's rank or ascension or whatever this is going to be
-            // want these to assign the given rank spell to shift, hmmm
-            // add spell choice data to the rank up data
-            
-
-            
-
-            /*
-            [Command(name: "batleap", shortHand: "bl", adminOnly: false, usage: "", description: "")]
-            public static void ByeFeliciaCast(ChatCommandContext ctx)
-            {
-                // going to use Rank for now until the ascension system is created
-                // might also cost something expensive to cast
-
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-                PrefabGUID quake_cast = new PrefabGUID(-597709516);
-                FoundPrefabGuid foundPrefabGuid = new(quake_cast);
-                CastCommand(ctx, foundPrefabGuid, null);
-            }
-            */
-
-            
-
-            
-
-            [Command(name: "wispdance", shortHand: "5", adminOnly: false, usage: ".5", description: "Rank spell to set to shift when swapping weapons.")]
-            public static void WispDanceCast(ChatCommandContext ctx)
-            {
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    if (rankData.Rank < 5)
-                    {
-                        ctx.Reply("You must be at least rank 5 to use this ability.");
-                        return;
-                    }
-
-                    if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
-                    {
-                        rankData.LastAbilityUse = DateTime.UtcNow;
-                        Databases.playerRanks[SteamID] = rankData;
-                        PrefabGUID wispdance_cast = new PrefabGUID(-1574537639);
-                        V.Data.FoundPrefabGuid foundPrefabGuid = new(wispdance_cast);
-                        rankData.RankSpell = -1574537639;
-                        //CastCommand(ctx, foundPrefabGuid, null);
-                        ctx.Reply("Rank spell set to 5.");
-                        ChatCommands.SavePlayerRanks();
-                    }
-                    else
-                    {
-                        var waited = DateTime.UtcNow - rankData.LastAbilityUse;
-                        var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
-            }
-            [Command(name: "firespinner", shortHand: "4", adminOnly: false, usage: ".4", description: "Rank spell to set to shift when swapping weapons.")]
-            public static void FireSpinnerCast(ChatCommandContext ctx)
-            {
-                // going to use Rank for now until the ascension system is created
-                // might also cost something expensive to cast
-
-                // Check player rank
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    if (rankData.Rank < 4)
-                    {
-                        ctx.Reply("You must be at least rank 4 to use this ability.");
-                        return;
-                    }
-
-                    // Check if cooldown has passed
-                    if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
-                    {
-                        // Update LastAbilityUse to current time
-                        rankData.LastAbilityUse = DateTime.UtcNow;
-                        Databases.playerRanks[SteamID] = rankData; // Save changes to RankData
-
-                        PrefabGUID firespinner_cast = new PrefabGUID(1217615468);
-                        V.Data.FoundPrefabGuid foundPrefabGuid = new(firespinner_cast);
-                        rankData.RankSpell = 1217615468;
-                        //CastCommand(ctx, foundPrefabGuid, null);
-                        ctx.Reply("Rank spell set to 4.");
-                        ChatCommands.SavePlayerRanks();
-                    }
-                    else
-                    {
-                        var waited = DateTime.UtcNow - rankData.LastAbilityUse;
-                        var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
-            }
-            [Command(name: "batstorm", shortHand: "3", adminOnly: false, usage: ".3", description: "Rank spell to set to shift when swapping weapons.")]
-            public static void BatStormCast(ChatCommandContext ctx)
-            {
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    if (rankData.Rank < 3)
-                    {
-                        ctx.Reply("You must be at least rank 3 to use this ability.");
-                        return;
-                    }
-
-                    if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
-                    {
-                        rankData.LastAbilityUse = DateTime.UtcNow; // Update last use time
-                        Databases.playerRanks[SteamID] = rankData; // Save updated RankData
-
-                        PrefabGUID batstorm_cast = new PrefabGUID(-254080557);
-                        V.Data.FoundPrefabGuid foundPrefabGuid = new(batstorm_cast);
-                        rankData.RankSpell = -254080557;
-
-                        //CastCommand(ctx, foundPrefabGuid, null);
-                        ctx.Reply("Rank spell set to 3.");
-                        ChatCommands.SavePlayerRanks();
-                    }
-                    else
-                    {
-                        var waited = DateTime.UtcNow - rankData.LastAbilityUse;
-                        var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
-            }
-            [Command(name: "lightnova", shortHand: "2", adminOnly: false, usage: ".2", description: "Rank spell to set to shift when swapping weapons.")]
-            public static void LightNovaCast(ChatCommandContext ctx)
-            {
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    if (rankData.Rank < 2)
-                    {
-                        ctx.Reply("You must be at least rank 2 to use this ability.");
-                        return;
-                    }
-
-                    if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
-                    {
-                        rankData.LastAbilityUse = DateTime.UtcNow;
-                        Databases.playerRanks[SteamID] = rankData;
-                        PrefabGUID lightnova_cast = new PrefabGUID(114484622);
-                        V.Data.FoundPrefabGuid foundPrefabGuid = new(lightnova_cast);
-                        rankData.RankSpell = 114484622;
-                        //CastCommand(ctx, foundPrefabGuid, null);
-                        ctx.Reply("Rank spell set to 2.");
-                        ChatCommands.SavePlayerRanks();
-                    }
-                    else
-                    {
-                        var waited = DateTime.UtcNow - rankData.LastAbilityUse;
-                        var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
-            }
-            [Command(name: "batwhirlwind", shortHand: "1", adminOnly: false, usage: ".1", description: "Rank spell to set to shift when swapping weapons.")]
-            public static void BatWhirlwindCast(ChatCommandContext ctx)
-            {
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    if (rankData.Rank < 1)
-                    {
-                        ctx.Reply("You must be at least rank 1 to use this ability.");
-                        return;
-                    }
-
-                    if (DateTime.UtcNow - rankData.LastAbilityUse >= TimeSpan.FromHours(cd))
-                    {
-                        // Ability can be cast
-                        rankData.LastAbilityUse = DateTime.UtcNow; // Update the last use time
-                        Databases.playerRanks[SteamID] = rankData; // Ensure rank data is updated
-
-                        PrefabGUID batwhirlwind_cast = new PrefabGUID(-1698981316);
-                        V.Data.FoundPrefabGuid foundPrefabGuid = new(batwhirlwind_cast);
-                        rankData.RankSpell = -1698981316;
-                        //CastCommand(ctx, foundPrefabGuid, null);
-                        ctx.Reply("Rank spell set to 1.");
-                        ChatCommands.SavePlayerRanks();
-                    }
-                    else
-                    {
-                        var waited = DateTime.UtcNow - rankData.LastAbilityUse;
-                        var cooldown = TimeSpan.FromHours(cd) - waited;
-                        ctx.Reply($"Ability swapping is on cooldown. {((int)cooldown.TotalMinutes)} minutes remaining.");
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
-            }
-            [Command(name: "cliffjump", shortHand: "0", adminOnly: false, usage: ".0", description: "Clears rank spell from shift key.")]
-            public static void CliffJumpCast(ChatCommandContext ctx)
-            {
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    
-
-                    if (rankData.RankSpell != V.Data.Prefabs.AllowJumpFromCliffsBuff.GuidHash)
-                    {
-                        Databases.playerRanks[SteamID] = rankData;
-                        PrefabGUID cliffjump = V.Data.Prefabs.AB_VampireCliffLeap_Travel_AbilityGroup;
-                        V.Data.FoundPrefabGuid foundPrefabGuid = new(cliffjump);
-                        rankData.RankSpell = cliffjump.GuidHash;
-                        //CastCommand(ctx, foundPrefabGuid, null);
-                        ctx.Reply("Cleared rank spell from shift key.");
-                        ChatCommands.SavePlayerRanks();
-                    }
-                    else
-                    {
-                        ctx.Reply("Shift key already bound to cliffjump.");
-                    }
-                    
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
+                Name = name;
+                SpellGUID = spellGUID;
+                RequiredRank = requiredRank;
             }
         }
+        public class Nightmarshal
+        {
+            public Dictionary<int, RankSpellConstructor> Spells = new Dictionary<int, RankSpellConstructor>();
+
+            public Nightmarshal()
+            {
+                Spells.Add(5, new RankSpellConstructor("Batswarm", V.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5));
+                Spells.Add(4, new RankSpellConstructor("Nightdash", V.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4));
+                Spells.Add(3, new RankSpellConstructor("Batstorm", V.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3));
+                Spells.Add(2, new RankSpellConstructor("Batleap", V.Data.Prefabs.AB_BatVampire_SummonMinions_AbilityGroup, 2));
+                Spells.Add(1, new RankSpellConstructor("Batwhirlwind", V.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1));
+            }
+        }
+        public static class CommandHandler
+        {
+            private static Dictionary<string, System.Func<object>> classFactories = new Dictionary<string, System.Func<object>>
+            {
+                { "nightmarshal", () => new Nightmarshal() },
+                // Add other class factories here
+            };
+            [Command(name: "chooseClass", shortHand: "cc", adminOnly: false, usage: ".cs <name>", description: "Sets class to use spells from.")]
+            public static void ClassChoice(ChatCommandContext ctx, string choice)
+            {
+                Entity character = ctx.Event.SenderCharacterEntity;
+                ulong SteamID = ctx.Event.User.PlatformId;
+
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                {
+                    if (classFactories.ContainsKey(choice))
+                    {
+                        rankData.ClassChoice = choice;
+                    }
+                }
+                else
+                {
+                    ctx.Reply("Your rank data could not be found.");
+                }
+            }
+            [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs <#>", description: "Sets class spell to shift.")]
+            public static void SpellChoice(ChatCommandContext ctx, int choice)
+            {
+                Entity character = ctx.Event.SenderCharacterEntity;
+                ulong SteamID = ctx.Event.User.PlatformId;
+
+                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
+                {
+                    // Attempt to get the class instance from the class choice
+                    if (classFactories.TryGetValue(rankData.ClassChoice, out var classFactory))
+                    {
+                        var classInstance = classFactory.Invoke();
+
+                        // Check if the class instance is of expected type and contains the spell
+                        if (classInstance is Nightmarshal nightmarshal && nightmarshal.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructor))
+                        {
+                            // Now you have the spellConstructor, you can check the player's rank
+                            if (rankData.Rank >= spellConstructor.RequiredRank)
+                            {
+                                // Here you would typically cast the spell or apply its effects
+                                PrefabGUID newSpell = spellConstructor.SpellGUID;
+                                V.Data.FoundPrefabGuid foundPrefabGuid = new(newSpell);
+                                rankData.RankSpell = newSpell.GuidHash;
+                                //CastCommand(ctx, foundPrefabGuid, null); // Assuming this is how you cast the spell
+
+                                ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
+                                ChatCommands.SavePlayerRanks();
+                            }
+                            else
+                            {
+                                ctx.Reply($"You must be at least rank {spellConstructor.RequiredRank} to use this ability.");
+                            }
+                        }
+                        else
+                        {
+                            ctx.Reply("Invalid spell choice.");
+                        }
+                    }
+                    else
+                    {
+                        ctx.Reply("Invalid class choice.");
+                    }
+                }
+                else
+                {
+                    ctx.Reply("Your rank data could not be found.");
+                }
+            }
+
+        }
+
+
     }
 }
