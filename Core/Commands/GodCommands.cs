@@ -130,10 +130,74 @@ namespace V.Core.Commands
             }
         }
 
+        public void SpeedCommand(ChatCommandContext ctx, float speed = DEFAULT_FAST_SPEED, FoundPlayer player = null)
+        {
+            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
+            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
 
+            PlayerSpeeds[Character] = speed;
+            if (speed != DEFAULT_FAST_SPEED)
+            {
+                EnableBuff(ctx, User, Character, "speed");
+                ctx.Reply($"speed set to {speed}");
+            }
+            else
+            {
+                if (ToggleBuff(User, Character, "speed"))
+                {
+                    ctx.Reply("speed mode enabled");
+                }
+                else
+                {
+                    ctx.Reply("speed mode disabled");
+                }
+            }
+        }
+        public void NoCdCommand(ChatCommandContext ctx, FoundPlayer player = null)
+        {
+            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
+            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
 
+            if (ToggleBuff(User, Character, "nocd"))
+            {
+                ctx.Reply("nocd mode enabled");
+                Helper.ResetCooldown(Character);
+            }
+            else
+            {
+                ctx.Reply("nocd mode disabled");
+            }
 
-        [Command("spectate", description: "Lets player able to spectate invisibly without being able to interfere", adminOnly: true)]
+        }
+        public void AttackSpeedCommand(ChatCommandContext ctx, FoundPlayer player = null)
+        {
+            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
+            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
+
+            if (ToggleBuff(User, Character, "attackSpeed"))
+            {
+                ctx.Reply("attack speed enabled");
+            }
+            else
+            {
+                ctx.Reply("attack speed disabled");
+            }
+        }
+        public void ImmortalCommand(ChatCommandContext ctx, FoundPlayer player = null)
+        {
+            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
+            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
+
+            if (ToggleBuff(User, Character, "immortal"))
+            {
+                ctx.Reply("Made immortal");
+            }
+            else
+            {
+                ctx.Reply("Made mortal");
+            }
+        }
+        [Command("spectate", description: "Lets player able to spectate invisibly without interfering.", adminOnly: true)]
         public void SpectateCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -178,7 +242,20 @@ namespace V.Core.Commands
             NormalizeCharacter(Character);
             ctx.Reply("Set to normal mode");
         }
+        public void ImmaterialCommand(ChatCommandContext ctx, FoundPlayer player = null)
+        {
+            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
+            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
 
+            if (ToggleImmaterial(User, Character))
+            {
+                ctx.Reply("Made immaterial");
+            }
+            else
+            {
+                ctx.Reply("Made material");
+            }
+        }
 
 
 

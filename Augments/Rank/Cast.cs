@@ -329,7 +329,7 @@ namespace V.Augments.Rank
                 {
                     
 
-                    if (rankData.RankSpell != V.Data.Prefabs.AB_VampireCliffLeap_Travel_AbilityGroup.GuidHash)
+                    if (rankData.RankSpell != V.Data.Prefabs.AllowJumpFromCliffsBuff.GuidHash)
                     {
                         Databases.playerRanks[SteamID] = rankData;
                         PrefabGUID cliffjump = V.Data.Prefabs.AB_VampireCliffLeap_Travel_AbilityGroup;

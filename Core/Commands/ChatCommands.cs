@@ -35,7 +35,7 @@ namespace V.Core.Commands
     [CommandGroup(name: "V+(Rising)", shortHand: "v")]
     public class ChatCommands
     {
-        public static bool tfbFlag;
+        public static bool tfbFlag = false;
 
         public static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
         {
@@ -72,14 +72,19 @@ namespace V.Core.Commands
         {
             User user = ctx.Event.User;
             // want to disable resource nodes in active player territories here to avoid overgrowth
-            ResourceFunctions.SearchAndDestroy();
+
+
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             if (!tfbFlag)
             {
+                //ctx.Reply("Attempting to disable resource nodes in player territories before enabling freebuild...");
+                //int nodes = ResourceFunctions.SearchAndDestroy();
+                //ctx.Reply($"{nodes} in player territories disabled. Proceeding to freebuild...");
                 tfbFlag = true;
                 BuildingCostsDebugSetting.Value = tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
-                CastleLimitsDisabledSetting.Value = tfbFlag;
+                //CastleLimitsDisabledSetting.Value = tfbFlag;
+                CastleLimitsDisabledSetting.Value = false;
                 existingSystem.SetDebugSetting(user.Index, ref CastleLimitsDisabledSetting);
 
                 if (Plugin.castleHeartConnectionRequirement)
@@ -1146,100 +1151,113 @@ namespace V.Core.Commands
             File.WriteAllText(Plugin.PlayerDivinityJson, JsonSerializer.Serialize(Databases.playerDivinity));
         }
 
-        //[Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
-        public static void DestroyResourcesCommand(ChatCommandContext ctx)
-        {
-            // maybe if I set their health to 0 instead of destroying them? hmm
-            User user = ctx.Event.User;
-            Entity killer = ctx.Event.SenderUserEntity;
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            ResourceFunctions.SearchAndDestroy();
+        
+    }
+}
+/*
+//[Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
+public static void DestroyResourcesCommand(ChatCommandContext ctx)
+{
+    // maybe if I set their health to 0 instead of destroying them? hmm
+    User user = ctx.Event.User;
+    Entity killer = ctx.Event.SenderUserEntity;
+    EntityManager entityManager = VWorld.Server.EntityManager;
+    //ResourceFunctions.SearchAndDestroy();
 
-            ctx.Reply("All found resource nodes in player territories have been disabled.");
-        }
-        [Command(name: "resetnodes", shortHand: "rn", adminOnly: true, usage: ".v rn", description: "Atempts to reset resource nodes if they've been disabled.")]
-        public static void ResetResourcesCommand(ChatCommandContext ctx)
-        {
-            // maybe if I set their health to 0 instead of destroying them? hmm
-            User user = ctx.Event.User;
-            Entity killer = ctx.Event.SenderUserEntity;
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            ResourceFunctions.FindAndEnable();
+    ctx.Reply("All found resource nodes in player territories have been disabled.");
+}
+//[Command(name: "resetnodes", shortHand: "rn", adminOnly: true, usage: ".v rn", description: "Atempts to reset resource nodes if they've been disabled.")]
+public static void ResetResourcesCommand(ChatCommandContext ctx)
+{
+    // maybe if I set their health to 0 instead of destroying them? hmm
+    User user = ctx.Event.User;
+    Entity killer = ctx.Event.SenderUserEntity;
+    EntityManager entityManager = VWorld.Server.EntityManager;
+    //ResourceFunctions.FindAndEnable();
 
-            ctx.Reply("Resource nodes reset.");
-        }
-        public class ResourceFunctions
+    //ctx.Reply("Resource nodes reset in player territories.");
+}
+public class ResourceFunctions
+{
+    // this actually disables but destroy is much catchier
+    public static unsafe int SearchAndDestroy()
+    {
+        EntityManager entityManager = VWorld.Server.EntityManager;
+        int counter = 0;
+        bool includeDisabled = true;
+        var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
         {
-            // this actually disables but destroy is much catchier
-            public static unsafe void SearchAndDestroy()
+            All = new ComponentType[] {
+            ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+            ComponentType.ReadOnly<TilePosition>(),
+        },
+            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+        });
+
+        var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+        foreach (var node in resourceNodeEntities)
+        {
+            if (ShouldRemoveNodeBasedOnTerritory(node))
             {
-                EntityManager entityManager = VWorld.Server.EntityManager;
-                int counter = 0;
-                bool includeDisabled = true;
-                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
-                {
-                    All = new ComponentType[] {
-                    ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-                    ComponentType.ReadOnly<TilePosition>(),
-                },
-                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-                });
-
-                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-                foreach (var node in resourceNodeEntities)
-                {
-                    if (ShouldRemoveNodeBasedOnTerritory(node))
-                    {
-                        // if node is in a player territory, which is updated for castle heart placement/destruction already, disable it (
-                        counter += 1;
-                        SystemPatchUtil.Disable(node);
-                        //node.LogComponentTypes();
-                    }
-                }
-                resourceNodeEntities.Dispose();
-                Plugin.Logger.LogInfo($"{counter} resource nodes disabled.");
+                // if node is in a player territory, which is updated for castle heart placement/destruction already, disable it
+                // might need to filter for trees and rocks here
+                counter += 1;
+                SystemPatchUtil.Disable(node);
+                //node.LogComponentTypes();
             }
-            private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
+        }
+        resourceNodeEntities.Dispose();
+        return counter;
+    }
+    private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
+    {
+        Entity territoryEntity;
+        if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
+        {
+
+            return true;
+        }
+        return false;
+    }
+
+    public static unsafe void FindAndEnable()
+    {
+        EntityManager entityManager = VWorld.Server.EntityManager;
+        int counter = 0;
+        bool includeDisabled = true;
+        var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+        {
+            All = new ComponentType[] {
+            ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+            ComponentType.ReadOnly<TilePosition>(),
+        },
+            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+        });
+
+        var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+        foreach (var node in resourceNodeEntities)
+        {
+
+
+            if (Utilities.HasComponent<Disabled>(node))
             {
                 Entity territoryEntity;
                 if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
                 {
-
-                    return true;
+                    EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+                    EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
+                    entityCommandBuffer.RemoveComponent<Disabled>(node);
+                    counter += 1;
                 }
-                return false;
-            }
 
-            public static unsafe void FindAndEnable()
-            {
-                EntityManager entityManager = VWorld.Server.EntityManager;
-                int counter = 0;
-                bool includeDisabled = true;
-                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
-                {
-                    All = new ComponentType[] {
-                    ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-                    ComponentType.ReadOnly<TilePosition>(),
-                },
-                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-                });
-
-                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-                foreach (var node in resourceNodeEntities)
-                {
-                    
-                    
-                    if (Utilities.HasComponent<Disabled>(node))
-                    {
-                        Utilities.RemoveComponent<Disabled>(node);
-                        counter += 1;
-                    }
-                    
-                }
-                resourceNodeEntities.Dispose();
-                Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
             }
 
         }
+        resourceNodeEntities.Dispose();
+        Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
     }
+
 }
+}
+}
+*/
