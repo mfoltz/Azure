@@ -8,6 +8,8 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
 using static RPGMods.Utils.Prefabs;
+using V.Core.Tools;
+using V.Core.Commands;
 
 namespace V.Augments
 {
@@ -185,8 +187,8 @@ namespace V.Augments
 
                     var (itemName, itemguid) = ItemCheck();
                     RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, itemQuantity);
-                    string quantityString = V.Core.FontColors.Yellow(itemQuantity.ToString());
-                    string itemString = V.Core.FontColors.Purple(itemName);
+                    string quantityString = FontColors.Yellow(itemQuantity.ToString());
+                    string itemString = FontColors.Purple(itemName);
                     ctx.Reply($"You've been awarded with: {quantityString} {itemString}");
                 }
                 //ApplyResists(ctx, playerName, SteamID, data);

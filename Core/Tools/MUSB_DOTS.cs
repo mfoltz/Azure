@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace V.Core
+namespace V.Core.Tools
 {
     public class MUSB_DOTS
     {

@@ -10,7 +10,7 @@ using Unity.Collections;
 using Unity.Entities;
 using VRising.GameData.Models.Internals;
 
-namespace V.Core;
+namespace V.Core.Tools;
 
 public static class ECSExtensions
 {
@@ -148,7 +148,7 @@ public static class ECSExtensions
         }
         catch
         {
-            value = default(T);
+            value = default;
             return false;
         }
     }

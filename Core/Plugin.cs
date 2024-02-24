@@ -11,6 +11,9 @@ using UnityEngine.SceneManagement;
 using System.Text.Json;
 using V.Augments;
 using V.Augments.Rank;
+using V.Core.Tools;
+using V.Core.Commands;
+using V.Core.Services;
 
 namespace V.Core
 {
@@ -69,7 +72,7 @@ namespace V.Core
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
             InitConfig();
-            V.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
+            ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
             LoadData();
             Plugin.Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded!");
         }

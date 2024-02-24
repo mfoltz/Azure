@@ -10,8 +10,8 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
 using ProjectM.Shared;
-using static V.Core.PlayerService;
-namespace V.Core
+using static V.Core.Services.PlayerService;
+namespace V.Core.Tools
 {
     public static class Utilities
     {
@@ -54,7 +54,7 @@ namespace V.Core
         public static unsafe T GetComponentData<T>(Entity entity) where T : struct
         {
             void* rawPointer = VWorld.Server.EntityManager.GetComponentDataRawRO(entity, ComponentTypeIndex<T>());
-            return Marshal.PtrToStructure<T>(new System.IntPtr(rawPointer));
+            return Marshal.PtrToStructure<T>(new IntPtr(rawPointer));
         }
 
         // alternative for EntityManager.SetComponentData

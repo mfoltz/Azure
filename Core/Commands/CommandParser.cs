@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace V.Core
+namespace V.Core.Commands
 {
     public class CommandParser
     {
@@ -18,15 +18,15 @@ namespace V.Core
         {
             string[] source = input.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (source.Length == 0)
-                return ((string)null, (string[])null);
+                return (null, null);
             string lower = source[0].TrimStart('.').ToLower();
             bool flag = false;
-            foreach (string sensitiveCommand in CommandParser.CaseSensitiveCommands)
+            foreach (string sensitiveCommand in CaseSensitiveCommands)
             {
                 if (lower == sensitiveCommand)
                     flag = true;
             }
-            string[] strArray = flag ? ((IEnumerable<string>)source).Skip<string>(1).ToArray<string>() : ((IEnumerable<string>)source).Skip<string>(1).Select<string, string>((Func<string, string>)(p => p.ToLower())).ToArray<string>();
+            string[] strArray = flag ? source.Skip(1).ToArray() : source.Skip(1).Select(p => p.ToLower()).ToArray();
             return (lower, strArray);
         }
 
@@ -34,12 +34,12 @@ namespace V.Core
         {
             mutant = -2017994753,
             warrior = -1094467405,
-            frailed = -899826404, 
-            scholar = -586506765, 
-            worker = -540707191, 
-            creature = -77658840, 
-            brute = 581377887, 
-            rogue = 793735874, 
+            frailed = -899826404,
+            scholar = -586506765,
+            worker = -540707191,
+            creature = -77658840,
+            brute = 581377887,
+            rogue = 793735874,
         }
     }
 }

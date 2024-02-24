@@ -27,8 +27,10 @@ using V.Data;
 using Buff = V.Data.Buff;
 using Items = V.Data.Items;
 using static V.Data.Items;
+using V.Core.Tools;
+using V.Core.Services;
 
-namespace V.Core
+namespace V.Core.Commands
 {
     [CommandGroup(name: "V+(Rising)", shortHand: "v")]
     public class ChatCommands
@@ -70,57 +72,57 @@ namespace V.Core
         {
             User user = ctx.Event.User;
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            if (!ChatCommands.tfbFlag)
+            if (!tfbFlag)
             {
-                ChatCommands.tfbFlag = true;
-                ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
+                tfbFlag = true;
+                BuildingCostsDebugSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
+                CastleLimitsDisabledSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref CastleLimitsDisabledSetting);
 
                 if (Plugin.castleHeartConnectionRequirement)
                 {
-                    ChatCommands.CastleHeartConnectionRequirementDisabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleHeartConnectionRequirementDisabled);
+                    CastleHeartConnectionRequirementDisabled.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionRequirementDisabled);
                 }
                 if (Plugin.buildingPlacementRestrictions)
                 {
-                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
+                    BuildingPlacementRestrictionsDisabledSetting.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
                 }
                 if (Plugin.globalCastleTerritory)
                 {
-                    ChatCommands.GlobalCastleTerritoryEnabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.GlobalCastleTerritoryEnabled);
+                    GlobalCastleTerritoryEnabled.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref GlobalCastleTerritoryEnabled);
                 }
-                string enabledColor = V.Core.FontColors.Green("enabled");
+                string enabledColor = FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
             }
             else
             {
-                ChatCommands.tfbFlag = false;
-                ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
+                tfbFlag = false;
+                BuildingCostsDebugSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
+                CastleLimitsDisabledSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref CastleLimitsDisabledSetting);
 
                 if (Plugin.castleHeartConnectionRequirement)
                 {
-                    ChatCommands.CastleHeartConnectionRequirementDisabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleHeartConnectionRequirementDisabled);
+                    CastleHeartConnectionRequirementDisabled.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionRequirementDisabled);
                 }
 
                 if (Plugin.buildingPlacementRestrictions)
                 {
-                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
+                    BuildingPlacementRestrictionsDisabledSetting.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
                 }
                 if (Plugin.globalCastleTerritory)
                 {
-                    ChatCommands.GlobalCastleTerritoryEnabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.GlobalCastleTerritoryEnabled);
+                    GlobalCastleTerritoryEnabled.Value = tfbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref GlobalCastleTerritoryEnabled);
                 }
-                string disabledColor = V.Core.FontColors.Red("disabled");
+                string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
@@ -199,7 +201,7 @@ namespace V.Core
                             data.Points = data.Rank * 1000 + 1000;
                         }
                         Databases.playerRanks[SteamID] = data;
-                        ChatCommands.SavePlayerRanks();
+                        SavePlayerRanks();
                         // Save the updated rank data
 
                         ctx.Reply($"Rank points for player {playerName} have been set to {points}.");
@@ -218,7 +220,7 @@ namespace V.Core
                             rankData.Points = rankData.Rank * 1000 + 1000;
                         }
                         Databases.playerRanks.Add(SteamID, rankData);
-                        ChatCommands.SavePlayerRanks();
+                        SavePlayerRanks();
                         ctx.Reply($"Rank points for player {playerName} have been set to {points}.");
                     }
                 }
@@ -362,9 +364,9 @@ namespace V.Core
                 {
                     double percentage = 100 * ((double)data.Points / (data.Rank * 1000 + 1000));
                     string integer = ((int)percentage).ToString();
-                    var colorString = V.Core.FontColors.Yellow(integer);
-                    string colorPoints1 = V.Core.FontColors.White(data.Points.ToString());
-                    string colorPoints2 = V.Core.FontColors.White((data.Rank * 1000 + 1000).ToString());
+                    var colorString = FontColors.Yellow(integer);
+                    string colorPoints1 = FontColors.White(data.Points.ToString());
+                    string colorPoints2 = FontColors.White((data.Rank * 1000 + 1000).ToString());
                     ctx.Reply($"You have {colorPoints1} out of the {colorPoints2} points required to increase your rank. ({colorString}%)");
                 }
             }
@@ -429,10 +431,10 @@ namespace V.Core
             {
                 double percentage = 100 * ((double)data.Points / (data.Rank * 1000 + 1000));
                 string integer = ((int)percentage).ToString();
-                var colorString = V.Core.FontColors.Yellow(integer);
-                string colorPoints1 = V.Core.FontColors.White(data.Points.ToString());
-                string colorPoints2 = V.Core.FontColors.White((data.Rank * 1000 + 1000).ToString());
-                string colorString1 = V.Core.FontColors.Red("max");
+                var colorString = FontColors.Yellow(integer);
+                string colorPoints1 = FontColors.White(data.Points.ToString());
+                string colorPoints2 = FontColors.White((data.Rank * 1000 + 1000).ToString());
+                string colorString1 = FontColors.Red("max");
                 if (data.Rank >= Plugin.MaxRanks)
                 {
                     ctx.Reply($"You have reached {colorString1} rank.");
@@ -638,7 +640,7 @@ namespace V.Core
                     if (Databases.playerPrestige.TryGetValue(SteamID, out PrestigeData data))
                     {
                         data.Prestiges = count;
-                        ChatCommands.SavePlayerPrestige();
+                        SavePlayerPrestige();
                         ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Prestige Count: {data.Prestiges}");
                     }
                     else
@@ -647,7 +649,7 @@ namespace V.Core
                         PrestigeData prestigeData = new PrestigeData(count, 0);
                         Databases.playerPrestige.Add(SteamID, prestigeData);
                         //data.Prestiges = count;
-                        ChatCommands.SavePlayerPrestige();
+                        SavePlayerPrestige();
                         ctx.Reply($"Player {playerName} (SteamID: {SteamID}) - Prestige Count: {count}");
                     }
                 }
@@ -869,7 +871,7 @@ namespace V.Core
             var inventoryItemData = inventoryModel.Items;
             if (InventoryUtilities.TryGetInventoryEntity(entityManager, player, out Entity inventoryEntity))
             {
-                foreach (var prefabGUID in V.Data.Kit.deathSet)
+                foreach (var prefabGUID in Kit.deathSet)
                 {
                     bool check = InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, prefabGUID, 1);
                     // going to assume that returns true if present/removed and false if not present
@@ -932,7 +934,7 @@ namespace V.Core
                         string str1;
                         if ((object)player == null)
                         {
-                            str1 = (string)null;
+                            str1 = null;
                         }
                         else
                         {
@@ -951,7 +953,7 @@ namespace V.Core
                         string str3;
                         if ((object)player == null)
                         {
-                            str3 = (string)null;
+                            str3 = null;
                         }
                         else
                         {
@@ -970,7 +972,7 @@ namespace V.Core
                         string str5;
                         if ((object)player == null)
                         {
-                            str5 = (string)null;
+                            str5 = null;
                         }
                         else
                         {
@@ -989,7 +991,7 @@ namespace V.Core
                         string str7;
                         if ((object)player == null)
                         {
-                            str7 = (string)null;
+                            str7 = null;
                         }
                         else
                         {
@@ -1008,7 +1010,7 @@ namespace V.Core
                         string str9;
                         if ((object)player == null)
                         {
-                            str9 = (string)null;
+                            str9 = null;
                         }
                         else
                         {
@@ -1033,7 +1035,7 @@ namespace V.Core
         }
 
         [Command("bloodpotion", "bp", "{Blood Name} [quantity=1] [quality=100]", "Creates a Potion with specified Blood Type, Quality, and Quantity", null, true)]
-        public static void GiveBloodPotionCommand(ChatCommandContext ctx,V.Data.BloodType type = V.Data.BloodType.Frailed,int quantity = 1,float quality = 100f)
+        public static void GiveBloodPotionCommand(ChatCommandContext ctx, BloodType type = BloodType.Frailed, int quantity = 1, float quality = 100f)
         {
             quality = Mathf.Clamp(quality, 0.0f, 100f);
             int num;
@@ -1045,72 +1047,19 @@ namespace V.Core
                     BloodQuality = quality,
                     BloodType = new PrefabGUID((int)type)
                 };
-                entity.Write<StoredBlood>(componentData);
+                entity.Write(componentData);
             }
             ChatCommandContext chatCommandContext = ctx;
             DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(81, 3);
             interpolatedStringHandler.AppendLiteral("Got ");
-            interpolatedStringHandler.AppendFormatted<int>(num);
+            interpolatedStringHandler.AppendFormatted(num);
             interpolatedStringHandler.AppendLiteral(" Blood Potion(s) Type <color=#ff0>");
-            interpolatedStringHandler.AppendFormatted<V.Data.BloodType>(type);
+            interpolatedStringHandler.AppendFormatted(type);
             interpolatedStringHandler.AppendLiteral("</color> with <color=#ff0>");
-            interpolatedStringHandler.AppendFormatted<float>(quality);
+            interpolatedStringHandler.AppendFormatted(quality);
             interpolatedStringHandler.AppendLiteral("</color>% quality");
             string stringAndClear = interpolatedStringHandler.ToStringAndClear();
             chatCommandContext.Reply(stringAndClear);
-        }
-
-        [Command(name: "buff", shortHand: "b", adminOnly: true, usage: ".v b <PrefabGUID> <Player> <Duration> <Persists>", description: "Buff a player with a prefab name or guid")]
-        public void BuffCommand(ChatCommandContext ctx,FoundPrefabGuid buffGuid,string playerName,int duration = -1,bool persistsThroughDeath = false)
-        {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            PlayerService.Player player1;
-            Entity entity1;
-            if ((object)player == null)
-            {
-                entity1 = ctx.Event.SenderUserEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity1 = player1.User;
-            }
-            Entity user = entity1;
-            Entity entity2;
-            if ((object)player == null)
-            {
-                entity2 = ctx.Event.SenderCharacterEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity2 = player1.Character;
-            }
-            Entity character = entity2;
-            try
-            {
-                Helper.BuffPlayer(character, user, buffGuid.Value, duration, persistsThroughDeath);
-                ctx.Reply("Added buff");
-            }
-            catch (Exception ex)
-            {
-                throw ctx.Error(ex.ToString());
-            }
-        }
-
-        [Command(name: "unbuff", shortHand: "ub", adminOnly: true, usage: ".v ub <PrefabGUID> <Player>", description: "Unlocks all the things.")]
-        public void UnbuffCommand(ChatCommandContext ctx, FoundPrefabGuid buffGuid, string playerName)
-        {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            Helper.UnbuffCharacter((object)player != null ? player.Character : ctx.Event.SenderCharacterEntity, buffGuid.Value);
-            ctx.Reply($"Removed buff {buffGuid} from {player}.");
-        }
-
-        [Command(name: "clearbuffs", shortHand: "cb", adminOnly: true, usage: ".v cb <Player>", description: "Removes any extra buffs on a player.")]
-        public void ClearBuffs(ChatCommandContext ctx, string playerName)
-        {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            Helper.ClearExtraBuffs((object)player != null ? player.Character : ctx.Event.SenderCharacterEntity);
         }
 
         [Command(name: "revive", shortHand: "r", adminOnly: true, usage: ".v r <Player>", description: "Revives player.")]
@@ -1147,140 +1096,15 @@ namespace V.Core
         [Command("ping", "p", null, "Shows your latency.", null, false)]
         public static void PingCommand(ChatCommandContext ctx, string mode = "")
         {
-            int num = (int)((double)ctx.Event.SenderCharacterEntity.Read<Latency>().Value * 1000.0);
+            int num = (int)(ctx.Event.SenderCharacterEntity.Read<Latency>().Value * 1000.0);
             ChatCommandContext chatCommandContext = ctx;
             DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(41, 1);
             interpolatedStringHandler.AppendLiteral("Your latency is <color=#ffff00>");
-            interpolatedStringHandler.AppendFormatted<int>(num);
+            interpolatedStringHandler.AppendFormatted(num);
             interpolatedStringHandler.AppendLiteral("</color>ms");
             string stringAndClear = interpolatedStringHandler.ToStringAndClear();
             chatCommandContext.Reply(stringAndClear);
         }
-
-        
-
-        [Command(name: "god", shortHand: "abnormal", adminOnly: true, usage: ".v abnormal <Player>", description: "Enables godmode.")]
-        public void GodCommand(ChatCommandContext ctx, string playerName)
-        {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            PlayerService.Player player1;
-            Entity entity1;
-            if ((object)player == null)
-            {
-                entity1 = ctx.Event.SenderUserEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity1 = player1.User;
-            }
-            Entity entity2 = entity1;
-            Entity entity3;
-            if ((object)player == null)
-            {
-                entity3 = ctx.Event.SenderCharacterEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity3 = player1.Character;
-            }
-            Entity entity4 = entity3;
-            GodCommands.PlayerSpeeds[entity4] = 15f;
-            GodCommands.PlayerProjectileSpeeds[entity4] = 10f;
-            GodCommands.PlayerProjectileRanges[entity4] = 10f;
-            MakePlayerImmaterial(entity2, entity4);
-            Helper.BuffPlayer(entity4, entity2, Prefabs.EquipBuff_ShroudOfTheForest, persistsThroughDeath: true);
-            Helper.ResetCharacter(entity4);
-            ctx.Reply("Godmode activated.");
-        }
-
-        [Command(name: "normal", shortHand: "", adminOnly: true, usage: ".v normal <Player>", description: "Disables godmode.")]
-        public void NormalCommand(ChatCommandContext ctx, string playerName)
-        {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            PlayerService.Player player1;
-            Entity entity;
-            if ((object)player == null)
-            {
-                entity = ctx.Event.SenderUserEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity = player1.User;
-            }
-            Entity Character;
-            if ((object)player == null)
-            {
-                Character = ctx.Event.SenderCharacterEntity;
-            }
-            else
-            {
-                player1 = player;
-                Character = player1.Character;
-            }
-            NormalizeCharacter(Character);
-            ctx.Reply("Godmode deactivated.");
-        }
-        private static void NormalizeCharacter(Entity Character)
-        {
-            DisableAllBuffFlags(Character);
-            GodCommands.PlayerSpeeds[Character] = 15f;
-            GodCommands.PlayerProjectileBounces[Character] = -1;
-            GodCommands.PlayerProjectileRanges[Character] = 1f;
-            GodCommands.PlayerProjectileSpeeds[Character] = 1f;
-            Helper.ClearExtraBuffs(Character);
-            MakePlayerMaterial(Character);
-        }
-        private static void MakePlayerImmaterial(Entity User, Entity Character)
-        {
-            Helper.BuffPlayer(Character, User, V.Data.Buff.AB_Blood_BloodRite_Immaterial, 0, true);
-            Entity entity;
-            if (!BuffUtility.TryGetBuff(VWorld.Server.EntityManager, Character, Prefabs.AB_Blood_BloodRite_Immaterial, out entity))
-                return;
-            ModifyMovementSpeedBuff componentData = entity.Read<ModifyMovementSpeedBuff>();
-            componentData.MoveSpeed = 1f;
-            entity.Write<ModifyMovementSpeedBuff>(componentData);
-        }
-
-        private static void MakePlayerMaterial(Entity Character)
-        {
-            Helper.UnbuffCharacter(Character, Buff.AB_Blood_BloodRite_Immaterial);
-        }
-        private static void DisableAllBuffFlags(Entity Character)
-        {
-            if (!GodCommands.PlayerBuffDictionary.ContainsKey(Character))
-                return;
-            foreach (string key in GodCommands.PlayerBuffDictionary[Character].Keys)
-            {
-                isBuffEnabled(Character, key);
-                GodCommands.PlayerBuffDictionary[Character][key] = false;
-            }
-        }
-
-        private static void DisableBuffFlag(Entity Character, string buffType)
-        {
-            if (!isBuffEnabled(Character, buffType))
-                return;
-            GodCommands.PlayerBuffDictionary[Character][buffType] = false;
-        }
-        public static bool isBuffEnabled(Entity Character, string buffType)
-        {
-            Dictionary<string, bool> dictionary;
-            if (!GodCommands.PlayerBuffDictionary.TryGetValue(Character, out dictionary))
-                GodCommands.PlayerBuffDictionary[Character] = new Dictionary<string, bool>()
-        {
-          {
-            buffType,
-            false
-          }
-        };
-            else if (!dictionary.TryGetValue(buffType, out bool _))
-                GodCommands.PlayerBuffDictionary[Character][buffType] = false;
-            return GodCommands.PlayerBuffDictionary[Character][buffType];
-        }
-
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
         public unsafe void TestCommand(ChatCommandContext ctx)
@@ -1302,7 +1126,7 @@ namespace V.Core
             return allUnityObjects;
         }
 
-        
+
 
         public static void SavePlayerPrestige()
         {
@@ -1330,41 +1154,8 @@ namespace V.Core
 
             ctx.Reply("All found resource nodes in player territories have been disabled.");
         }
-
-        public class GodCommands
-        {
-
-            public static Dictionary<Entity, Dictionary<string, bool>> PlayerBuffDictionary = new Dictionary<Entity, Dictionary<string, bool>>();
-            public static Dictionary<Entity, float> PlayerSpeeds = new Dictionary<Entity, float>();
-            public static Dictionary<Entity, int> PlayerHps = new Dictionary<Entity, int>();
-            public static Dictionary<Entity, float> PlayerProjectileSpeeds = new Dictionary<Entity, float>();
-            public static Dictionary<Entity, float> PlayerProjectileRanges = new Dictionary<Entity, float>();
-            public static Dictionary<Entity, int> PlayerProjectileBounces = new Dictionary<Entity, int>();
-            private const int DEFAULT_FAST_SPEED = 15;
-
-            private static List<string> GodFlags = new List<string>()
-    {
-      "immortal",
-      "nocd",
-      "speed",
-      "attackSpeed",
-      "damage",
-      "hp"
-    };
-
-            private static Dictionary<string, List<string>> groupBuffTypes = new Dictionary<string, List<string>>()
-    {
-      {
-        "god",
-        GodCommands.GodFlags
-      }
-      
-    };
-        }
-        
-
         public class ResourceFunctions
-        {   
+        {
             // this actually disables but destroy is much catchier
             public static unsafe void SearchAndDestroy()
             {
@@ -1375,7 +1166,6 @@ namespace V.Core
                 {
                     All = new ComponentType[] {
                     ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-                    ComponentType.ReadOnly<Health>(),
                     ComponentType.ReadOnly<TilePosition>(),
                 },
                     Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
@@ -1388,7 +1178,8 @@ namespace V.Core
                     {
                         // if node is in a player territory, which is updated for castle heart placement/destruction already, disable it (
                         counter += 1;
-                        node.LogComponentTypes();
+                        SystemPatchUtil.Disable(node);
+                        //node.LogComponentTypes();
                     }
                 }
                 resourceNodeEntities.Dispose();
@@ -1399,6 +1190,7 @@ namespace V.Core
                 Entity territoryEntity;
                 if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
                 {
+
                     return true;
                 }
                 return false;

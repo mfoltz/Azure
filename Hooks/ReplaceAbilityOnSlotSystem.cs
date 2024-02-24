@@ -13,6 +13,7 @@ using Unity.Entities;
 using Unity.Entities.CodeGeneratedJobForEach;
 
 using Plugin = V.Core.Plugin;
+using V.Core.Commands;
 
 #nullable disable
 // almost ready for live maybe
@@ -26,6 +27,7 @@ namespace RPGAddOnsEx.Hooks
         {
             try
             {
+                
                 EntityManager entityManager = __instance.EntityManager;
                 NativeArray<Entity> entityArray = __instance.__Spawn_entityQuery.ToEntityArray(Allocator.Temp);
                 Plugin.Logger.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
@@ -45,12 +47,15 @@ namespace RPGAddOnsEx.Hooks
                             // use buffer length to determine appropriate modification
                             // if buffer length is 3 then it's a weapon equip, if buffer length is 1 then it's a weapon unequip
 
-                            // should be 3 items in the buffer for a weapon
+                            // should be 3 items in the buffer for an iron+ weapon
+                            // 2 items for copper
+                            // 1 item for bone
+                            //yeah iron is a fair unlock for this, that works, but need a check for bone weapons
 
                             DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
                             if (buffer.Length == 3)
                             {
-                                Plugin.Logger.LogInfo("Player equipping weapon, adding rank spell to shift...");
+                                Plugin.Logger.LogInfo("Player equipping iron<= weapon, adding rank spell to shift...");
                                 ReplaceAbilityOnSlotBuff item = buffer[2];
                                 ReplaceAbilityOnSlotBuff newItem = item;
                                 Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
@@ -71,6 +76,7 @@ namespace RPGAddOnsEx.Hooks
                                         PrefabGUID prefabGUID = new(data.RankSpell); //
                                         newItem.NewGroupId = prefabGUID;
                                         newItem.Slot = 3;
+                                        // if this doesn't work change back
                                         buffer.Add(newItem);
                                         Plugin.Logger.LogInfo("Modification complete.");
                                         return;
@@ -86,6 +92,8 @@ namespace RPGAddOnsEx.Hooks
                                 if (buffer.Length == 1)
                                 {
                                     // this should be unarmed based on the buffer length
+                                    // or a bone weapon -_-
+
                                     // it could also be equipping a fishing pole, so we want to modify unarmed when unequipping the fishing pole specifically
                                     ReplaceAbilityOnSlotBuff item = buffer[0];
                                     ReplaceAbilityOnSlotBuff newItem = item;
@@ -94,7 +102,7 @@ namespace RPGAddOnsEx.Hooks
                                     ulong steamID = user.PlatformId;
                                     if (entityManager.TryGetComponentData(entity, out WeaponLevel component))
                                     {
-                                        PrefabGUID prefabGUID = new(-1016182556);
+                                        PrefabGUID prefabGUID = new(-1016182556); //fishing pole
                                         if (buffer[0].NewGroupId == prefabGUID)
                                         {
                                             // fishing pole equipped

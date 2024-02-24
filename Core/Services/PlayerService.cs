@@ -3,12 +3,12 @@
 // Decompiled with ICSharpCode.Decompiler 8.1.1.7464
 #endregion
 
-using V.Core;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using V.Core.Tools;
 
-namespace V.Core;
+namespace V.Core.Services;
 public record FoundPlayer(PlayerService.Player Value);
 public static class PlayerService
 {
@@ -26,7 +26,7 @@ public static class PlayerService
 
         public Entity Character { get; set; }
 
-        public Player(Entity userEntity = default(Entity), Entity charEntity = default(Entity))
+        public Player(Entity userEntity = default, Entity charEntity = default)
         {
             User = userEntity;
             User user = User.Read<User>();
@@ -63,7 +63,7 @@ public static class PlayerService
             }
         }
 
-        player = default(Player);
+        player = default;
         return false;
     }
 
@@ -75,7 +75,7 @@ public static class PlayerService
             return true;
         }
 
-        Character = default(Entity);
+        Character = default;
         return false;
     }
 
@@ -87,7 +87,7 @@ public static class PlayerService
             return true;
         }
 
-        User = default(Entity);
+        User = default;
         return false;
     }
 }

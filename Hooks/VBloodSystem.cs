@@ -12,6 +12,8 @@ using VRising.GameData.Models;
 using Math = System.Math;
 using Random = System.Random;
 using V.Augments.Rank;
+using V.Core.Commands;
+using V.Core.Tools;
 
 namespace RPGAddOnsEx.Hooks
 {
@@ -200,7 +202,7 @@ namespace RPGAddOnsEx.Hooks
             {
                 counter += points;
                 string counterString = counter.ToString();
-                var colorString = V.Core.FontColors.White(counterString);
+                var colorString = FontColors.White(counterString);
                 string toSend = "You've earned " + colorString + " rank points!";
                 ServerChatUtils.SendSystemMessageToClient(entityManager, user, toSend);
                 counter = 0;

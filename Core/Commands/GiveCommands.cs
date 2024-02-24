@@ -8,26 +8,27 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Entities;
+using V.Core.Tools;
 using VampireCommandFramework;
 
-namespace V.Core
+namespace V.Core.Commands
 {
     internal class GiveItemCommands
     {
         [Command("give", "g", "<PrefabGUID or name> [quantity=1]", "Gives the specified item to the player", null, true)]
         public static void GiveItem(
           ChatCommandContext ctx,
-          GiveItemCommands.GivenItem item,
+          GivenItem item,
           int quantity = 1)
         {
             if (!Helper.AddItemToInventory(ctx.Event.SenderCharacterEntity, item.Value, quantity, out Entity _))
                 return;
             string str;
-            ((PrefabCollectionSystem_Base)VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()).PrefabGuidToNameDictionary.TryGetValue(item.Value, out str);
+            VWorld.Server.GetExistingSystem<PrefabCollectionSystem>().PrefabGuidToNameDictionary.TryGetValue(item.Value, out str);
             ChatCommandContext chatCommandContext = ctx;
             DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(6, 2);
             interpolatedStringHandler.AppendLiteral("Gave ");
-            interpolatedStringHandler.AppendFormatted<int>(quantity);
+            interpolatedStringHandler.AppendFormatted(quantity);
             interpolatedStringHandler.AppendLiteral(" ");
             interpolatedStringHandler.AppendFormatted(str);
             string stringAndClear = interpolatedStringHandler.ToStringAndClear();
@@ -36,17 +37,17 @@ namespace V.Core
 
         public record struct GivenItem(PrefabGUID Value);
 
-        internal class GiveItemConverter : CommandArgumentConverter<GiveItemCommands.GivenItem>
+        internal class GiveItemConverter : CommandArgumentConverter<GivenItem>
         {
-            public override GiveItemCommands.GivenItem Parse(ICommandContext ctx, string input)
+            public override GivenItem Parse(ICommandContext ctx, string input)
             {
                 PrefabGUID prefabGUID;
                 if (Helper.TryGetItemPrefabGUIDFromString(input, out prefabGUID))
-                    return new GiveItemCommands.GivenItem(prefabGUID);
+                    return new GivenItem(prefabGUID);
                 throw ctx.Error("Could not find item: " + input);
             }
 
-            
+
         }
     }
 }

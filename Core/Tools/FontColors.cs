@@ -1,4 +1,4 @@
-﻿namespace V.Core
+﻿namespace V.Core.Tools
 {
     internal class FontColors
     {

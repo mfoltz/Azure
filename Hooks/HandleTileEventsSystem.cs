@@ -1,5 +1,4 @@
 ﻿using Bloodstone.API;
-using V.Core;
 using FMOD.Studio;
 using HarmonyLib;
 using Il2CppSystem;
@@ -23,6 +22,8 @@ using static VCF.Core.Basics.RoleCommands;
 using Exception = System.Exception;
 using Plugin = V.Core.Plugin;
 using User = ProjectM.Network.User;
+using V.Core.Tools;
+using V.Core.Commands;
 
 //WIP
 

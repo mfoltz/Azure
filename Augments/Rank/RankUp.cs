@@ -2,6 +2,8 @@
 using V.Core;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
+using V.Core.Tools;
+using V.Core.Commands;
 
 namespace V.Augments.Rank
 {
@@ -49,15 +51,15 @@ namespace V.Augments.Rank
                 if (buffname != "0") // this is a way to skip a buff, leave buffs you want skipped as 0s in config
                 {
                     Helper.BuffPlayerByName(playerName, buffguid, 0, true);
-                    string colorString = V.Core.FontColors.Green(buffname);
+                    string colorString = FontColors.Green(buffname);
                     ctx.Reply($"You've been granted a permanent buff: {colorString}");
                 }
             }
             data.Rank++;
             data.Points = 0;
             data.Buffs = playerBuffs;
-            string rankString = V.Core.FontColors.Yellow(data.Rank.ToString());
-            string playerString = V.Core.FontColors.Blue(playerName);
+            string rankString = FontColors.Yellow(data.Rank.ToString());
+            string playerString = FontColors.Blue(playerName);
             ctx.Reply($"Congratulations {playerString}! You have increased your PvE rank to {rankString}.");
             //lightning bolt goes here
 

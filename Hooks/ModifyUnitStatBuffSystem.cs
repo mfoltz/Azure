@@ -3,7 +3,7 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
-using V.Core;
+using V.Core.Tools;
 using Plugin = V.Core.Plugin;
 
 #nullable disable
