@@ -9,9 +9,9 @@ using Unity.Entities;
 using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
-using WillisCore;
-using static WillisCore.PlayerService;
-
+using ProjectM.Shared;
+using DismantleDenied.Core;
+using static PlayerService;
 namespace DismantleDenied.Core
 {
     public static class Utilities
@@ -178,6 +178,15 @@ namespace DismantleDenied.Core
             {
                 Plugin.Logger.LogInfo($"Unable to remove territory from cache {ex}");
             }
+        }
+    }
+
+    public static class SystemPatchUtil
+    {
+        public static void CancelJob(Entity entity)
+        {
+            VWorld.Server.EntityManager.AddComponent<Disabled>(entity);
+            DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
         }
     }
 }

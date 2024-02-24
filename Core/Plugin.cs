@@ -9,7 +9,6 @@ using UnityEngine;
 using VampireCommandFramework;
 using UnityEngine.SceneManagement;
 using System.Text.Json;
-using VRising.GameData;
 
 namespace DismantleDenied.Core
 {
@@ -36,7 +35,6 @@ namespace DismantleDenied.Core
             CommandRegistry.RegisterAll();
             InitConfig();
             DismantleDenied.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
-            GameData.OnInitialize += GameDataOnInitialize;
 
             Plugin.Logger.LogInfo("Plugin DismantleDenied is loaded!");
         }
@@ -49,9 +47,9 @@ namespace DismantleDenied.Core
         {
             // Initialize configuration settings
 
-            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled.").Value;
-            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", true, "True to allow modification, otherwise will not be toggled.").Value;
-            globalCastleTerritory = Config.Bind("Config", "globalCastleTerritory", true, "True to allow modification, otherwise will not be toggled.").Value;
+            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled. Recommended to leave as is.").Value;
+            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
+            globalCastleTerritory = Config.Bind("Config", "globalCastleTerritory", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
 
             if (!Directory.Exists(ConfigPath))
             {
