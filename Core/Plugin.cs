@@ -70,7 +70,7 @@ namespace V.Core
             InitConfig();
             V.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
 
-            Plugin.Logger.LogInfo("Plugin DismantleDenied is loaded!");
+            Plugin.Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded!");
         }
 
         private void GameDataOnInitialize(World world)
