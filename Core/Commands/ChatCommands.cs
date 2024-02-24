@@ -104,6 +104,7 @@ namespace V.Core.Commands
                 }
                 string enabledColor = FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
+                ctx.Reply($"BuildingCosts: {ChatCommands.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictions: {ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleLimits: {ChatCommands.CastleLimitsDisabledSetting.Value}");
             }
             else
             {
@@ -135,7 +136,7 @@ namespace V.Core.Commands
 
         }
 
-        [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <PlayerName>", description: "Resets a player's rank count.")]
+        [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <Player>", description: "Resets a player's rank count.")]
         public static void WipeRanksCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerRankUp == false)
@@ -179,7 +180,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "setrankpoints", shortHand: "srp", adminOnly: true, usage: ".v srp <PlayerName> <Points>", description: "Sets the rank points for a specified player.")]
+        [Command(name: "setrankpoints", shortHand: "srp", adminOnly: true, usage: ".v srp <Player> <Points>", description: "Sets the rank points for a specified player.")]
         public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
         {
             if (Plugin.PlayerRankUp == false)
@@ -240,7 +241,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "setplayerrank", shortHand: "spr", adminOnly: true, usage: ".v spr <PlayerName> <Rank>", description: "Sets the rank for a specified player.")]
+        [Command(name: "setplayerrank", shortHand: "spr", adminOnly: true, usage: ".v spr <Player> <#>", description: "Sets the rank for a specified player.")]
         public static void SetRankCommand(ChatCommandContext ctx, string playerName, int rank)
         {
             if (Plugin.PlayerRankUp == false)
@@ -384,7 +385,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "buffsync", shortHand: "bs", adminOnly: false, usage: ".v bs", description: "Attempts to check which buffs you should have from rank and apply them if you don't have them.")]
+        [Command(name: "buffsync", shortHand: "bs", adminOnly: false, usage: ".v bs", description: "Checks which buffs you should have from rank and apply them if you don't have them.")]
         public static void BuffSyncCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerRankUp == false)
@@ -456,7 +457,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "getplayerrank", shortHand: "gpr", adminOnly: true, usage: ".v gpr <PlayerName>", description: "Helps admins check player rank data.")]
+        [Command(name: "getplayerrank", shortHand: "gpr", adminOnly: true, usage: ".v gpr <Player>", description: "Helps admins check player rank data.")]
         public static void GetPlayerRankCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerRankUp == false)
@@ -513,7 +514,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: ".v p", description: "Resets your level to 1 after reaching max level, offering extra perks.")]
+        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: ".v pr", description: "Resets your level to 1 after reaching max level, offering extra perks.")]
         public static void PrestigeCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerPrestige == false)
@@ -550,7 +551,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "wipeplayerprestige", shortHand: "wpp", adminOnly: true, usage: ".v wpp <PlayerName>", description: "Resets a player's prestige count.")]
+        [Command(name: "wipeplayerprestige", shortHand: "wpp", adminOnly: true, usage: ".v wpp <Player>", description: "Resets a player's prestige count.")]
         public static void WipePrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerPrestige == false)
@@ -587,7 +588,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "getplayerprestige", shortHand: "gpp", adminOnly: true, usage: ".v gpp <PlayerName>", description: "Retrieves the prestige count and buffs for a specified player.")]
+        [Command(name: "getplayerprestige", shortHand: "gpp", adminOnly: true, usage: ".v gpp <Player>", description: "Retrieves the prestige count and buffs for a specified player.")]
         public static void GetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerPrestige == false)
@@ -619,7 +620,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "setplayerprestige", shortHand: "spp", adminOnly: true, usage: ".v spp <PlayerName> <#>", description: "Sets player prestige level for specified player.")]
+        [Command(name: "setplayerprestige", shortHand: "spp", adminOnly: true, usage: ".v spp <Player> <#>", description: "Sets player prestige level for specified player.")]
         public static void SetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName, int count)
         {
             if (Plugin.PlayerPrestige == false)
@@ -820,7 +821,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "addNoctumSet", shortHand: "ans", adminOnly: true, usage: ".v ans", description: "adds noctum set to inventory if not already present")]
+        [Command(name: "addNoctumSet", shortHand: "ans", adminOnly: true, usage: ".v ans", description: "adds noctum set to inventory if not already present.")]
         public static void addNoctumCommand(ChatCommandContext ctx)
         {
             // want to get ModifyUnitStatsBuff_DOTS from EquipBuff_Gloves_Base or something similar
@@ -863,7 +864,7 @@ namespace V.Core.Commands
             }
         }
 
-        [Command(name: "addDeathSet", shortHand: "ads", adminOnly: true, usage: ".v ads", description: "adds death set to inventory if not already present")]
+        [Command(name: "addDeathSet", shortHand: "ads", adminOnly: true, usage: ".v ads", description: "adds death set to inventory if not already present.")]
         public static void addDeathCommand(ChatCommandContext ctx)
         {
             // want to get ModifyUnitStatsBuff_DOTS from EquipBuff_Gloves_Base or something similar

@@ -15,7 +15,7 @@ namespace V.Core.Commands
 {
     internal class GiveItemCommands
     {
-        [Command("give", "g", "<PrefabGUID or name> [quantity=1]", "Gives the specified item to the player", null, true)]
+        [Command(name: "give", shortHand: "g", adminOnly: true, usage: ".g <ItemName> <Quantity>", description: "Gives the specified item.")]
         public static void GiveItem(
           ChatCommandContext ctx,
           GivenItem item,

@@ -37,9 +37,8 @@ namespace V.Core.Commands
         private static Dictionary<string, List<string>> groupBuffTypes = new Dictionary<string, List<string>>()
     {
         {"god", GodFlags },
-        {"troll", TrollFlags },
     };
-
+        [Command("hp", adminOnly: true)]
         public void HpCommand(ChatCommandContext ctx, int hp = 0, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -63,7 +62,7 @@ namespace V.Core.Commands
                 }
             }
         }
-
+        [Command("projectilespeed", adminOnly: true)]
         public void ProjectileSpeedCommand(ChatCommandContext ctx, float speed = 1f, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -79,7 +78,7 @@ namespace V.Core.Commands
                 ctx.Reply("projectile speed set to default");
             }
         }
-
+        [Command("projectilerange", adminOnly: true)]
         public void ProjectileRangeCommand(ChatCommandContext ctx, float range = 1f, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -95,7 +94,7 @@ namespace V.Core.Commands
                 ctx.Reply("projectile range set to default");
             }
         }
-
+        [Command("projectilebounces", adminOnly: true)]
         public void ProjectileBouncesCommand(ChatCommandContext ctx, int bounces = -1, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -111,7 +110,6 @@ namespace V.Core.Commands
                 ctx.Reply("projectile bounces set to default");
             }
         }
-
         [Command("golem", adminOnly: true)]
         public void GolemCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -129,7 +127,7 @@ namespace V.Core.Commands
                 ctx.Reply("Golem'd");
             }
         }
-
+        [Command("speed", adminOnly: true)]
         public void SpeedCommand(ChatCommandContext ctx, float speed = DEFAULT_FAST_SPEED, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -153,6 +151,7 @@ namespace V.Core.Commands
                 }
             }
         }
+        [Command("nocd", adminOnly: true)]
         public void NoCdCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -169,6 +168,7 @@ namespace V.Core.Commands
             }
 
         }
+        [Command("attackspeed", adminOnly: true)]
         public void AttackSpeedCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -183,6 +183,7 @@ namespace V.Core.Commands
                 ctx.Reply("attack speed disabled");
             }
         }
+        [Command("immortal", adminOnly: true)]
         public void ImmortalCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -197,7 +198,6 @@ namespace V.Core.Commands
                 ctx.Reply("Made mortal");
             }
         }
-        [Command("spectate", description: "Lets player able to spectate invisibly without interfering.", adminOnly: true)]
         public void SpectateCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -217,8 +217,7 @@ namespace V.Core.Commands
                 ctx.Reply("Set to spectator");
             }
         }
-
-        [Command("god", adminOnly: true)]
+        [Command(name: "god", shortHand: "g", adminOnly: true, usage: ".v g <Player>", description: "Turns on godmode.")]
         public void GodCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -229,12 +228,13 @@ namespace V.Core.Commands
             PlayerProjectileRanges[Character] = 10f;
             MakePlayerImmaterial(User, Character);
             Helper.BuffPlayer(Character, User, Prefabs.EquipBuff_ShroudOfTheForest, -1, true);
+            Helper.ResetCooldown(Character);
+            EnableBuff(ctx, User, Character, "speed");
             EnableBuff(ctx, User, Character, "god");
             Helper.ResetCharacter(Character);
             ctx.Reply("Set to god mode");
         }
-
-        [Command("normal", adminOnly: true)]
+        [Command(name: "normal", shortHand: "n", adminOnly: true, usage: ".v n <Player>", description: "Turns off godmode.")]
         public void NormalCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -242,6 +242,7 @@ namespace V.Core.Commands
             NormalizeCharacter(Character);
             ctx.Reply("Set to normal mode");
         }
+        [Command("immaterial", adminOnly: true)]
         public void ImmaterialCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;

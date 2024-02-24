@@ -10,7 +10,7 @@ namespace V.Commands
     [CommandGroup(name: "V+(Rising)", shortHand: "v")]
     internal class BuffCommands
     {
-        [Command("buff", description: "Buff a player with a prefab name or guid", adminOnly: true)]
+        [Command(name: "buff", shortHand: "b", adminOnly: true, usage: ".v b <PrefabGUID> <Player> <Duration> <Persists>", description: "Buff a player with a prefab name or guid.")]
         public void BuffCommand(ChatCommandContext ctx, FoundPrefabGuid buffGuid, FoundPlayer player = null, int duration = Helper.DEFAULT_DURATION, bool persistsThroughDeath = false)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -26,16 +26,14 @@ namespace V.Commands
                 throw ctx.Error(e.ToString());
             }
         }
-
-        [Command("unbuff", description: "Removes a buff", adminOnly: true)]
+        [Command(name: "unbuff", shortHand: "ub", adminOnly: true, usage: ".v ub <PrefabGUID> <Player>", description: "Unbuff a player with a prefab name or guid.")]
         public void UnbuffCommand(ChatCommandContext ctx, FoundPrefabGuid buffGuid, FoundPlayer player = null)
         {
             var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
             Helper.UnbuffCharacter(Character, buffGuid.Value);
             ctx.Reply("Removed buff");
         }
-
-        [Command("listbuffs", description: "Lists the buffs a player has", adminOnly: true)]
+        [Command(name: "listbuffs", shortHand: "lb", adminOnly: true, usage: ".v lb <Player>", description: "Lists the buffs a player has.")]
         public void ListBuffsCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
@@ -48,8 +46,7 @@ namespace V.Commands
                 }
             }
         }
-
-        [Command("clearbuffs", description: "Removes any extra buffs on a player", adminOnly: true)]
+        [Command(name: "clearbuffs", shortHand: "cb", adminOnly: true, usage: ".v cb <Player>", description: "Attempts to remove any extra buffs on a player.")]
         public void ClearBuffs(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
