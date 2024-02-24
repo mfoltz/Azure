@@ -3,13 +3,13 @@
 // Decompiled with ICSharpCode.Decompiler 8.1.1.7464
 #endregion
 
-using DismantleDenied.Core;
+using V.Core;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
 
-
-
+namespace V.Core;
+public record FoundPlayer(PlayerService.Player Value);
 public static class PlayerService
 {
     public struct Player
@@ -35,6 +35,11 @@ public static class PlayerService
             IsOnline = user.IsConnected;
             IsAdmin = user.IsAdmin;
             SteamID = user.PlatformId;
+        }
+
+        public static implicit operator Player(FoundPlayer v)
+        {
+            throw new NotImplementedException();
         }
     }
 

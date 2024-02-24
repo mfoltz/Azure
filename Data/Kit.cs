@@ -1,15 +1,33 @@
 ﻿#region Assembly AdminCommands, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+
 // C:\Users\mitch\Downloads\AdminCommands.dll
 // Decompiled with ICSharpCode.Decompiler 8.1.1.7464
+
 #endregion
 
 using System.Collections.Generic;
 using ProjectM;
 
-namespace DismantleDenied.Data;
+namespace V.Data;
 
 public static class Kit
 {
+    public static List<PrefabGUID> deathSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1055898174), // Chest
+                new PrefabGUID(1400688919), // Boots
+                new PrefabGUID(125611165),  // Legs
+                new PrefabGUID(-204401621),  // Gloves
+            };
+
+    public static List<PrefabGUID> noctumSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1076026390), // Chest
+                new PrefabGUID(735487676), // Boots
+                new PrefabGUID(-810609112),  // Legs
+                new PrefabGUID(776192195),  // Gloves
+            };
+
     public static List<PrefabGUID> personalGear = new List<PrefabGUID>
     {
         Prefabs.Item_Boots_T08_Shadowmoon,
@@ -240,6 +258,7 @@ public static class Kit
         }
     };
 }
+
 #if false // Decompilation log
 '342' items in cache
 ------------------

@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using ProjectM;
 
-namespace DismantleDenied.Data;
+namespace V.Data;
 
 public static class Items
 {

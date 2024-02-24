@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	<AssemblyName>DismantleDenied</AssemblyName>
+	<AssemblyName>V+(Rsiising)</AssemblyName>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<LangVersion>latest</LangVersion>
@@ -28,6 +28,18 @@
     <PackageReference Include="VRising.Bloodstone" Version="0.1.6" />
     <PackageReference Include="VRising.Unhollowed.Client" Version="0.6.5.57575090" />
     <PackageReference Include="VRising.VampireCommandFramework" Version="0.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AdminCommands">
+      <HintPath>..\..\..\Downloads\AdminCommands.dll</HintPath>
+    </Reference>
+    <Reference Include="RPGMods">
+      <HintPath>..\..\..\Downloads\RPGMods (2).dll</HintPath>
+    </Reference>
+    <Reference Include="VRising.GameData">
+      <HintPath>VRising.GameData.dll</HintPath>
+    </Reference>
   </ItemGroup>
 	<Target Name="CopyDLLsServer" AfterTargets="Build">
 		<Message Text="DLL to V Rising Server" Importance="High" />

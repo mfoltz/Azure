@@ -1,5 +1,5 @@
 ﻿using Bloodstone.API;
-using DismantleDenied.Core;
+using V.Core;
 using FMOD.Studio;
 using HarmonyLib;
 using Il2CppSystem;
@@ -21,12 +21,12 @@ using static ProjectM.CastleBuilding.Placement.GetPlacementResult;
 using static ProjectM.Network.SetTimeOfDayEvent;
 using static VCF.Core.Basics.RoleCommands;
 using Exception = System.Exception;
-using Plugin = DismantleDenied.Core.Plugin;
+using Plugin = V.Core.Plugin;
 using User = ProjectM.Network.User;
 
 //WIP
 
-namespace DismantleDenied.Hooks
+namespace V.Hooks
 {
     [HarmonyPatch(typeof(SpawnCastleHeartSystem))]
     public static class SpawnCastleHeartSystem_Patch

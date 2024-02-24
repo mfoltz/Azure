@@ -18,9 +18,9 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using DismantleDenied.Data;
+using V.Data;
 
-namespace DismantleDenied.Core;
+namespace V.Core;
 
 public static class Helper
 {

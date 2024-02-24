@@ -2,7 +2,7 @@
 using ProjectM;
 using Unity.Entities;
 
-namespace DismantleDenied.Core
+namespace V.Core
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 
@@ -24,6 +24,26 @@ namespace DismantleDenied.Core
             catch (Exception ex)
             {
                 Plugin.Logger.LogError(ex);
+            }
+        }
+
+        [HarmonyPatch(typeof(GameBootstrap), nameof(GameBootstrap.OnApplicationQuit))]
+        public static class GameBootstrapQuit_Patch
+        {
+            public static void Prefix()
+            {
+                ChatCommands.SavePlayerPrestige();
+                ChatCommands.SavePlayerRanks();
+            }
+        }
+
+        [HarmonyPatch(typeof(TriggerPersistenceSaveSystem), nameof(TriggerPersistenceSaveSystem.TriggerSave))]
+        public class TriggerPersistenceSaveSystem_Patch
+        {
+            public static void Prefix()
+            {
+                ChatCommands.SavePlayerPrestige();
+                ChatCommands.SavePlayerRanks();
             }
         }
     }

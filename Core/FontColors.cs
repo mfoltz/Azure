@@ -1,4 +1,4 @@
-﻿namespace DismantleDenied.Core
+﻿namespace V.Core
 {
     internal class FontColors
     {

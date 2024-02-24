@@ -10,9 +10,8 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
 using ProjectM.Shared;
-using DismantleDenied.Core;
-using static PlayerService;
-namespace DismantleDenied.Core
+using static V.Core.PlayerService;
+namespace V.Core
 {
     public static class Utilities
     {
