@@ -1302,67 +1302,7 @@ namespace V.Core
             return allUnityObjects;
         }
 
-        public static void LoadData()
-        {
-            if (!File.Exists(Plugin.PlayerPrestigeJson))
-            {
-                var stream = File.Create(Plugin.PlayerPrestigeJson);
-                stream.Dispose();
-            }
-
-            string json1 = File.ReadAllText(Plugin.PlayerPrestigeJson);
-            Plugin.Logger.LogWarning($"PlayerPrestige found: {json1}");
-            try
-            {
-                Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json1);
-                Plugin.Logger.LogWarning("PlayerPrestige Populated");
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                Databases.playerPrestige = new Dictionary<ulong, PrestigeData>();
-                Plugin.Logger.LogWarning("PlayerPrestige Created");
-            }
-            if (!File.Exists(Plugin.PlayerRanksJson))
-            {
-                var stream = File.Create(Plugin.PlayerRanksJson);
-                stream.Dispose();
-            }
-
-            string json2 = File.ReadAllText(Plugin.PlayerRanksJson);
-            Plugin.Logger.LogWarning($"PlayerRanks found: {json2}");
-
-            try
-            {
-                Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json2);
-                Plugin.Logger.LogWarning("PlayerRanks Populated");
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                Databases.playerRanks = new Dictionary<ulong, RankData>();
-                Plugin.Logger.LogWarning("PlayerRanks Created");
-            }
-            if (!File.Exists(Plugin.PlayerDivinityJson))
-            {
-                var stream = File.Create(Plugin.PlayerDivinityJson);
-                stream.Dispose();
-            }
-            string json3 = File.ReadAllText(Plugin.PlayerDivinityJson);
-            Plugin.Logger.LogWarning($"PlayerDivinity found: {json3}");
-
-            try
-            {
-                Databases.playerDivinity = JsonSerializer.Deserialize<Dictionary<ulong, DivineData>>(json3);
-                Plugin.Logger.LogWarning("PlayerDivinity populated");
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                Databases.playerDivinity = new Dictionary<ulong, DivineData>();
-                Plugin.Logger.LogWarning("PlayerDivinity Created");
-            }
-        }
+        
 
         public static void SavePlayerPrestige()
         {
