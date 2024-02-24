@@ -26,7 +26,7 @@ namespace V.Core
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
-        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "V");
+        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "VPlus");
         public static readonly string PlayerPrestigeJson = Path.Combine(Plugin.ConfigPath, "player_prestige.json");
         public static readonly string PlayerRanksJson = Path.Combine(Plugin.ConfigPath, "player_ranks.json");
         public static readonly string PlayerDivinityJson = Path.Combine(Plugin.ConfigPath, "player_divinity.json");
