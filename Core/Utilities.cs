@@ -10,9 +10,9 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
 using ProjectM.Shared;
-using DismantleDenied.Core;
+using FreeBuild.Core;
 using static PlayerService;
-namespace DismantleDenied.Core
+namespace FreeBuild.Core
 {
     public static class Utilities
     {

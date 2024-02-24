@@ -2,7 +2,7 @@
 using ProjectM;
 using Unity.Entities;
 
-namespace DismantleDenied.Core
+namespace FreeBuild.Core
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 

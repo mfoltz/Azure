@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 using ProjectM;
 
-namespace DismantleDenied.Data;
+namespace FreeBuild.Data;
 
 public static class Prefabs
 {

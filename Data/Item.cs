@@ -1,6 +1,6 @@
 ﻿using ProjectM;
 
-namespace DismantleDenied.Data;
+namespace FreeBuild.Data;
 
 public class Item
 {

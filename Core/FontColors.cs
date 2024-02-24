@@ -1,4 +1,4 @@
-﻿namespace DismantleDenied.Core
+﻿namespace FreeBuild.Core
 {
     internal class FontColors
     {

@@ -1,4 +1,5 @@
 ﻿using Bloodstone.API;
+using FreeBuild.Data;
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Gameplay.Scripting;
@@ -19,9 +20,9 @@ using UnityEngine.Experimental.AssetBundlePatching;
 using UnityEngine.SceneManagement;
 using VampireCommandFramework;
 
-namespace DismantleDenied.Core
+namespace FreeBuild.Core
 {
-    [CommandGroup(name: "ddcommands", shortHand: "dd")]
+    [CommandGroup(name: "freebuild", shortHand: "fb")]
     public class ChatCommands
     {
         public static bool tfbFlag;
@@ -31,13 +32,6 @@ namespace DismantleDenied.Core
             SettingType = (DebugSettingType)5,
             Value = false
         };
-
-        public static SetDebugSettingEvent GlobalCastleTerritoryEnabled = new SetDebugSettingEvent()
-        {
-            SettingType = (DebugSettingType)10,
-            Value = false
-        };
-
         public static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)16,
@@ -50,11 +44,7 @@ namespace DismantleDenied.Core
             Value = false
         };
 
-        public static SetDebugSettingEvent CastleLimitsDisabledSetting = new SetDebugSettingEvent()
-        {
-            SettingType = (DebugSettingType)31,
-            Value = false
-        };
+        
 
         [Command(name: "togglefreebuild", shortHand: "tfb", adminOnly: true, usage: ".dd tfb", description: "Toggles freebuild debug settings.")]
         public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
@@ -66,25 +56,12 @@ namespace DismantleDenied.Core
                 ChatCommands.tfbFlag = true;
                 ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
+                
+                ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
 
-                if (Plugin.castleHeartConnectionRequirement)
-                {
-                    ChatCommands.CastleHeartConnectionRequirementDisabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleHeartConnectionRequirementDisabled);
-                }
-                if (Plugin.buildingPlacementRestrictions)
-                {
-                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
-                }
-                if (Plugin.globalCastleTerritory)
-                {
-                    ChatCommands.GlobalCastleTerritoryEnabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.GlobalCastleTerritoryEnabled);
-                }
-                string enabledColor = DismantleDenied.Core.FontColors.Green("enabled");
+                
+                string enabledColor = FreeBuild.Core.FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
             }
             else
@@ -92,93 +69,95 @@ namespace DismantleDenied.Core
                 ChatCommands.tfbFlag = false;
                 ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                ChatCommands.CastleLimitsDisabledSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleLimitsDisabledSetting);
-
-                if (Plugin.castleHeartConnectionRequirement)
-                {
-                    ChatCommands.CastleHeartConnectionRequirementDisabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.CastleHeartConnectionRequirementDisabled);
-                }
-
-                if (Plugin.buildingPlacementRestrictions)
-                {
-                    ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
-                }
-                if (Plugin.globalCastleTerritory)
-                {
-                    ChatCommands.GlobalCastleTerritoryEnabled.Value = ChatCommands.tfbFlag;
-                    existingSystem.SetDebugSetting(user.Index, ref ChatCommands.GlobalCastleTerritoryEnabled);
-                }
-                string disabledColor = DismantleDenied.Core.FontColors.Red("disabled");
+                
+                ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
+                
+                string disabledColor = FreeBuild.Core.FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
 
-        //[Command(name: "destroynodes", shortHand: "dn", adminOnly: true, usage: ".dd dn", description: "Finds and destroys all resource nodes.")]
-        public static void DestroyResourcesCommand(ChatCommandContext ctx)
+        [Command("spawnhorse", "sh", description: "Spawns a horse with specified stats.", adminOnly: true, usage:".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>")]
+        public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
         {
-            // maybe if I set their health to 0 instead of destroying them? hmm
-            User user = ctx.Event.User;
-            Entity killer = ctx.Event.SenderUserEntity;
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            //ResourceFunctions.SearchAndDestroy(killer, ctx);
+            var pos = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
+            var horsePrefab = spectral ? Prefabs.CHAR_Mount_Horse_Spectral : Prefabs.CHAR_Mount_Horse;
 
-            ctx.Reply("All found resource nodes have been destroyed.");
-        }
-
-        public class ResourceFunctions
-        {
-            /*
-            public static unsafe void SearchAndDestroy(Entity killer, ChatCommandContext ctx)
+            for (int i = 0; i < num; i++)
             {
-                EntityManager entityManager = VWorld.Server.EntityManager;
-
-                MapZoneCollectionSystem mapZoneCollectionSystem = VWorld.Server.GetExistingSystem<MapZoneCollectionSystem>();
-                MapZoneCollection mapZoneCollection = mapZoneCollectionSystem.GetMapZoneCollection();
-
-                PlayCommandsSystem_Server playCommandsSystem = VWorld.Server.GetExistingSystem<PlayCommandsSystem_Server>();
-                EntityQuery serverTimeQuery = playCommandsSystem._ServerTime._SingletonQuery;
-                int counter = 0;
-
-                if (serverTimeQuery.CalculateEntityCount() == 1)
+                UnitSpawnerService.UnitSpawner.SpawnWithCallback(ctx.Event.SenderUserEntity, horsePrefab, pos.xz, -1, (Entity horse) =>
                 {
-                    var serverTimeEntity = serverTimeQuery.GetSingletonEntity();
-                    var serverTime = Utilities.GetComponentData<ServerTime>(serverTimeEntity);
-                     double currentTime = serverTime.TimeOnServer; // Or whichever field is appropriate
-                }
-
-                bool includeDisabled = true;
-                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
-                {
-                    All = new ComponentType[] {
-                        ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-                        ComponentType.ReadOnly<Health>(),
-                        ComponentType.ReadOnly<TilePosition>(),
-                    },
-                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                    var mount = horse.Read<Mountable>();
+                    mount.MaxSpeed = speed;
+                    mount.Acceleration = acceleration;
+                    mount.RotationSpeed = rotation * 10f;
+                    horse.Write<Mountable>(mount);
                 });
-
-                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-
-                foreach (var entity in resourceNodeEntities)
-                {
-                    TilePosition tilePosition = entityManager.GetComponentData<TilePosition>(entity);
-                    float2 worldFloat = SpaceConversion.TileToWorld(tilePosition.Tile.x, tilePosition.Tile.y);
-                    int2 worldTile = SpaceConversion.WorldToTile(worldFloat.x, worldFloat.y);
-
-                    if (CastleTerritoryExtensions.TryGetCastleTerritory(mapZoneCollection, entityManager, worldTile, out CastleTerritory castleTerritory))
-                    {
-                        // This resource is within a castle territory, proceed with destruction
-                        StatChangeUtility.KillEntity(entityManager, entity, killer, currentTime, false);
-                        counter++;
-                    }
-                }
-                Plugin.Logger.LogInfo($"Resource nodes destroyed: {counter}");
-                resourceNodeEntities.Dispose();
             }
-            */
+
+            ctx.Reply($"Spawned {num}{(spectral == false ? "" : " spectral")} horse{(num > 1 ? "s" : "")} (with speed:{speed}, accel:{acceleration}, and rotate:{rotation}) near you.");
         }
+
+
+        [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
+        public static void DisableGhosts(ChatCommandContext ctx)
+        {
+            var horses = Helper.GetEntitiesByComponentTypes<Immortal, Mountable>(true).ToArray()
+                            .Where(x => x.Read<PrefabGUID>().GuidHash == Prefabs.CHAR_Mount_Horse_Vampire.GuidHash)
+                            .Where(x => BuffUtility.HasBuff(VWorld.Server.EntityManager, x, Prefabs.Buff_General_VampireMount_Dead));
+
+            EntityQuery horseQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            {
+                All = new ComponentType[]
+                {
+                    ComponentType.ReadOnly<Immortal>(),
+                    ComponentType.ReadOnly<Mountable>(),
+                    ComponentType.ReadOnly<PrefabGUID>(),
+                    //ComponentType.ReadOnly<BuffComponent>()// Assuming this is how you identify the horse prefab.
+                    // If there's a specific component for buffs, include it here. Otherwise, you'll need to filter buffs after querying.
+                },
+                // Include additional options as necessary, for example, to include disabled entities.
+                Options = EntityQueryOptions.Default
+            });
+            
+            NativeArray<Entity> horseEntities = horseQuery.ToEntityArray(Allocator.TempJob);
+            foreach (var horse in horseEntities)
+            {
+                horse.LogComponentTypes();
+                PrefabGUID prefabGUID = VWorld.Server.EntityManager.GetComponentData<PrefabGUID>(horse);
+                if (prefabGUID.GuidHash == Prefabs.CHAR_Mount_Horse_Vampire.GuidHash)
+                {
+                    // Assume BuffUtility.HasBuff is a method you can use to check for the buff. You might need to adjust this based on how buffs are implemented.
+                    //Plugin.Logger.LogInfo("test");
+                }
+            }
+            horseEntities.Dispose();
+            ctx.Reply($"Disabled player ghost horses. They can still be resummoned.");
+            
+           
+        }
+        /*
+        [Command("spawnhorse", "sh", description: "Spawns a horse", adminOnly: true)]
+        public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
+        {
+            var pos = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
+            var horsePrefab = spectral ? Prefabs.CHAR_Mount_Horse_Spectral : Prefabs.CHAR_Mount_Horse;
+
+            for (int i = 0; i < num; i++)
+            {
+                UnitSpawner.SpawnWithCallback(ctx.Event.SenderUserEntity, horsePrefab, pos.xz, -1, (Entity horse) =>
+                {
+                    var mount = horse.Read<Mountable>();
+                    mount.MaxSpeed = speed;
+                    mount.Acceleration = acceleration;
+                    mount.RotationSpeed = rotation * 10f;
+                    horse.Write<Mountable>(mount);
+                });
+            }
+
+            ctx.Reply($"Spawned {num}{(spectral == false ? "" : " spectral")} horse{(num > 1 ? "s" : "")} (with speed:{speed}, accel:{acceleration}, and rotate:{rotation}) near you.");
+        }
+        */
     }
 }

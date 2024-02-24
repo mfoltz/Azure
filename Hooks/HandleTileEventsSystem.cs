@@ -1,5 +1,5 @@
 ﻿using Bloodstone.API;
-using DismantleDenied.Core;
+using FreeBuild.Core;
 using FMOD.Studio;
 using HarmonyLib;
 using Il2CppSystem;
@@ -21,12 +21,12 @@ using static ProjectM.CastleBuilding.Placement.GetPlacementResult;
 using static ProjectM.Network.SetTimeOfDayEvent;
 using static VCF.Core.Basics.RoleCommands;
 using Exception = System.Exception;
-using Plugin = DismantleDenied.Core.Plugin;
+using Plugin = FreeBuild.Core.Plugin;
 using User = ProjectM.Network.User;
 
 //WIP
 
-namespace DismantleDenied.Hooks
+namespace FreeBuild.Hooks
 {
     [HarmonyPatch(typeof(SpawnCastleHeartSystem))]
     public static class SpawnCastleHeartSystem_Patch
@@ -34,7 +34,7 @@ namespace DismantleDenied.Hooks
         [HarmonyPatch("OnUpdate"), HarmonyPostfix]
         public static void OnUpdatePostfix(SpawnCastleHeartSystem __instance)
         {
-            if (ChatCommands.CastleLimitsDisabledSetting.Value)
+            if (ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value)
             {
                 // don't update cache when freebuild turned on, idk why exactly but that feels like a bad idea
                 return;
@@ -79,7 +79,7 @@ namespace DismantleDenied.Hooks
         [HarmonyPatch("OnUpdate"), HarmonyPostfix]
         public static void OnUpdatePostfix(DestroyCastleHeartSystem __instance)
         {
-            if (ChatCommands.CastleLimitsDisabledSetting.Value)
+            if (ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value)
             {
                 // don't update cache when freebuild turned on, idk why exactly but that feels like a bad idea
                 return;
@@ -126,7 +126,7 @@ namespace DismantleDenied.Hooks
         public static void Prefix(PlaceTileModelSystem __instance)
         {
             EntityManager entityManager = __instance.EntityManager;
-            if (!ChatCommands.CastleLimitsDisabledSetting.Value)
+            if (!ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value)
             {
                 return;
             }

@@ -10,7 +10,7 @@ using VampireCommandFramework;
 using UnityEngine.SceneManagement;
 using System.Text.Json;
 
-namespace DismantleDenied.Core
+namespace FreeBuild.Core
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]
@@ -21,10 +21,7 @@ namespace DismantleDenied.Core
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
-        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "DismantleDenied");
-        public static bool buildingPlacementRestrictions;
-        public static bool castleHeartConnectionRequirement;
-        public static bool globalCastleTerritory;
+        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "FreeBuild");
 
         public override void Load()
         {
@@ -33,10 +30,10 @@ namespace DismantleDenied.Core
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
-            InitConfig();
-            DismantleDenied.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
+            //InitConfig();
+            FreeBuild.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
 
-            Plugin.Logger.LogInfo("Plugin DismantleDenied is loaded!");
+            Plugin.Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} is loaded!");
         }
 
         private void GameDataOnInitialize(World world)
@@ -47,9 +44,6 @@ namespace DismantleDenied.Core
         {
             // Initialize configuration settings
 
-            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled. Recommended to leave as is.").Value;
-            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
-            globalCastleTerritory = Config.Bind("Config", "globalCastleTerritory", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
 
             if (!Directory.Exists(ConfigPath))
             {
