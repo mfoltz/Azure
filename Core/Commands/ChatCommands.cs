@@ -32,7 +32,7 @@ using V.Core.Services;
 
 namespace V.Core.Commands
 {
-    [CommandGroup(name: "V+(Rising)", shortHand: "v")]
+    [CommandGroup(name: "VPlus", shortHand: "v")]
     public class ChatCommands
     {
         public static bool tfbFlag = false;
@@ -40,6 +40,12 @@ namespace V.Core.Commands
         public static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)5,
+            Value = false
+        };
+
+        public static SetDebugSettingEvent DayNightCycleDisabled = new SetDebugSettingEvent()
+        {
+            SettingType = (DebugSettingType)8,
             Value = false
         };
 
@@ -86,7 +92,8 @@ namespace V.Core.Commands
                 //CastleLimitsDisabledSetting.Value = tfbFlag;
                 CastleLimitsDisabledSetting.Value = false;
                 existingSystem.SetDebugSetting(user.Index, ref CastleLimitsDisabledSetting);
-
+                DayNightCycleDisabled.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref DayNightCycleDisabled);
                 if (Plugin.castleHeartConnectionRequirement)
                 {
                     CastleHeartConnectionRequirementDisabled.Value = tfbFlag;
@@ -104,7 +111,7 @@ namespace V.Core.Commands
                 }
                 string enabledColor = FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
-                ctx.Reply($"BuildingCostsDisabled: {ChatCommands.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleLimitsDisabled: {ChatCommands.CastleLimitsDisabledSetting.Value}");
+                ctx.Reply($"BuildingCostsDisabled: {ChatCommands.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleLimitsDisabled: {ChatCommands.CastleLimitsDisabledSetting.Value} | DayNightCycleDisabled: {ChatCommands.DayNightCycleDisabled.Value}");
             }
             else
             {
@@ -113,7 +120,8 @@ namespace V.Core.Commands
                 existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
                 CastleLimitsDisabledSetting.Value = tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref CastleLimitsDisabledSetting);
-
+                DayNightCycleDisabled.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref DayNightCycleDisabled);
                 if (Plugin.castleHeartConnectionRequirement)
                 {
                     CastleHeartConnectionRequirementDisabled.Value = tfbFlag;

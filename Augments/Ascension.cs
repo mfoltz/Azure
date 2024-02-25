@@ -8,6 +8,7 @@ namespace V.Augments
     {
         public int Divinity { get; set; }
         public int Path { get; set; }
+
         // 1 for phys 2 for spell, 0 for not there yet
 
         public DivineData(int divinity, int path)
@@ -43,7 +44,6 @@ namespace V.Augments
             int prePhysicalResistance = 0;
             int preSpellResistance = 0;
 
-#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
             if (RPGMods.Utils.Database.PowerUpList.ContainsKey(SteamID) != null)
             {
                 if (RPGMods.Utils.Database.PowerUpList.TryGetValue(SteamID, out RPGMods.Utils.PowerUpData preStats))
@@ -55,7 +55,6 @@ namespace V.Augments
                     preSpellResistance = (int)preStats.SDEF;
                 }
             }
-#pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
 
             // set stat bonus values and add pre-existing bonuses for continuity
             int extraHealth = Plugin.ExtraHealth + preHealth;

@@ -90,6 +90,7 @@ namespace RPGAddOnsEx.Hooks
                 //Plugin.Logger.LogInfo("ModifyUnitStatBuffSystem_Destroy Prefix called...");
                 foreach (Entity entity in entityArray)
                 {
+                    
                     //entity.LogComponentTypes();
                     Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
                     if (!entityManager.HasComponent<PlayerCharacter>(owner))
