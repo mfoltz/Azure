@@ -199,7 +199,10 @@ namespace V.Augments.Rank
                                     ctx.Reply($"You must be at least rank {spellConstructorDeus.RequiredRank} to use this ability.");
                                 }
                             }
-                            ctx.Reply("Invalid spell choice.");
+                            else
+                            {
+                                ctx.Reply("Invalid spell choice.");
+                            }
                         }
                     }
                     else

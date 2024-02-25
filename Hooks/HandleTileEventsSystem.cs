@@ -114,7 +114,7 @@ namespace V.Hooks
         public static void Prefix(PlaceTileModelSystem __instance)
         {
             EntityManager entityManager = __instance.EntityManager;
-            if (!ChatCommands.CastleLimitsDisabledSetting.Value)
+            if (!ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value)
             {
                 return;
             }
