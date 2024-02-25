@@ -7,6 +7,7 @@ using VampireCommandFramework;
 
 namespace V.Core.Commands
 {
+    [CommandGroup(name: "VPlus", shortHand: "v")]
     internal class GiveItemCommands
     {
         [Command(name: "give", shortHand: "g", adminOnly: true, usage: ".g <ItemName> <Quantity>", description: "Gives the specified item.")]
