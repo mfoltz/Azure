@@ -142,19 +142,18 @@ namespace WorldBuild.Core
                         if (buff.PrefabGuid.GuidHash == Data.Prefabs.Buff_General_VampireMount_Dead.GuidHash)
                         {
                             // found dead horse
-                            // disable it and see if I can still summon it?
                             //ctx.Reply("Found dead horse...");
                             if (Utilities.HasComponent<EntityOwner>(horse))
                             {
                                 EntityOwner entityOwner = Utilities.GetComponentData<EntityOwner>(horse);
-                                
+                                // found owner
                                 Entity player = entityOwner.Owner;
                                 //player.LogComponentTypes();
                                 if (Utilities.HasComponent<PlayerCharacter>(player))
                                 {
                                     PlayerCharacter playerChar = Utilities.GetComponentData<PlayerCharacter>(player);
                                     Entity userEntity = playerChar.UserEntity;
-                                    
+                                    //found user
                                     User user = Utilities.GetComponentData<User>(userEntity);
                                     ctx.Reply("Found dead horse owner, disabling...");
                                     ulong playerId = user.PlatformId;
@@ -192,9 +191,9 @@ namespace WorldBuild.Core
                 }
             }
         }
-        */
         
-        /*
+        
+        
         [Command("spawnhorse", "sh", description: "Spawns a horse", adminOnly: true)]
         public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
         {
