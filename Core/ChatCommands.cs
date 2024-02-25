@@ -78,6 +78,7 @@ namespace WorldBuild.Core
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
+        /*
         public class horseFunctions
         {
             internal static Dictionary<ulong, HorseStasisState> playerHorseStasisMap = new Dictionary<ulong, HorseStasisState>();
@@ -191,6 +192,7 @@ namespace WorldBuild.Core
                 }
             }
         }
+        */
         
         /*
         [Command("spawnhorse", "sh", description: "Spawns a horse", adminOnly: true)]
