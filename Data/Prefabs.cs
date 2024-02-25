@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 using ProjectM;
 
-namespace FreeBuild.Data;
+namespace WorldBuild.Data;
 
 public static class Prefabs
 {

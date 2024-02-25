@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using ProjectM;
 
-namespace FreeBuild.Data;
+namespace WorldBuild.Data;
 
 public static class Kit
 {

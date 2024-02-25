@@ -1,5 +1,5 @@
 ﻿using Bloodstone.API;
-using FreeBuild.Core;
+using WorldBuild.Core;
 using FMOD.Studio;
 using HarmonyLib;
 using Il2CppSystem;
@@ -21,12 +21,12 @@ using static ProjectM.CastleBuilding.Placement.GetPlacementResult;
 using static ProjectM.Network.SetTimeOfDayEvent;
 using static VCF.Core.Basics.RoleCommands;
 using Exception = System.Exception;
-using Plugin = FreeBuild.Core.Plugin;
+using Plugin = WorldBuild.Core.Plugin;
 using User = ProjectM.Network.User;
 
 //WIP
 
-namespace FreeBuild.Hooks
+namespace WorldBuild.Hooks
 {
     [HarmonyPatch(typeof(SpawnCastleHeartSystem))]
     public static class SpawnCastleHeartSystem_Patch
@@ -157,7 +157,7 @@ namespace FreeBuild.Hooks
             StringBuilder message = new StringBuilder("Bad vampire, no merlot! (Castle Heart placement is disabled during freebuild)");
 
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, message.ToString());
-            SystemPatchUtil.CancelJob(job);
+            SystemPatchUtil.Destroy(job);
         }
     }
 

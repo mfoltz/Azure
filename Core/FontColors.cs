@@ -1,4 +1,4 @@
-﻿namespace FreeBuild.Core
+﻿namespace WorldBuild.Core
 {
     internal class FontColors
     {

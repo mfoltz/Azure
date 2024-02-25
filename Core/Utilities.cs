@@ -10,9 +10,9 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
 using ProjectM.Shared;
-using FreeBuild.Core;
+using WorldBuild.Core;
 using static PlayerService;
-namespace FreeBuild.Core
+namespace WorldBuild.Core
 {
     public static class Utilities
     {
@@ -183,10 +183,21 @@ namespace FreeBuild.Core
 
     public static class SystemPatchUtil
     {
-        public static void CancelJob(Entity entity)
+        public static void Destroy(Entity entity)
         {
             VWorld.Server.EntityManager.AddComponent<Disabled>(entity);
             DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
         }
+        public static void Disable(Entity entity)
+        {
+            VWorld.Server.EntityManager.AddComponent<Disabled>(entity);
+            //DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
+        }
+        public static void Enable(Entity entity)
+        {
+            VWorld.Server.EntityManager.RemoveComponent<Disabled>(entity);
+            //DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
+        }
+
     }
 }

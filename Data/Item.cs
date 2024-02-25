@@ -1,6 +1,6 @@
 ﻿using ProjectM;
 
-namespace FreeBuild.Data;
+namespace WorldBuild.Data;
 
 public class Item
 {

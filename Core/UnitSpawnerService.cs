@@ -1,5 +1,5 @@
 ﻿using Bloodstone.API;
-using FreeBuild.Core;
+using WorldBuild.Core;
 using HarmonyLib;
 using ProjectM;
 using System;
@@ -9,7 +9,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace FreeBuild.Core;
+namespace WorldBuild.Core;
 
 internal class UnitSpawnerService
 {
