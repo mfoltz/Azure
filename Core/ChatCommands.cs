@@ -23,14 +23,26 @@ using VampireCommandFramework;
 
 namespace WorldBuild.Core
 {
-    [CommandGroup(name: "worldbuild", shortHand: "wb")]
+    [CommandGroup(name: "VPlus", shortHand: "v")]
     public class ChatCommands
     {
-        public static bool tfbFlag;
+        public static bool tfbFlag = false;
 
         public static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)5,
+            Value = false
+        };
+
+        public static SetDebugSettingEvent DayNightCycleDisabled = new SetDebugSettingEvent()
+        {
+            SettingType = (DebugSettingType)8,
+            Value = false
+        };
+
+        public static SetDebugSettingEvent GlobalCastleTerritoryEnabled = new SetDebugSettingEvent()
+        {
+            SettingType = (DebugSettingType)10,
             Value = false
         };
 
@@ -46,33 +58,48 @@ namespace WorldBuild.Core
             Value = false
         };
 
-        [Command(name: "togglefreebuild", shortHand: "tfb", adminOnly: true, usage: ".wb tfb", description: "Toggles freebuild debug settings.")]
+        public static SetDebugSettingEvent CastleLimitsDisabledSetting = new SetDebugSettingEvent()
+        {
+            SettingType = (DebugSettingType)31,
+            Value = false
+        };
+
+        [Command(name: "togglefreebuild", shortHand: "tfb", adminOnly: true, usage: ".v tfb", description: "Toggles freebuild debug settings.")]
         public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
+            // want to disable resource nodes in active player territories here to avoid overgrowth
+
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            if (!ChatCommands.tfbFlag)
+            if (!tfbFlag)
             {
-                ChatCommands.tfbFlag = true;
-                ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
+                //ctx.Reply("Attempting to disable resource nodes in player territories before enabling freebuild...");
+                //int nodes = ResourceFunctions.SearchAndDestroy();
+                //ctx.Reply($"{nodes} in player territories disabled. Proceeding to freebuild...");
+                tfbFlag = true;
+                BuildingCostsDebugSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
+                //CastleLimitsDisabledSetting.Value = tfbFlag;
+                //CastleLimitsDisabledSetting.Value = false;
+                existingSystem.SetDebugSetting(user.Index, ref CastleLimitsDisabledSetting);
+                DayNightCycleDisabled.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref DayNightCycleDisabled);
 
-                ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
-
-                string enabledColor = WorldBuild.Core.FontColors.Green("enabled");
+                string enabledColor = FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
+                ctx.Reply($"BuildingCostsDisabled: {ChatCommands.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleLimitsDisabled: {ChatCommands.CastleLimitsDisabledSetting.Value} | DayNightCycleDisabled: {ChatCommands.DayNightCycleDisabled.Value}");
             }
             else
             {
-                ChatCommands.tfbFlag = false;
-                ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
+                tfbFlag = false;
+                BuildingCostsDebugSetting.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
+                //CastleLimitsDisabledSetting.Value = tfbFlag;
+                //existingSystem.SetDebugSetting(user.Index, ref CastleLimitsDisabledSetting);
+                DayNightCycleDisabled.Value = tfbFlag;
+                existingSystem.SetDebugSetting(user.Index, ref DayNightCycleDisabled);
 
-                ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
-
-                string disabledColor = WorldBuild.Core.FontColors.Red("disabled");
+                string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
@@ -205,6 +232,7 @@ namespace WorldBuild.Core
         */
 
         //[Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
+        /*
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             // maybe if I set their health to 0 instead of destroying them? hmm
@@ -215,8 +243,10 @@ namespace WorldBuild.Core
 
             ctx.Reply("All found resource nodes in player territories have been disabled.");
         }
+        */
 
         //[Command(name: "resetnodes", shortHand: "rn", adminOnly: true, usage: ".v rn", description: "Atempts to reset resource nodes if they've been disabled.")]
+        /*
         public static void ResetResourcesCommand(ChatCommandContext ctx)
         {
             // maybe if I set their health to 0 instead of destroying them? hmm
@@ -227,11 +257,13 @@ namespace WorldBuild.Core
 
             //ctx.Reply("Resource nodes reset in player territories.");
         }
+        */
 
         public class ResourceFunctions
         {
             // this actually disables but destroy is much catchier
-            public static unsafe int SearchAndDestroy()
+            // so if I disable all resources in player territories when freebuild is turned on maybe?
+            public static unsafe void SearchAndDisable()
             {
                 EntityManager entityManager = VWorld.Server.EntityManager;
                 int counter = 0;
@@ -251,14 +283,14 @@ namespace WorldBuild.Core
                     if (ShouldRemoveNodeBasedOnTerritory(node))
                     {
                         // if node is in a player territory, which is updated for castle heart placement/destruction already, disable it
-                        // might need to filter for trees and rocks here
+                        // might need to filter for trees and rocks here or just re-enable after freebuild turns off and see if that will suffice
                         counter += 1;
                         SystemPatchUtil.Disable(node);
                         //node.LogComponentTypes();
                     }
                 }
                 resourceNodeEntities.Dispose();
-                return counter;
+                Plugin.Logger.LogInfo($"{counter} resource nodes disabled.");
             }
 
             private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
@@ -293,9 +325,9 @@ namespace WorldBuild.Core
                         Entity territoryEntity;
                         if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
                         {
-                            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
-                            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
-                            entityCommandBuffer.RemoveComponent<Disabled>(node);
+                            SystemPatchUtil.Enable(node);
+
+                            //Utilities.RemoveComponent<Disabled>(node);
                             counter += 1;
                         }
                     }
