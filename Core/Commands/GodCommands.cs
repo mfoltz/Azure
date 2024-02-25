@@ -14,7 +14,7 @@ using V.Core.Services;
 
 namespace V.Core.Commands
 {
-    [CommandGroup(name: "V+(Rising)", shortHand: "v")]
+    [CommandGroup(name: "VPlus", shortHand: "v")]
     internal class GodCommands
     {
         public static Dictionary<Entity, Dictionary<string, bool>> PlayerBuffDictionary = new Dictionary<Entity, Dictionary<string, bool>>();

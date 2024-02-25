@@ -125,7 +125,7 @@ namespace V.Augments
                     else
                     {
                         // check if high enough prestige
-                        if (data.Prestiges >= buff * 3)
+                        if (data.Prestiges >= buff * 2)
                         {
                             if (data.PlayerBuff == 0)
                             {

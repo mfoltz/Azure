@@ -92,12 +92,24 @@ namespace V.Augments.Rank
                 Spells.Add(1, new RankSpellConstructor("Batwhirlwind", V.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1));
             }
         }
+        public class Deus
+        {
+            public Dictionary<int, RankSpellConstructor> Spells = new Dictionary<int, RankSpellConstructor>();
+            public Deus()
+            {
+                Spells.Add(5, new RankSpellConstructor("NukeAll", V.Data.Prefabs.AB_Debug_NukeAll_Group, 5));
+                Spells.Add(4, new RankSpellConstructor("DivineShield", V.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyBubble_Beam_AbilityGroup, 4));
+                Spells.Add(3, new RankSpellConstructor("LightningStorm", V.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup, 3));
+                Spells.Add(2, new RankSpellConstructor("ChaosBreath", V.Data.Prefabs.AB_Manticore_ChaosBreath_AbilityGroup, 2));
+                Spells.Add(1, new RankSpellConstructor("Leapattack", V.Data.Prefabs.AB_Cursed_MountainBeast_LeapAttack_Travel_AbilityGroup, 1));
+            }
+        }
         public static class CommandHandler
         {
             private static Dictionary<string, System.Func<object>> classFactories = new Dictionary<string, System.Func<object>>
             {
                 { "nightmarshal", () => new Nightmarshal() },
-                // Add other class factories here
+                { "deus", () => new Deus() },
             };
             [Command(name: "chooseClass", shortHand: "cc", adminOnly: false, usage: ".cs <name>", description: "Sets class to use spells from.")]
             public static void ClassChoice(ChatCommandContext ctx, string choice)
@@ -109,7 +121,26 @@ namespace V.Augments.Rank
                 {
                     if (classFactories.ContainsKey(choice))
                     {
-                        rankData.ClassChoice = choice;
+                        if (choice == "deus" || choice == "Deus")
+                        {
+                            if (!ctx.Event.User.IsAdmin)
+                            {
+                                ctx.Reply("You must be an admin to use this class.");
+                                return;
+
+                            }
+                            else
+                            {
+                                rankData.ClassChoice = choice;
+                                ctx.Reply($"Class set to {choice}.");
+                            }
+                        }
+                        else
+                        {
+                            rankData.ClassChoice = choice;
+                            ctx.Reply($"Class set to {choice}.");
+                        }
+
                     }
                 }
                 else
@@ -131,27 +162,45 @@ namespace V.Augments.Rank
                         var classInstance = classFactory.Invoke();
 
                         // Check if the class instance is of expected type and contains the spell
-                        if (classInstance is Nightmarshal nightmarshal && nightmarshal.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructor))
+                        if (classInstance is Nightmarshal nightmarshal && nightmarshal.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructorNightmarshal))
                         {
                             // Now you have the spellConstructor, you can check the player's rank
-                            if (rankData.Rank >= spellConstructor.RequiredRank)
+                            if (rankData.Rank >= spellConstructorNightmarshal.RequiredRank)
                             {
                                 // Here you would typically cast the spell or apply its effects
-                                PrefabGUID newSpell = spellConstructor.SpellGUID;
+                                PrefabGUID newSpell = spellConstructorNightmarshal.SpellGUID;
                                 V.Data.FoundPrefabGuid foundPrefabGuid = new(newSpell);
                                 rankData.RankSpell = newSpell.GuidHash;
                                 //CastCommand(ctx, foundPrefabGuid, null); // Assuming this is how you cast the spell
-
-                                ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
+                                V.Core.Tools.Helper.BuffCharacter(character, V.Data.Prefabs.AllowJumpFromCliffsBuff, 0, false);
+                                ctx.Reply($"Rank spell set to {spellConstructorNightmarshal.Name}.");
                                 ChatCommands.SavePlayerRanks();
                             }
                             else
                             {
-                                ctx.Reply($"You must be at least rank {spellConstructor.RequiredRank} to use this ability.");
+                                ctx.Reply($"You must be at least rank {spellConstructorNightmarshal.RequiredRank} to use this ability.");
                             }
                         }
                         else
                         {
+                            if (classInstance is Deus deus && deus.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructorDeus))
+                            {
+                                if (rankData.Rank >= spellConstructorDeus.RequiredRank)
+                                {
+                                    // Here you would typically cast the spell or apply its effects
+                                    PrefabGUID newSpell = spellConstructorDeus.SpellGUID;
+                                    V.Data.FoundPrefabGuid foundPrefabGuid = new(newSpell);
+                                    rankData.RankSpell = newSpell.GuidHash;
+                                    //CastCommand(ctx, foundPrefabGuid, null); // Assuming this is how you cast the spell
+                                    V.Core.Tools.Helper.BuffCharacter(character, V.Data.Prefabs.AllowJumpFromCliffsBuff, 0, false);
+                                    ctx.Reply($"Rank spell set to {spellConstructorDeus.Name}.");
+                                    ChatCommands.SavePlayerRanks();
+                                }
+                                else
+                                {
+                                    ctx.Reply($"You must be at least rank {spellConstructorDeus.RequiredRank} to use this ability.");
+                                }
+                            }
                             ctx.Reply("Invalid spell choice.");
                         }
                     }
@@ -171,3 +220,6 @@ namespace V.Augments.Rank
 
     }
 }
+
+
+    

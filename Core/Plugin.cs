@@ -14,6 +14,9 @@ using V.Augments.Rank;
 using V.Core.Tools;
 using V.Core.Commands;
 using V.Core.Services;
+using VPlus;
+using VRising.GameData;
+using MyPluginInfo = VPlus.MyPluginInfo;
 
 namespace V.Core
 {
@@ -73,6 +76,7 @@ namespace V.Core
             CommandRegistry.RegisterAll();
             InitConfig();
             ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
+            GameData.OnInitialize += GameDataOnInitialize;
             LoadData();
             Plugin.Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded!");
         }
@@ -112,7 +116,7 @@ namespace V.Core
             PlayerPrestige = Config.Bind("Config", "PlayerPrestige", true, "Enable player prestige").Value;
             PlayerRankUp = Config.Bind("Config", "PlayerRankUp", true, "Enable player rank up").Value;
 
-            rankCommandsCooldown = Config.Bind("Config", "RankCommandsCooldown", 0, "Cooldown for rank commands in hours").Value;
+            rankCommandsCooldown = Config.Bind("Config", "RankCommandsCooldown", 0, "Cooldown for rank commands in hours, needs to be reimplemented").Value;
 
             shardDrop = Config.Bind("Config", "ShardDrop", true, "Enable shard drop from Solarus").Value;
 
