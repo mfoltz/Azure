@@ -33,6 +33,7 @@ namespace WorldBuild.Core
             SettingType = (DebugSettingType)5,
             Value = false
         };
+
         public static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
         {
             SettingType = (DebugSettingType)16,
@@ -45,8 +46,6 @@ namespace WorldBuild.Core
             Value = false
         };
 
-        
-
         [Command(name: "togglefreebuild", shortHand: "tfb", adminOnly: true, usage: ".wb tfb", description: "Toggles freebuild debug settings.")]
         public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
         {
@@ -57,11 +56,10 @@ namespace WorldBuild.Core
                 ChatCommands.tfbFlag = true;
                 ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                
+
                 ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
 
-                
                 string enabledColor = WorldBuild.Core.FontColors.Green("enabled");
                 ctx.Reply($"freebuild: {enabledColor}");
             }
@@ -70,14 +68,15 @@ namespace WorldBuild.Core
                 ChatCommands.tfbFlag = false;
                 ChatCommands.BuildingCostsDebugSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingCostsDebugSetting);
-                
+
                 ChatCommands.BuildingPlacementRestrictionsDisabledSetting.Value = ChatCommands.tfbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref ChatCommands.BuildingPlacementRestrictionsDisabledSetting);
-                
+
                 string disabledColor = WorldBuild.Core.FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
         }
+
         /*
         public class horseFunctions
         {
@@ -114,23 +113,19 @@ namespace WorldBuild.Core
                 ctx.Reply($"Spawned {num}{(spectral == false ? "" : " spectral")} horse{(num > 1 ? "s" : "")} (with speed:{speed}, accel:{acceleration}, and rotate:{rotation}) near you.");
             }
 
-
             [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
             public static void DisableGhosts(ChatCommandContext ctx)
             {
-
-
                 EntityQuery horseQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
                 {
-                    All = new[] { 
+                    All = new[] {
                     ComponentType.ReadWrite<Immortal>(),
                     ComponentType.ReadWrite<Mountable>(),
                     ComponentType.ReadWrite<BuffBuffer>(),
                     ComponentType.ReadWrite<PrefabGUID>(),
-                }   
+                }
                 });
-                
-                
+
                 NativeArray<Entity> horseEntities = horseQuery.ToEntityArray(Allocator.TempJob);
                 foreach (var horse in horseEntities)
                 {
@@ -160,17 +155,12 @@ namespace WorldBuild.Core
                                     playerHorseStasisMap[playerId] = new HorseStasisState(horse, true);
                                     SystemPatchUtil.Disable(horse);
                                 }
-                                
-
                             }
-                            
                         }
                     }
                 }
                 horseEntities.Dispose();
                 ctx.Reply($"Placed dead player ghost horses in stasis. They can still be resummoned.");
-
-
             }
             [Command("enablehorse", "eh", description: "Reactivates the player's horse.", adminOnly: false)]
             public static void ReactivateHorse(ChatCommandContext ctx)
@@ -191,9 +181,7 @@ namespace WorldBuild.Core
                 }
             }
         }
-        
-        
-        
+
         [Command("spawnhorse", "sh", description: "Spawns a horse", adminOnly: true)]
         public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
         {
@@ -215,5 +203,106 @@ namespace WorldBuild.Core
             ctx.Reply($"Spawned {num}{(spectral == false ? "" : " spectral")} horse{(num > 1 ? "s" : "")} (with speed:{speed}, accel:{acceleration}, and rotate:{rotation}) near you.");
         }
         */
+
+        //[Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
+        public static void DestroyResourcesCommand(ChatCommandContext ctx)
+        {
+            // maybe if I set their health to 0 instead of destroying them? hmm
+            User user = ctx.Event.User;
+            Entity killer = ctx.Event.SenderUserEntity;
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            //ResourceFunctions.SearchAndDestroy();
+
+            ctx.Reply("All found resource nodes in player territories have been disabled.");
+        }
+
+        //[Command(name: "resetnodes", shortHand: "rn", adminOnly: true, usage: ".v rn", description: "Atempts to reset resource nodes if they've been disabled.")]
+        public static void ResetResourcesCommand(ChatCommandContext ctx)
+        {
+            // maybe if I set their health to 0 instead of destroying them? hmm
+            User user = ctx.Event.User;
+            Entity killer = ctx.Event.SenderUserEntity;
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            //ResourceFunctions.FindAndEnable();
+
+            //ctx.Reply("Resource nodes reset in player territories.");
+        }
+
+        public class ResourceFunctions
+        {
+            // this actually disables but destroy is much catchier
+            public static unsafe int SearchAndDestroy()
+            {
+                EntityManager entityManager = VWorld.Server.EntityManager;
+                int counter = 0;
+                bool includeDisabled = true;
+                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = new ComponentType[] {
+                    ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+                    ComponentType.ReadOnly<TilePosition>(),
+                },
+                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                });
+
+                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+                foreach (var node in resourceNodeEntities)
+                {
+                    if (ShouldRemoveNodeBasedOnTerritory(node))
+                    {
+                        // if node is in a player territory, which is updated for castle heart placement/destruction already, disable it
+                        // might need to filter for trees and rocks here
+                        counter += 1;
+                        SystemPatchUtil.Disable(node);
+                        //node.LogComponentTypes();
+                    }
+                }
+                resourceNodeEntities.Dispose();
+                return counter;
+            }
+
+            private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
+            {
+                Entity territoryEntity;
+                if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            public static unsafe void FindAndEnable()
+            {
+                EntityManager entityManager = VWorld.Server.EntityManager;
+                int counter = 0;
+                bool includeDisabled = true;
+                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = new ComponentType[] {
+                    ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+                    ComponentType.ReadOnly<TilePosition>(),
+                },
+                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                });
+
+                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+                foreach (var node in resourceNodeEntities)
+                {
+                    if (Utilities.HasComponent<Disabled>(node))
+                    {
+                        Entity territoryEntity;
+                        if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
+                        {
+                            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+                            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
+                            entityCommandBuffer.RemoveComponent<Disabled>(node);
+                            counter += 1;
+                        }
+                    }
+                }
+                resourceNodeEntities.Dispose();
+                Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
+            }
+        }
     }
 }
