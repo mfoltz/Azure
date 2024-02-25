@@ -2,17 +2,18 @@
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
-using RPGAddOnsEx.Augments.RankUp;
-using RPGAddOnsEx.Core;
+using V.Core;
 
 using Unity.Entities;
 using Unity.Mathematics;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
-using WillisCore;
 using Math = System.Math;
 using Random = System.Random;
+using V.Augments.Rank;
+using V.Core.Commands;
+using V.Core.Tools;
 
 namespace RPGAddOnsEx.Hooks
 {
@@ -76,7 +77,7 @@ namespace RPGAddOnsEx.Hooks
                             {
                                 Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
 
-                                PrefabGUID shard = AdminCommands.Data.Prefabs.Item_Building_Relic_Paladin;
+                                PrefabGUID shard = V.Data.Prefabs.Item_Building_Relic_Paladin;
                                 // sure I should properly fix the vblood 2 for 1 kill event thing orrrr I coould just keep doing simple bandaid fixes like this
                                 if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
                                 {
@@ -121,7 +122,7 @@ namespace RPGAddOnsEx.Hooks
                                     else
                                     {
                                         // create new data then add points
-                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, [0, 0], false);
+                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, [0, 0],"none", false);
                                         Databases.playerRanks.Add(SteamID, rankData);
                                         ChatCommands.SavePlayerRanks();
                                     }
@@ -201,7 +202,7 @@ namespace RPGAddOnsEx.Hooks
             {
                 counter += points;
                 string counterString = counter.ToString();
-                var colorString = RPGAddOnsEx.Core.FontColors.White(counterString);
+                var colorString = FontColors.White(counterString);
                 string toSend = "You've earned " + colorString + " rank points!";
                 ServerChatUtils.SendSystemMessageToClient(entityManager, user, toSend);
                 counter = 0;

@@ -1,8 +1,9 @@
 ﻿using HarmonyLib;
 using ProjectM;
 using Unity.Entities;
+using V.Core.Commands;
 
-namespace RPGAddOnsEx.Core
+namespace V.Core.Services
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 

@@ -1,8 +1,9 @@
-﻿using RPGAddOnsEx.Augments;
-using RPGAddOnsEx.Augments.RankUp;
+﻿
+using V.Augments.Rank;
 using System.Text.Json;
+using V.Augments;
 
-namespace RPGAddOnsEx.Core
+namespace V.Core
 {
     public class Databases
     {

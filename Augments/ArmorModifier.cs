@@ -2,9 +2,10 @@
 using ProjectM;
 using System.Reflection;
 using Unity.Entities;
-using RPGAddOnsEx.Core;
+using V.Core;
+using V.Core.Tools;
 
-namespace RPGAddOnsEx.Augments
+namespace V.Augments
 {
     public static class ArmorModifierSystem
     {
@@ -15,18 +16,9 @@ namespace RPGAddOnsEx.Augments
                 return;
             }
             EntityManager entityManager = VWorld.Server.EntityManager;
-
-            List<PrefabGUID> darkMatterSet = new List<PrefabGUID>
-            {
-                new PrefabGUID(1055898174), // Chest
-                new PrefabGUID(1400688919), // Boots
-                new PrefabGUID(125611165),  // Legs
-                new PrefabGUID(-204401621),  // Gloves
-            };
-
             PrefabGUID setBonus = new(35317589); // Bloodmoon Set Bonus
 
-            foreach (PrefabGUID prefabGUID in darkMatterSet)
+            foreach (PrefabGUID prefabGUID in V.Data.Kit.deathSet)
             {
                 Entity armorEntity = GetPrefabEntityByPrefabGUID(prefabGUID, entityManager);
 

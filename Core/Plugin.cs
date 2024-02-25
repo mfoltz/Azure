@@ -7,11 +7,15 @@ using System.Reflection;
 using Unity.Entities;
 using UnityEngine;
 using VampireCommandFramework;
-using VRising.GameData;
 using UnityEngine.SceneManagement;
 using System.Text.Json;
+using V.Augments;
+using V.Augments.Rank;
+using V.Core.Tools;
+using V.Core.Commands;
+using V.Core.Services;
 
-namespace RPGAddOnsEx.Core
+namespace V.Core
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]
@@ -22,19 +26,14 @@ namespace RPGAddOnsEx.Core
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
-        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "RPGAddOns/player_data");
+        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "VPlus");
         public static readonly string PlayerPrestigeJson = Path.Combine(Plugin.ConfigPath, "player_prestige.json");
         public static readonly string PlayerRanksJson = Path.Combine(Plugin.ConfigPath, "player_ranks.json");
         public static readonly string PlayerDivinityJson = Path.Combine(Plugin.ConfigPath, "player_divinity.json");
 
-        /*
-        public static int ExtraHealth;
-        public static int ExtraPhysicalPower;
-        public static int ExtraSpellPower;
-        public static int ExtraPhysicalResistance;
-        public static int ExtraSpellResistance;
-        */
-
+        public static bool buildingPlacementRestrictions;
+        public static bool castleHeartConnectionRequirement;
+        public static bool globalCastleTerritory;
         public static int MaxPrestiges;
         public static int MaxRanks;
 
@@ -73,29 +72,23 @@ namespace RPGAddOnsEx.Core
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
             InitConfig();
-            RPGAddOnsEx.Core.ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
-            GameData.OnInitialize += GameDataOnInitialize;
-
-            ChatCommands.LoadData();
-            Plugin.Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+            ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
+            LoadData();
+            Plugin.Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded!");
         }
 
         private void GameDataOnInitialize(World world)
         {
-            RPGAddOnsEx.Augments.ArmorModifierSystem.ModifyArmorPrefabEquipmentSet();
+            ArmorModifierSystem.ModifyArmorPrefabEquipmentSet();
         }
 
         private void InitConfig()
         {
             // Initialize configuration settings
-            /*
-            ExtraHealth = Config.Bind("Config", "ExtraHealth", 0, "Extra health on reset").Value;
-            ExtraPhysicalPower = Config.Bind("Config", "ExtraPhysicalPower", 0, "Extra physical power awarded on reset").Value;
-            ExtraSpellPower = Config.Bind("Config", "ExtraSpellPower", 0, "Extra spell power awarded on reset").Value;
-            ExtraPhysicalResistance = Config.Bind("Config", "ExtraPhysicalResistance", 0, "Extra physical resistance awarded on reset").Value;
-            ExtraSpellResistance = Config.Bind("Config", "ExtraSpellResistance", 0, "Extra spell resistance awarded on reset").Value;
-            */
 
+            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled. Recommended to leave as is.").Value;
+            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
+            globalCastleTerritory = Config.Bind("Config", "globalCastleTerritory", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
             MaxPrestiges = Config.Bind("Config", "MaxPrestiges", -1, "Maximum number of times players can prestige their level. -1 is infinite").Value;
             MaxRanks = Config.Bind("Config", "MaxRanks", 5, "Maximum number of times players can rank up.").Value;
 
@@ -125,7 +118,6 @@ namespace RPGAddOnsEx.Core
 
             rankPointsModifier = Config.Bind("Config", "RankPointsModifier", true, "True for multiply, false for divide").Value;
             rankPointsFactor = Config.Bind("Config", "RankPointsFactor", 1, "Factor to multiply or divide rank points by").Value;
-
             if (!Directory.Exists(ConfigPath))
             {
                 Directory.CreateDirectory(ConfigPath);
@@ -144,6 +136,72 @@ namespace RPGAddOnsEx.Core
 
         public void OnGameInitialized()
         {
+            CastleTerritoryCache.Initialize();
+            Plugin.Logger.LogInfo("TerritoryCache loaded");
+        }
+
+        public static void LoadData()
+        {
+            if (!File.Exists(Plugin.PlayerPrestigeJson))
+            {
+                var stream = File.Create(Plugin.PlayerPrestigeJson);
+                stream.Dispose();
+            }
+
+            string json1 = File.ReadAllText(Plugin.PlayerPrestigeJson);
+            Plugin.Logger.LogWarning($"PlayerPrestige found: {json1}");
+            try
+            {
+                Databases.playerPrestige = JsonSerializer.Deserialize<Dictionary<ulong, PrestigeData>>(json1);
+                Plugin.Logger.LogWarning("PlayerPrestige Populated");
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError($"Error deserializing data: {ex}");
+                Databases.playerPrestige = new Dictionary<ulong, PrestigeData>();
+                Plugin.Logger.LogWarning("PlayerPrestige Created");
+            }
+            if (!File.Exists(Plugin.PlayerRanksJson))
+            {
+                var stream = File.Create(Plugin.PlayerRanksJson);
+                stream.Dispose();
+            }
+
+            string json2 = File.ReadAllText(Plugin.PlayerRanksJson);
+            Plugin.Logger.LogWarning($"PlayerRanks found: {json2}");
+
+            try
+            {
+                Databases.playerRanks = JsonSerializer.Deserialize<Dictionary<ulong, RankData>>(json2);
+                Plugin.Logger.LogWarning("PlayerRanks Populated");
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError($"Error deserializing data: {ex}");
+                Databases.playerRanks = new Dictionary<ulong, RankData>();
+                Plugin.Logger.LogWarning("PlayerRanks Created");
+            }
+            /*
+            if (!File.Exists(Plugin.PlayerDivinityJson))
+            {
+                var stream = File.Create(Plugin.PlayerDivinityJson);
+                stream.Dispose();
+            }
+            string json3 = File.ReadAllText(Plugin.PlayerDivinityJson);
+            Plugin.Logger.LogWarning($"PlayerDivinity found: {json3}");
+
+            try
+            {
+                Databases.playerDivinity = JsonSerializer.Deserialize<Dictionary<ulong, DivineData>>(json3);
+                Plugin.Logger.LogWarning("PlayerDivinity populated");
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError($"Error deserializing data: {ex}");
+                Databases.playerDivinity = new Dictionary<ulong, DivineData>();
+                Plugin.Logger.LogWarning("PlayerDivinity Created");
+            }
+            */
         }
     }
 }

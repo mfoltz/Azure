@@ -1,12 +1,10 @@
-﻿using AdminCommands;
-using HarmonyLib;
+﻿using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
-using RPGAddOnsEx.Core;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.CodeGeneratedJobForEach;
-using Plugin = RPGAddOnsEx.Core.Plugin;
+using V.Core.Tools;
+using Plugin = V.Core.Plugin;
 
 #nullable disable
 // almost ready for live maybe

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RPGAddOnsEx.Core
+namespace V.Core.Tools
 {
     public class MUSB_DOTS
     {

@@ -1,8 +1,8 @@
-﻿using RPGAddOnsEx.Core;
+﻿using V.Core;
 using Steamworks;
 using VampireCommandFramework;
 
-namespace RPGAddOnsEx.Augments
+namespace V.Augments
 {
     public class DivineData
     {

@@ -1,10 +1,11 @@
-﻿using AdminCommands.Commands.Converters;
-using ProjectM;
-using RPGAddOnsEx.Core;
+﻿using ProjectM;
+using V.Core;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
+using V.Core.Tools;
+using V.Core.Commands;
 
-namespace RPGAddOnsEx.Augments.RankUp
+namespace V.Augments.Rank
 {
     public class RankData
     {
@@ -18,9 +19,11 @@ namespace RPGAddOnsEx.Augments.RankUp
 
         public List<int> Spells { get; set; } = new List<int>();
 
+        public string ClassChoice { get; set; }
+
         public bool FishingPole { get; set; }
 
-        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells, bool fishingPole)
+        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells,string classchoice, bool fishingPole)
         {
             Rank = rank;
             Points = points;
@@ -28,6 +31,7 @@ namespace RPGAddOnsEx.Augments.RankUp
             LastAbilityUse = DateTime.MinValue; // Initialize to ensure it's always set
             RankSpell = rankSpell;
             Spells = spells;
+            ClassChoice = classchoice;
             FishingPole = fishingPole;
         }
     }
@@ -49,21 +53,21 @@ namespace RPGAddOnsEx.Augments.RankUp
                 }
                 if (buffname != "0") // this is a way to skip a buff, leave buffs you want skipped as 0s in config
                 {
-                    WillisCore.Helper.BuffPlayerByName(playerName, buffguid, 0, true);
-                    string colorString = RPGAddOnsEx.Core.FontColors.Green(buffname);
+                    Helper.BuffPlayerByName(playerName, buffguid, 0, true);
+                    string colorString = FontColors.Green(buffname);
                     ctx.Reply($"You've been granted a permanent buff: {colorString}");
                 }
             }
             data.Rank++;
             data.Points = 0;
             data.Buffs = playerBuffs;
-            string rankString = RPGAddOnsEx.Core.FontColors.Yellow(data.Rank.ToString());
-            string playerString = RPGAddOnsEx.Core.FontColors.Blue(playerName);
+            string rankString = FontColors.Yellow(data.Rank.ToString());
+            string playerString = FontColors.Blue(playerName);
             ctx.Reply($"Congratulations {playerString}! You have increased your PvE rank to {rankString}.");
             //lightning bolt goes here
 
             PrefabGUID lightning = new PrefabGUID(1365358996);
-            FoundPrefabGuid foundPrefabGuid = new(lightning);
+            V.Data.FoundPrefabGuid foundPrefabGuid = new(lightning);
             CastCommands.CastCommand(ctx, foundPrefabGuid, null);
             ChatCommands.SavePlayerRanks();
             return;
@@ -82,7 +86,7 @@ namespace RPGAddOnsEx.Augments.RankUp
 
             playerBuffs.Add(buffList[data.Rank]);
             PrefabGUID buffguid = new(buffList[data.Rank]);
-            buffname = AdminCommands.ECSExtensions.LookupName(buffguid);
+            buffname = ECSExtensions.LookupName(buffguid);
             if (buffList[data.Rank] == 0)
             {
                 buffname = "0";

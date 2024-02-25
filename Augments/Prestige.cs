@@ -1,6 +1,6 @@
 ﻿using LibCpp2IL.BinaryStructures;
 using ProjectM;
-using RPGAddOnsEx.Core;
+using V.Core;
 using RPGMods.Commands;
 using RPGMods.Systems;
 using Steamworks;
@@ -8,8 +8,10 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using VampireCommandFramework;
 using static RPGMods.Utils.Prefabs;
+using V.Core.Tools;
+using V.Core.Commands;
 
-namespace RPGAddOnsEx.Augments
+namespace V.Augments
 {
     public class PrestigeData
     {
@@ -73,7 +75,7 @@ namespace RPGAddOnsEx.Augments
                 // need to return a tuple with itemname and itemguid
                 PrefabGUID itemguid = new(Plugin.ItemPrefab);
                 //string itemName = AdminCommands.Data.Items.GiveableItems.FirstOrDefault(item => item.PrefabGUID.Equals(Plugin.ItemPrefab)).OverrideName;
-                string itemName = AdminCommands.ECSExtensions.LookupName(itemguid);
+                string itemName = ECSExtensions.LookupName(itemguid);
 
                 return (itemName, itemguid);
             }
@@ -101,7 +103,7 @@ namespace RPGAddOnsEx.Augments
                         {
                             PrefabGUID buffguid = new(buffList[buff]);
                             // buff good to apply, 0 means no buff
-                            WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
+                            Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
                             data.PlayerBuff = buffList[buff];
                             ChatCommands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");
@@ -111,9 +113,9 @@ namespace RPGAddOnsEx.Augments
                         {
                             // remove buff using buffs data before applying new buff
                             PrefabGUID buffguidold = new(data.PlayerBuff);
-                            WillisCore.Helper.UnbuffCharacter(ctx.Event.SenderCharacterEntity, buffguidold);
+                            Helper.UnbuffCharacter(ctx.Event.SenderCharacterEntity, buffguidold);
                             PrefabGUID buffguidnew = new(buffList[buff]);
-                            WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
+                            Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
                             data.PlayerBuff = buffList[buff];
                             ChatCommands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");
@@ -129,7 +131,7 @@ namespace RPGAddOnsEx.Augments
                             {
                                 PrefabGUID buffguid = new(buffList[buff - 1]);
                                 // buff good to apply, 0 means no buff
-                                WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
+                                Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
                                 data.PlayerBuff = buffList[buff - 1];
                                 ChatCommands.SavePlayerPrestige();
                                 ctx.Reply($"Visual buff #{buff} has been applied.");
@@ -139,9 +141,9 @@ namespace RPGAddOnsEx.Augments
                             {
                                 // remove buff using buffs data before applying new buff
                                 PrefabGUID buffguidold = new(data.PlayerBuff);
-                                WillisCore.Helper.UnbuffCharacter(ctx.Event.SenderCharacterEntity, buffguidold);
+                                Helper.UnbuffCharacter(ctx.Event.SenderCharacterEntity, buffguidold);
                                 PrefabGUID buffguidnew = new(buffList[buff - 1]);
-                                WillisCore.Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
+                                Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
                                 data.PlayerBuff = buffList[buff - 1];
                                 ChatCommands.SavePlayerPrestige();
                                 ctx.Reply($"Visual buff #{buff} has been applied.");
@@ -185,8 +187,8 @@ namespace RPGAddOnsEx.Augments
 
                     var (itemName, itemguid) = ItemCheck();
                     RPGMods.Utils.Helper.AddItemToInventory(ctx, itemguid, itemQuantity);
-                    string quantityString = RPGAddOnsEx.Core.FontColors.Yellow(itemQuantity.ToString());
-                    string itemString = RPGAddOnsEx.Core.FontColors.Purple(itemName);
+                    string quantityString = FontColors.Yellow(itemQuantity.ToString());
+                    string itemString = FontColors.Purple(itemName);
                     ctx.Reply($"You've been awarded with: {quantityString} {itemString}");
                 }
                 //ApplyResists(ctx, playerName, SteamID, data);
