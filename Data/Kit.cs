@@ -5,7 +5,6 @@
 
 #endregion
 
-using System.Collections.Generic;
 using ProjectM;
 
 namespace V.Data;

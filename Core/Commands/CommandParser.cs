@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace V.Core.Commands
+﻿namespace V.Core.Commands
 {
     public class CommandParser
     {
-        private static List<string> CaseSensitiveCommands = new List<string>()
+        private static readonly List<string> CaseSensitiveCommands = new List<string>()
         {
           "chungusbuff",
           "chungusunbuff"

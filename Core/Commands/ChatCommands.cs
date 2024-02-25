@@ -1,34 +1,20 @@
 ﻿using Bloodstone.API;
 using ProjectM;
-using ProjectM.CastleBuilding;
-using ProjectM.Gameplay.Scripting;
 using ProjectM.Network;
-using ProjectM.Scripting;
-using ProjectM.Terrain;
-using ProjectM.Tiles;
-using ProjectM.UI;
-using Stunlock.Core;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Experimental.AssetBundlePatching;
-using UnityEngine.SceneManagement;
-using V.Augments.Rank;
 using V.Augments;
-using VampireCommandFramework;
-using VRising.GameData.Models;
-using VRising.GameData;
-using System.Runtime.CompilerServices;
-using V.Data;
-using Buff = V.Data.Buff;
-using Items = V.Data.Items;
-using static V.Data.Items;
-using V.Core.Tools;
+using V.Augments.Rank;
 using V.Core.Services;
+using V.Core.Tools;
+using V.Data;
+using VampireCommandFramework;
+using VRising.GameData;
+using VRising.GameData.Models;
 
 namespace V.Core.Commands
 {
@@ -78,7 +64,6 @@ namespace V.Core.Commands
         {
             User user = ctx.Event.User;
             // want to disable resource nodes in active player territories here to avoid overgrowth
-
 
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             if (!tfbFlag)
@@ -141,7 +126,6 @@ namespace V.Core.Commands
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"freebuild: {disabledColor}");
             }
-
         }
 
         [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <Player>", description: "Resets a player's rank count.")]
@@ -164,7 +148,7 @@ namespace V.Core.Commands
                     {
                         // Reset the user's progress
                         var buffsToWipe = Databases.playerRanks[SteamID].Buffs;
-                        Databases.playerRanks[SteamID] = new RankData(0, 0, [], 0, [0, 0],"none", false);
+                        Databases.playerRanks[SteamID] = new RankData(0, 0, [], 0, [0, 0], "none", false);
                         foreach (var buff in buffsToWipe)
                         {
                             PrefabGUID buffguid = new(buff);
@@ -231,7 +215,7 @@ namespace V.Core.Commands
                             return;
                         }
                         // make data for them if none found
-                        RankData rankData = new(0, points, [], 0, [0, 0],"none", false);
+                        RankData rankData = new(0, points, [], 0, [0, 0], "none", false);
                         if (rankData.Points > rankData.Rank * 1000 + 1000)
                         {
                             rankData.Points = rankData.Rank * 1000 + 1000;
@@ -318,7 +302,7 @@ namespace V.Core.Commands
                     }
                     else
                     {
-                        RankData rankData = new(rank, 0, [], 0, [0, 0],"none", false);
+                        RankData rankData = new(rank, 0, [], 0, [0, 0], "none", false);
                         /*
                         for (int i = 0; i <= rank; i++)
                         {
@@ -677,6 +661,7 @@ namespace V.Core.Commands
                 ctx.Reply("Player not found.");
             }
         }
+
         /*
         [Command(name: "playerascend", shortHand: "asc", adminOnly: false, usage: ".v asc", description: "Ascends player if requirements are met.")]
         public static void PlayerAscendCommand(ChatCommandContext ctx)
@@ -777,6 +762,7 @@ namespace V.Core.Commands
             }
         }
         */
+
         [Command(name: "getposition", shortHand: "pos", adminOnly: true, usage: ".v pos", description: "Returns position coordinates of player in console.")]
         public static void GetPosition(ChatCommandContext ctx)
         {
@@ -1122,6 +1108,7 @@ namespace V.Core.Commands
             string stringAndClear = interpolatedStringHandler.ToStringAndClear();
             chatCommandContext.Reply(stringAndClear);
         }
+
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
         public unsafe void TestCommand(ChatCommandContext ctx)
@@ -1143,8 +1130,6 @@ namespace V.Core.Commands
             return allUnityObjects;
         }
 
-
-
         public static void SavePlayerPrestige()
         {
             File.WriteAllText(Plugin.PlayerPrestigeJson, JsonSerializer.Serialize(Databases.playerPrestige));
@@ -1159,10 +1144,9 @@ namespace V.Core.Commands
         {
             File.WriteAllText(Plugin.PlayerDivinityJson, JsonSerializer.Serialize(Databases.playerDivinity));
         }
-
-        
     }
 }
+
 /*
 //[Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
 public static void DestroyResourcesCommand(ChatCommandContext ctx)
@@ -1223,7 +1207,6 @@ public class ResourceFunctions
         Entity territoryEntity;
         if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
         {
-
             return true;
         }
         return false;
@@ -1246,8 +1229,6 @@ public class ResourceFunctions
         var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
         foreach (var node in resourceNodeEntities)
         {
-
-
             if (Utilities.HasComponent<Disabled>(node))
             {
                 Entity territoryEntity;
@@ -1258,14 +1239,11 @@ public class ResourceFunctions
                     entityCommandBuffer.RemoveComponent<Disabled>(node);
                     counter += 1;
                 }
-
             }
-
         }
         resourceNodeEntities.Dispose();
         Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
     }
-
 }
 }
 }

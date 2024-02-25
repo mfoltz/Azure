@@ -1,19 +1,12 @@
-﻿using Bloodstone.API;
-using HarmonyLib;
+﻿using HarmonyLib;
 using ProjectM;
-using ProjectM.Gameplay;
 using ProjectM.Network;
-using ProjectM.Shared;
-using ProjectM.UI;
-using V.Augments.Rank;
-using V.Core;
-using Steamworks;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.CodeGeneratedJobForEach;
-
-using Plugin = V.Core.Plugin;
+using V.Augments.Rank;
+using V.Core;
 using V.Core.Commands;
+using Plugin = V.Core.Plugin;
 
 #nullable disable
 // almost ready for live maybe
@@ -25,10 +18,10 @@ namespace RPGAddOnsEx.Hooks
     {
         private static void Prefix(ReplaceAbilityOnSlotSystem __instance)
         {
-            
+
             try
             {
-                
+
                 EntityManager entityManager = __instance.EntityManager;
                 NativeArray<Entity> entityArray = __instance.__Spawn_entityQuery.ToEntityArray(Allocator.Temp);
                 Plugin.Logger.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");

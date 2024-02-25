@@ -1,23 +1,16 @@
-﻿
-using Bloodstone.API;
+﻿using Bloodstone.API;
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
-using V.Core;
-using RPGMods.Utils;
 using Unity.Entities;
 using Unity.Mathematics;
-using VampireCommandFramework;
-using DateTime = System.DateTime;
-using Plugin = V.Core.Plugin;
-using TimeSpan = System.TimeSpan;
-using static V.Core.Services.PlayerService;
-using V.Data;
-using V.Core.Tools;
+using V.Core;
 using V.Core.Commands;
 using V.Core.Services;
-using static V.Augments.Rank.CastCommands;
-using Type = System.Type;
+using V.Core.Tools;
+using V.Data;
+using VampireCommandFramework;
+using Plugin = V.Core.Plugin;
 
 #nullable disable
 
@@ -66,6 +59,7 @@ namespace V.Augments.Rank
             };
             existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
         }
+
         public class RankSpellConstructor
         {
             public string Name { get; set; }
@@ -79,6 +73,7 @@ namespace V.Augments.Rank
                 RequiredRank = requiredRank;
             }
         }
+
         public class Nightmarshal
         {
             public Dictionary<int, RankSpellConstructor> Spells = new Dictionary<int, RankSpellConstructor>();
@@ -92,9 +87,11 @@ namespace V.Augments.Rank
                 Spells.Add(1, new RankSpellConstructor("Batwhirlwind", V.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1));
             }
         }
+
         public class Deus
         {
             public Dictionary<int, RankSpellConstructor> Spells = new Dictionary<int, RankSpellConstructor>();
+
             public Deus()
             {
                 Spells.Add(5, new RankSpellConstructor("NukeAll", V.Data.Prefabs.AB_Debug_NukeAll_Group, 5));
@@ -104,13 +101,15 @@ namespace V.Augments.Rank
                 Spells.Add(1, new RankSpellConstructor("Leapattack", V.Data.Prefabs.AB_Cursed_MountainBeast_LeapAttack_Travel_AbilityGroup, 1));
             }
         }
+
         public static class CommandHandler
         {
-            private static Dictionary<string, System.Func<object>> classFactories = new Dictionary<string, System.Func<object>>
+            private static readonly Dictionary<string, System.Func<object>> classFactories = new Dictionary<string, System.Func<object>>
             {
                 { "nightmarshal", () => new Nightmarshal() },
                 { "deus", () => new Deus() },
             };
+
             [Command(name: "chooseClass", shortHand: "cc", adminOnly: false, usage: ".cs <name>", description: "Sets class to use spells from.")]
             public static void ClassChoice(ChatCommandContext ctx, string choice)
             {
@@ -127,7 +126,6 @@ namespace V.Augments.Rank
                             {
                                 ctx.Reply("You must be an admin to use this class.");
                                 return;
-
                             }
                             else
                             {
@@ -140,7 +138,6 @@ namespace V.Augments.Rank
                             rankData.ClassChoice = choice;
                             ctx.Reply($"Class set to {choice}.");
                         }
-
                     }
                 }
                 else
@@ -148,6 +145,7 @@ namespace V.Augments.Rank
                     ctx.Reply("Your rank data could not be found.");
                 }
             }
+
             [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs <#>", description: "Sets class spell to shift.")]
             public static void SpellChoice(ChatCommandContext ctx, int choice)
             {
@@ -160,7 +158,7 @@ namespace V.Augments.Rank
                     if (classFactories.TryGetValue(rankData.ClassChoice, out var classFactory))
                     {
                         var classInstance = classFactory.Invoke();
-
+                        // classInstance is as
                         // Check if the class instance is of expected type and contains the spell
                         if (classInstance is Nightmarshal nightmarshal && nightmarshal.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructorNightmarshal))
                         {
@@ -214,12 +212,6 @@ namespace V.Augments.Rank
                     ctx.Reply("Your rank data could not be found.");
                 }
             }
-
         }
-
-
     }
 }
-
-
-    

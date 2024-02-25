@@ -1,29 +1,16 @@
 ﻿using Bloodstone.API;
-using FMOD.Studio;
 using HarmonyLib;
-using Il2CppSystem;
 using ProjectM;
-using ProjectM.Behaviours;
-using ProjectM.CastleBuilding;
-using ProjectM.CastleBuilding.Placement;
 using ProjectM.Gameplay.Systems;
 using ProjectM.Network;
-using ProjectM.Scripting;
-using System.Runtime.InteropServices;
 using System.Text;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Physics;
-using UnityEngine.TextCore;
-using static ProjectM.CastleBuilding.Placement.GetPlacementResult;
-using static ProjectM.Network.SetTimeOfDayEvent;
-using static VCF.Core.Basics.RoleCommands;
+using V.Core.Commands;
+using V.Core.Tools;
 using Exception = System.Exception;
 using Plugin = V.Core.Plugin;
 using User = ProjectM.Network.User;
-using V.Core.Tools;
-using V.Core.Commands;
 
 //WIP
 

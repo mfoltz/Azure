@@ -1,9 +1,9 @@
 ﻿using ProjectM;
-using V.Core;
 using System.Text.RegularExpressions;
-using VampireCommandFramework;
-using V.Core.Tools;
+using V.Core;
 using V.Core.Commands;
+using V.Core.Tools;
+using VampireCommandFramework;
 
 namespace V.Augments.Rank
 {
@@ -23,7 +23,7 @@ namespace V.Augments.Rank
 
         public bool FishingPole { get; set; }
 
-        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells,string classchoice, bool fishingPole)
+        public RankData(int rank, int points, List<int> buffs, int rankSpell, List<int> spells, string classchoice, bool fishingPole)
         {
             Rank = rank;
             Points = points;

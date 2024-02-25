@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Bloodstone.API;
 using ProjectM;
-using ProjectM.LightningStorm;
-using ProjectM.Network;
 using Unity.Entities;
-using VampireCommandFramework;
-using Bloodstone.API;
 using Unity.Transforms;
-using V.Data;
-using V.Core.Tools;
 using V.Core.Services;
+using V.Core.Tools;
+using V.Data;
+using VampireCommandFramework;
 
 namespace V.Core.Commands
 {
@@ -23,16 +18,18 @@ namespace V.Core.Commands
         public static Dictionary<Entity, float> PlayerProjectileSpeeds = new Dictionary<Entity, float>();
         public static Dictionary<Entity, float> PlayerProjectileRanges = new Dictionary<Entity, float>();
         public static Dictionary<Entity, int> PlayerProjectileBounces = new Dictionary<Entity, int>();
-        const int DEFAULT_FAST_SPEED = 15;
+        private const int DEFAULT_FAST_SPEED = 15;
 
-        private static List<string> GodFlags = new List<string>
+        private static readonly List<string> GodFlags = new List<string>
     {
         "immortal", "nocd", "speed", "attackSpeed", "damage", "hp"
     };
-        private static Dictionary<string, List<string>> groupBuffTypes = new Dictionary<string, List<string>>()
+
+        private static readonly Dictionary<string, List<string>> groupBuffTypes = new Dictionary<string, List<string>>()
     {
         {"god", GodFlags },
     };
+
         [Command("hp", adminOnly: true)]
         public void HpCommand(ChatCommandContext ctx, int hp = 0, FoundPlayer player = null)
         {
@@ -57,6 +54,7 @@ namespace V.Core.Commands
                 }
             }
         }
+
         [Command("projectilespeed", adminOnly: true)]
         public void ProjectileSpeedCommand(ChatCommandContext ctx, float speed = 1f, FoundPlayer player = null)
         {
@@ -73,6 +71,7 @@ namespace V.Core.Commands
                 ctx.Reply("projectile speed set to default");
             }
         }
+
         [Command("damage", adminOnly: true)]
         public void DamageCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -89,6 +88,7 @@ namespace V.Core.Commands
                 ctx.Reply("damage mode disabled");
             }
         }
+
         [Command("projectilerange", adminOnly: true)]
         public void ProjectileRangeCommand(ChatCommandContext ctx, float range = 1f, FoundPlayer player = null)
         {
@@ -105,6 +105,7 @@ namespace V.Core.Commands
                 ctx.Reply("projectile range set to default");
             }
         }
+
         [Command("projectilebounces", adminOnly: true)]
         public void ProjectileBouncesCommand(ChatCommandContext ctx, int bounces = -1, FoundPlayer player = null)
         {
@@ -121,6 +122,7 @@ namespace V.Core.Commands
                 ctx.Reply("projectile bounces set to default");
             }
         }
+
         [Command("golem", adminOnly: true)]
         public void GolemCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -138,6 +140,7 @@ namespace V.Core.Commands
                 ctx.Reply("Golem'd");
             }
         }
+
         [Command("speed", adminOnly: true)]
         public void SpeedCommand(ChatCommandContext ctx, float speed = DEFAULT_FAST_SPEED, FoundPlayer player = null)
         {
@@ -162,6 +165,7 @@ namespace V.Core.Commands
                 }
             }
         }
+
         [Command("nocd", adminOnly: true)]
         public void NoCdCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -177,8 +181,8 @@ namespace V.Core.Commands
             {
                 ctx.Reply("nocd mode disabled");
             }
-
         }
+
         [Command("attackspeed", adminOnly: true)]
         public void AttackSpeedCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -194,6 +198,7 @@ namespace V.Core.Commands
                 ctx.Reply("attack speed disabled");
             }
         }
+
         [Command("immortal", adminOnly: true)]
         public void ImmortalCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -209,6 +214,7 @@ namespace V.Core.Commands
                 ctx.Reply("Made mortal");
             }
         }
+
         public void SpectateCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -228,6 +234,7 @@ namespace V.Core.Commands
                 ctx.Reply("Set to spectator");
             }
         }
+
         [Command(name: "god", shortHand: "g", adminOnly: true, usage: ".v g <Player>", description: "Turns on godmode.")]
         public void GodCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -243,6 +250,7 @@ namespace V.Core.Commands
             //Helper.ResetCharacter(Character);
             ctx.Reply("Set to god mode");
         }
+
         [Command(name: "normal", shortHand: "n", adminOnly: true, usage: ".v n <Player>", description: "Turns off godmode.")]
         public void NormalCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -251,6 +259,7 @@ namespace V.Core.Commands
             NormalizeCharacter(Character);
             ctx.Reply("Set to normal mode");
         }
+
         [Command("immaterial", adminOnly: true)]
         public void ImmaterialCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -266,9 +275,6 @@ namespace V.Core.Commands
                 ctx.Reply("Made material");
             }
         }
-
-
-
 
         private static void NormalizeCharacter(Entity Character)
         {
@@ -415,5 +421,3 @@ namespace V.Core.Commands
         }
     }
 }
-
-

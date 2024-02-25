@@ -3,9 +3,6 @@
 // Decompiled with ICSharpCode.Decompiler 8.1.1.7464
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Bloodstone.API;
 using Il2CppInterop.Runtime;
 using Il2CppSystem;

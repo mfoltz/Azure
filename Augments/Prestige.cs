@@ -1,15 +1,11 @@
-﻿using LibCpp2IL.BinaryStructures;
-using ProjectM;
-using V.Core;
+﻿using ProjectM;
 using RPGMods.Commands;
 using RPGMods.Systems;
-using Steamworks;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using VampireCommandFramework;
-using static RPGMods.Utils.Prefabs;
-using V.Core.Tools;
+using V.Core;
 using V.Core.Commands;
+using V.Core.Tools;
+using VampireCommandFramework;
 
 namespace V.Augments
 {

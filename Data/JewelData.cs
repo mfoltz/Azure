@@ -3,7 +3,6 @@
 // Decompiled with ICSharpCode.Decompiler 8.1.1.7464
 #endregion
 
-using System.Collections.Generic;
 using ProjectM;
 
 namespace V.Data;

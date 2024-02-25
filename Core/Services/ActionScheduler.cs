@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Bloodstone.API;
-using HarmonyLib;
-using Il2CppInterop.Runtime;
+﻿using HarmonyLib;
 using ProjectM;
-using ProjectM.Network;
-using ProjectM.Shared;
-using Unity.Entities;
 
 namespace V.Core.Services;
 [HarmonyPatch(typeof(ServerTimeSystem_Server), nameof(ServerTimeSystem_Server.OnUpdate))]
 public static class ActionScheduler
 {
     public static int CurrentFrameCount = 0;
-    private static List<ScheduledAction> scheduledActions = new List<ScheduledAction>();
+    private static readonly List<ScheduledAction> scheduledActions = new List<ScheduledAction>();
     public static bool ShouldDeleteVersionFile = false;
 
     public static void Postfix()

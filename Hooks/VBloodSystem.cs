@@ -2,18 +2,17 @@
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
-using V.Core;
-
 using Unity.Entities;
 using Unity.Mathematics;
+using V.Augments.Rank;
+using V.Core;
+using V.Core.Commands;
+using V.Core.Tools;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
 using Math = System.Math;
 using Random = System.Random;
-using V.Augments.Rank;
-using V.Core.Commands;
-using V.Core.Tools;
 
 namespace RPGAddOnsEx.Hooks
 {
@@ -122,7 +121,7 @@ namespace RPGAddOnsEx.Hooks
                                     else
                                     {
                                         // create new data then add points
-                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, [0, 0],"none", false);
+                                        RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, [0, 0], "none", false);
                                         Databases.playerRanks.Add(SteamID, rankData);
                                         ChatCommands.SavePlayerRanks();
                                     }

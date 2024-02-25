@@ -1,6 +1,4 @@
-﻿using V.Core;
-using Steamworks;
-using VampireCommandFramework;
+﻿using VampireCommandFramework;
 
 namespace V.Augments
 {

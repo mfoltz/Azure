@@ -1,15 +1,11 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Bloodstone.API;
+﻿using Bloodstone.API;
 using Il2CppInterop.Runtime;
-using ProjectM.CastleBuilding;
 using ProjectM;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
-using Unity.Transforms;
-using Unity.Collections;
-using Unity.Mathematics;
+using ProjectM.CastleBuilding;
 using ProjectM.Shared;
+using System.Runtime.InteropServices;
+using Unity.Entities;
+using Unity.Mathematics;
 using static V.Core.Services.PlayerService;
 namespace V.Core.Tools
 {
