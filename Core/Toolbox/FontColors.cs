@@ -1,4 +1,4 @@
-﻿namespace WorldBuild.Core
+﻿namespace WorldBuild.Core.Toolbox
 {
     internal class FontColors
     {

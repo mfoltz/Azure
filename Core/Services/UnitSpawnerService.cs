@@ -1,5 +1,4 @@
 ﻿using Bloodstone.API;
-using WorldBuild.Core;
 using HarmonyLib;
 using ProjectM;
 using System;
@@ -8,8 +7,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using WorldBuild.Core.Toolbox;
 
-namespace WorldBuild.Core;
+namespace WorldBuild.Core.Services;
 
 internal class UnitSpawnerService
 {

@@ -1,6 +1,8 @@
 ﻿#region Assembly AdminCommands, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+
 // C:\Users\mitch\Downloads\AdminCommands.dll
 // Decompiled with ICSharpCode.Decompiler 8.1.1.7464
+
 #endregion
 
 using System;
@@ -18,9 +20,10 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using WorldBuild.Core.Services;
 using WorldBuild.Data;
 
-namespace WorldBuild.Core;
+namespace WorldBuild.Core.Toolbox;
 
 public static class Helper
 {
@@ -60,7 +63,7 @@ public static class Helper
     public static PrefabGUID GetPrefabGUID(Entity entity)
     {
         EntityManager entityManager = VWorld.Server.EntityManager;
-        PrefabGUID componentData = default(PrefabGUID);
+        PrefabGUID componentData = default;
         try
         {
             componentData = entityManager.GetComponentData<PrefabGUID>(entity);
@@ -87,7 +90,7 @@ public static class Helper
         ServerBootstrapSystem existingSystem = VWorld.Server.GetExistingSystem<ServerBootstrapSystem>();
         EntityCommandBufferSystem existingSystem2 = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
         EntityCommandBuffer commandBuffer = existingSystem2.CreateCommandBuffer();
-        Nullable_Unboxed<float3> customSpawnLocation = default(Nullable_Unboxed<float3>);
+        Nullable_Unboxed<float3> customSpawnLocation = default;
         customSpawnLocation.value = position;
         customSpawnLocation.has_value = true;
         Health componentData = Character.Read<Health>();
@@ -135,7 +138,7 @@ public static class Helper
         componentData.UnitBloodType = bloodType;
         entity.Write(componentData);
         PrefabGUID source = entity.Read<PrefabGUID>();
-        ConsumeBloodDebugEvent consumeBloodDebugEvent = default(ConsumeBloodDebugEvent);
+        ConsumeBloodDebugEvent consumeBloodDebugEvent = default;
         consumeBloodDebugEvent.Amount = 100;
         consumeBloodDebugEvent.Quality = quality;
         consumeBloodDebugEvent.Source = source;
@@ -195,7 +198,7 @@ public static class Helper
 
     public static NativeArray<Entity> GetEntitiesByComponentTypes<T1>(bool includeDisabled = false)
     {
-        EntityQueryOptions options = (includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default);
+        EntityQueryOptions options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default;
         EntityQueryDesc entityQueryDesc = new EntityQueryDesc();
         entityQueryDesc.All = new ComponentType[1]
         {
@@ -211,7 +214,7 @@ public static class Helper
 
     public static NativeArray<Entity> GetEntitiesByComponentTypes<T1, T2>(bool includeDisabled = false)
     {
-        EntityQueryOptions options = (includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default);
+        EntityQueryOptions options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default;
         EntityQueryDesc entityQueryDesc = new EntityQueryDesc();
         entityQueryDesc.All = new ComponentType[2]
         {
@@ -228,7 +231,7 @@ public static class Helper
 
     public static NativeArray<Entity> GetEntitiesByComponentTypes<T1, T2, T3>(bool includeDisabled = false)
     {
-        EntityQueryOptions options = (includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default);
+        EntityQueryOptions options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default;
         EntityQueryDesc entityQueryDesc = new EntityQueryDesc();
         entityQueryDesc.All = new ComponentType[3]
         {
@@ -243,6 +246,7 @@ public static class Helper
         entityQuery.Dispose();
         return result;
     }
+
     public static List<Entity> GetClanMembersByUser(Entity User, bool includeStartingUser = true)
     {
         List<Entity> list = new List<Entity>();
@@ -297,7 +301,7 @@ public static class Helper
 
     public static void UnlockContent(FromCharacter fromCharacter)
     {
-        SetUserContentDebugEvent setUserContentDebugEvent = default(SetUserContentDebugEvent);
+        SetUserContentDebugEvent setUserContentDebugEvent = default;
         setUserContentDebugEvent.Value = UserContentFlags.EarlyAccess | UserContentFlags.DLC_DraculasRelics_EA | UserContentFlags.DLC_FoundersPack_EA | UserContentFlags.GiveAway_Razer01 | UserContentFlags.Halloween2022 | UserContentFlags.DLC_Gloomrot;
         SetUserContentDebugEvent clientEvent = setUserContentDebugEvent;
         debugEventsSystem.SetUserContentDebugEvent(fromCharacter.User.Read<User>().Index, ref clientEvent, ref fromCharacter);
@@ -312,7 +316,7 @@ public static class Helper
         while (enumerator.MoveNext())
         {
             Entity current = enumerator.Current;
-            UnlockedWaypointElement elem = default(UnlockedWaypointElement);
+            UnlockedWaypointElement elem = default;
             elem.Waypoint = current.Read<NetworkId>();
             dynamicBuffer.Add(elem);
         }
@@ -330,7 +334,7 @@ public static class Helper
     public static void RenamePlayer(FromCharacter fromCharacter, string newName)
     {
         NetworkId target = fromCharacter.User.Read<NetworkId>();
-        RenameUserDebugEvent renameUserDebugEvent = default(RenameUserDebugEvent);
+        RenameUserDebugEvent renameUserDebugEvent = default;
         renameUserDebugEvent.NewName = newName;
         renameUserDebugEvent.Target = target;
         RenameUserDebugEvent clientEvent = renameUserDebugEvent;
@@ -360,7 +364,6 @@ public static class Helper
             }
         }
     }
-
 
     public static void CreateJewel(FromCharacter fromData, string spellName, string mods = "", float power = 1f)
     {
@@ -537,7 +540,6 @@ public static class Helper
         }
     }
 
-
     public static bool TryGetPrefabGUIDFromString(string buffNameOrId, out PrefabGUID prefabGUID)
     {
         if (prefabCollectionSystem.NameToPrefabGuidDictionary.ContainsKey(buffNameOrId))
@@ -556,7 +558,7 @@ public static class Helper
             }
         }
 
-        prefabGUID = default(PrefabGUID);
+        prefabGUID = default;
         return false;
     }
 
@@ -604,14 +606,14 @@ public static class Helper
             }
         }
 
-        MatchItem matchItem = list.OrderByDescending((MatchItem m) => m.Score).FirstOrDefault();
+        MatchItem matchItem = list.OrderByDescending((m) => m.Score).FirstOrDefault();
         if (matchItem.Item != null)
         {
             prefabGUID = matchItem.Item.PrefabGUID;
             return true;
         }
 
-        prefabGUID = default(PrefabGUID);
+        prefabGUID = default;
         return false;
     }
 
@@ -622,7 +624,7 @@ public static class Helper
             return AddItemToInventory(recipient, prefabGUID, amount, out entity, equip);
         }
 
-        entity = default(Entity);
+        entity = default;
         return false;
     }
 
@@ -638,7 +640,7 @@ public static class Helper
             return true;
         }
 
-        entity = default(Entity);
+        entity = default;
         return false;
     }
 
@@ -673,10 +675,10 @@ public static class Helper
             Prefabs.AB_Interact_UseRelic_Paladin_Buff
         };
         DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-        ApplyBuffDebugEvent applyBuffDebugEvent = default(ApplyBuffDebugEvent);
+        ApplyBuffDebugEvent applyBuffDebugEvent = default;
         applyBuffDebugEvent.BuffPrefabGUID = buff;
         ApplyBuffDebugEvent applyBuffDebugEvent2 = applyBuffDebugEvent;
-        FromCharacter fromCharacter = default(FromCharacter);
+        FromCharacter fromCharacter = default;
         fromCharacter.User = user;
         fromCharacter.Character = character;
         FromCharacter from = fromCharacter;
@@ -794,7 +796,7 @@ public static class Helper
             return true;
         }
 
-        ClanEntity = default(Entity);
+        ClanEntity = default;
         return false;
     }
 
@@ -1202,6 +1204,7 @@ public static class Helper
     {
     }
 }
+
 #if false // Decompilation log
 '342' items in cache
 ------------------

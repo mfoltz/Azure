@@ -1,111 +1,94 @@
-﻿
-using System;
-using System.Runtime.InteropServices;
-using Bloodstone.API;
-using Il2CppInterop.Runtime;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using ProjectM;
-using Unity;
+﻿#region Assembly AdminCommands, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+
+// C:\Users\mitch\Downloads\AdminCommands.dll
+// Decompiled with ICSharpCode.Decompiler 8.1.1.7464
+
+#endregion
+
+using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using WorldBuild.Core.Toolbox;
 
+namespace WorldBuild.Core.Services;
 
-
-public static class ECSExtensions
+public static class PlayerService
 {
-    public unsafe static void Write<T>(this Entity entity, T componentData) where T : struct
+    public struct Player
     {
-        ComponentType componentType = new ComponentType(Il2CppType.Of<T>());
-        byte[] array = StructureToByteArray(componentData);
-        int size = Marshal.SizeOf<T>();
-        fixed (byte* data = array)
+        public string Name { get; set; }
+
+        public ulong SteamID { get; set; }
+
+        public bool IsOnline { get; set; }
+
+        public bool IsAdmin { get; set; }
+
+        public Entity User { get; set; }
+
+        public Entity Character { get; set; }
+
+        public Player(Entity userEntity = default, Entity charEntity = default)
         {
-            VWorld.Server.EntityManager.SetComponentDataRaw(entity, componentType.TypeIndex, data, size);
+            User = userEntity;
+            User user = User.Read<User>();
+            Character = user.LocalCharacter._Entity;
+            Name = user.CharacterName.ToString();
+            IsOnline = user.IsConnected;
+            IsAdmin = user.IsAdmin;
+            SteamID = user.PlatformId;
         }
     }
 
-    public static byte[] StructureToByteArray<T>(T structure) where T : struct
+    public static bool TryGetPlayerFromString(string input, out Player player)
     {
-        int num = Marshal.SizeOf(structure);
-        byte[] array = new byte[num];
-        IntPtr intPtr = Marshal.AllocHGlobal(num);
-        Marshal.StructureToPtr(structure, intPtr, fDeleteOld: true);
-        Marshal.Copy(intPtr, array, 0, num);
-        Marshal.FreeHGlobal(intPtr);
-        return array;
-    }
-
-    public unsafe static T Read<T>(this Entity entity) where T : struct
-    {
-        ComponentType componentType = new ComponentType(Il2CppType.Of<T>());
-        void* componentDataRawRO = VWorld.Server.EntityManager.GetComponentDataRawRO(entity, componentType.TypeIndex);
-        return Marshal.PtrToStructure<T>(new IntPtr(componentDataRawRO));
-    }
-
-    public static DynamicBuffer<T> ReadBuffer<T>(this Entity entity) where T : struct
-    {
-        return VWorld.Server.EntityManager.GetBuffer<T>(entity);
-    }
-
-    public static void Add<T>(this Entity entity)
-    {
-        ComponentType componentType = new ComponentType(Il2CppType.Of<T>());
-        VWorld.Server.EntityManager.AddComponent(entity, componentType);
-    }
-
-    public static void Remove<T>(this Entity entity)
-    {
-        ComponentType componentType = new ComponentType(Il2CppType.Of<T>());
-        VWorld.Server.EntityManager.RemoveComponent(entity, componentType);
-    }
-
-    public static bool Has<T>(this Entity entity)
-    {
-        ComponentType type = new ComponentType(Il2CppType.Of<T>());
-        return VWorld.Server.EntityManager.HasComponent(entity, type);
-    }
-
-    public static void LogComponentTypes(this Entity entity)
-    {
-        NativeArray<ComponentType>.Enumerator enumerator = VWorld.Server.EntityManager.GetComponentTypes(entity).GetEnumerator();
+        NativeArray<Entity>.Enumerator enumerator = Helper.GetEntitiesByComponentTypes<User>(includeDisabled: true).GetEnumerator();
         while (enumerator.MoveNext())
         {
-            ComponentType current = enumerator.Current;
-            Debug.Log($"{current}");
+            Entity current = enumerator.Current;
+            User user = current.Read<User>();
+            if (user.CharacterName.ToString().ToLower() == input.ToLower())
+            {
+                player = new Player(current);
+                return true;
+            }
+
+            if (ulong.TryParse(input, out var result) && user.PlatformId == result)
+            {
+                player = new Player(current);
+                return true;
+            }
         }
 
-        Debug.Log("===");
+        player = default;
+        return false;
     }
 
-    public static void LogComponentTypes(this EntityQuery entityQuery)
+    public static bool TryGetCharacterFromName(string input, out Entity Character)
     {
-        Il2CppStructArray<ComponentType> queryTypes = entityQuery.GetQueryTypes();
-        foreach (ComponentType item in queryTypes)
+        if (TryGetPlayerFromString(input, out var player))
         {
-            Debug.Log($"Query Component Type: {item}");
+            Character = player.Character;
+            return true;
         }
 
-        Debug.Log("===");
+        Character = default;
+        return false;
     }
 
-    public static string LookupName(this PrefabGUID prefabGuid)
+    public static bool TryGetUserFromName(string input, out Entity User)
     {
-        PrefabCollectionSystem existingSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
-        object obj;
-        if (!existingSystem.PrefabGuidToNameDictionary.ContainsKey(prefabGuid))
+        if (TryGetPlayerFromString(input, out var player))
         {
-            obj = "GUID Not Found";
-        }
-        else
-        {
-            string text = existingSystem.PrefabGuidToNameDictionary[prefabGuid];
-            PrefabGUID prefabGUID = prefabGuid;
-            obj = text + " " + prefabGUID.ToString();
+            User = player.User;
+            return true;
         }
 
-        return obj.ToString();
+        User = default;
+        return false;
     }
 }
+
 #if false // Decompilation log
 '342' items in cache
 ------------------

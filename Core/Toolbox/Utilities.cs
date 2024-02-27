@@ -10,9 +10,9 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
 using ProjectM.Shared;
-using WorldBuild.Core;
-using static PlayerService;
-namespace WorldBuild.Core
+using static WorldBuild.Core.Services.PlayerService;
+
+namespace WorldBuild.Core.Toolbox
 {
     public static class Utilities
     {
@@ -55,7 +55,7 @@ namespace WorldBuild.Core
         public static unsafe T GetComponentData<T>(Entity entity) where T : struct
         {
             void* rawPointer = VWorld.Server.EntityManager.GetComponentDataRawRO(entity, ComponentTypeIndex<T>());
-            return Marshal.PtrToStructure<T>(new System.IntPtr(rawPointer));
+            return Marshal.PtrToStructure<T>(new IntPtr(rawPointer));
         }
 
         // alternative for EntityManager.SetComponentData
@@ -133,52 +133,6 @@ namespace WorldBuild.Core
             territoryEntity = default;
             return false;
         }
-
-        public static void AddTerritory(Entity territoryEntity, EntityManager entityManager)
-        {
-            try
-            {
-                if (entityManager.HasComponent<CastleTerritoryBlocks>(territoryEntity))
-                {
-                    var buffer = entityManager.GetBuffer<CastleTerritoryBlocks>(territoryEntity);
-                    foreach (var block in buffer)
-                    {
-                        // Calculate the tile coordinate from block coordinate.
-                        float2 tileCoordinate = block.BlockCoordinate / TileToBlockDivisor;
-
-                        // Update or add the territory entity associated with this tile coordinate.
-                        BlockTileToTerritory[(int2)tileCoordinate] = territoryEntity;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogInfo($"Unable to remove territory from cache {ex}");
-            }
-        }
-
-        public static void RemoveTerritory(Entity territoryEntity, EntityManager entityManager)
-        {
-            try
-            {
-                if (entityManager.HasComponent<CastleTerritoryBlocks>(territoryEntity))
-                {
-                    var buffer = entityManager.GetBuffer<CastleTerritoryBlocks>(territoryEntity);
-                    foreach (var block in buffer)
-                    {
-                        // Calculate the tile coordinate from block coordinate.
-                        float2 tileCoordinate = block.BlockCoordinate / TileToBlockDivisor;
-
-                        // Remove the territory entity associated with this tile coordinate if it exists.
-                        BlockTileToTerritory.Remove((int2)tileCoordinate);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogInfo($"Unable to remove territory from cache {ex}");
-            }
-        }
     }
 
     public static class SystemPatchUtil
@@ -188,16 +142,17 @@ namespace WorldBuild.Core
             VWorld.Server.EntityManager.AddComponent<Disabled>(entity);
             DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
         }
+
         public static void Disable(Entity entity)
         {
             VWorld.Server.EntityManager.AddComponent<Disabled>(entity);
             //DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
         }
+
         public static void Enable(Entity entity)
         {
             VWorld.Server.EntityManager.RemoveComponent<Disabled>(entity);
             //DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
         }
-
     }
 }
