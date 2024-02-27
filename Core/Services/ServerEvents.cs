@@ -3,6 +3,7 @@ using HarmonyLib;
 using ProjectM;
 using Unity.Collections;
 using Unity.Entities;
+using WorldBuild.Data;
 
 namespace WorldBuild.Core.Services
 {

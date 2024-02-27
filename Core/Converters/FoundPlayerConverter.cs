@@ -1,7 +1,7 @@
-﻿using V.Core.Services;
-using VampireCommandFramework;
+﻿using VampireCommandFramework;
+using WorldBuild.Core.Services;
 
-namespace V.Core.Converters
+namespace WorldBuild.Core.Converters
 {
     internal class FoundPlayerConverter : CommandArgumentConverter<FoundPlayer>
     {

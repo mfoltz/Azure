@@ -1,9 +1,4 @@
-﻿#region Assembly AdminCommands, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// C:\Users\mitch\Downloads\AdminCommands.dll
-// Decompiled with ICSharpCode.Decompiler 8.1.1.7464
-#endregion
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ProjectM;
 
 namespace WorldBuild.Data;
@@ -630,6 +625,7 @@ public static class JewelData
         }
     };
 }
+
 #if false // Decompilation log
 '342' items in cache
 ------------------

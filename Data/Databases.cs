@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
-
-namespace WorldBuild.Core
+using WorldBuild.Core;
+using WorldBuild.BuildingSystem;
+namespace WorldBuild.Data
 {
     public class Databases
     {
