@@ -39,28 +39,28 @@ namespace WorldBuild.Hooks
                             if (settings.BuildMode)
                             {
                                 // allow
-                                if (entityManager.HasComponent<WeaponLevel>(entity))
-                                {
-                                    DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
+                                
+                                // use unarmed bar, replace slot 2 with siege T02 and slot 4 with nukeall for buildmode
+                                DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
 
-                                    Plugin.Logger.LogInfo($"Player equipping/unequipping weapon, adding build trigger spell to shift...");
-                                    ReplaceAbilityOnSlotBuff item = buffer[2];
-                                    ReplaceAbilityOnSlotBuff newItem = item;
+                                Plugin.Logger.LogInfo($"Player equipping/unequipping weapon, adding build trigger spell to shift...");
+                                ReplaceAbilityOnSlotBuff item = buffer[0];
+                                ReplaceAbilityOnSlotBuff newItem = item;
 
-                                    PrefabGUID prefabGUID = WorldBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup;
+                                PrefabGUID prefabGUID = WorldBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup;
 
-                                    newItem.Slot = 3;
-                                    newItem.NewGroupId = prefabGUID;
-                                    var newNewItem = newItem;
-                                    newNewItem.NewGroupId = WorldBuild.Data.Prefabs.AllowJumpFromCliffsBuff;
-                                    // apparently both can be on the slot at once, neat
-                                    buffer.Add(newNewItem);
+                                newItem.Slot = 3;
+                                newItem.NewGroupId = prefabGUID;
+                                var newNewItem = newItem;
+                                newNewItem.NewGroupId = WorldBuild.Data.Prefabs.AllowJumpFromCliffsBuff;
+                                // apparently both can be on the slot at once, neat
+                                buffer.Add(newNewItem);
 
-                                    // cliff jump
-                                    buffer.Add(newItem);
-                                    Plugin.Logger.LogInfo("Modification complete.");
-                                    return;
-                                }
+                                // cliff jump
+                                buffer.Add(newItem);
+                                Plugin.Logger.LogInfo("Modification complete.");
+                                return;
+                                
                             }
                             else
                             {

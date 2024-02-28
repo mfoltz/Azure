@@ -117,7 +117,7 @@ namespace WorldBuild.Core
             else
             {
                 // create new settings for user
-                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", "");
+                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", "", false);
                 newSettings.CanEditTiles = true;
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
@@ -297,6 +297,26 @@ namespace WorldBuild.Core
             else
             {
                 ctx.Reply("You have not placed any tiles yet.");
+            }
+        }
+
+        [Command(name: "immortalTiles", shortHand: "it", adminOnly: true, usage: ".wb it", description: "Tiles placed will be immortal if toggled.")]
+        public static void MakeTilesImmortal(ChatCommandContext ctx)
+        {
+            User setter = ctx.Event.User;
+            PlayerService.TryGetUserFromName(setter.CharacterName.ToString(), out Entity userEntity);
+            User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            {
+                settings.ImmortalTiles = !settings.ImmortalTiles;
+                Databases.SaveBuildSettings();
+                string enabledColor = FontColors.Green("enabled");
+                string disabledColor = FontColors.Red("disabled");
+                ctx.Reply($"Tile immortality: {(settings.ImmortalTiles ? enabledColor : disabledColor)}");
+            }
+            else
+            {
+                ctx.Reply("Your build data could not be found.");
             }
         }
     }

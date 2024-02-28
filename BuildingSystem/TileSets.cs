@@ -16,8 +16,8 @@ namespace WorldBuild.BuildingSystem
 {
     internal class TileSets
     {
-        // can activate this by monitoring for buff player gives themselves with shift key to place a tile at mouse location
-        // use charm T02 or something, monitor for abilitycast finishes that match that prefab and run this method
+        // can activate this by monitoring for ability player gets to use with shift key to place a tile at mouse location
+        // use charm/siege interact T02 or something, monitor for abilitycast finishes that match the prefab and run this method
         public static void SpawnTileModel(Entity character)
         {
             Plugin.Logger.LogInfo("SpawnTileModel Triggered");
@@ -42,7 +42,10 @@ namespace WorldBuild.BuildingSystem
                     quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
                     TileModel tileModel = tileEntity.Read<TileModel>();
                     Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
-                    Utilities.SetComponentData(tileEntity, new Immortal { IsImmortal = true });
+                    if (data.ImmortalTiles)
+                    {
+                        Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
+                    }
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
                     data.LastTilePlaced = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);

@@ -13,8 +13,9 @@ namespace WorldBuild.BuildingSystem
         public int TileModel { get; set; } // controls model of tiles placed
         public string TileSet { get; set; } // tileset of tiles to select from
         public string LastTilePlaced { get; set; } // string representation of entity identifier of last tile model placed for easy undoing
+        public bool ImmortalTiles {  get; set; } // setting to make tiles indestructible
 
-        public BuildSettings(bool canEditTiles, bool buildMode, int tileRotation, int tileModel, string tileSet, string lastTilePlaced)
+        public BuildSettings(bool canEditTiles, bool buildMode, int tileRotation, int tileModel, string tileSet, string lastTilePlaced, bool immortalTiles)
         {
             CanEditTiles = canEditTiles;
             BuildMode = buildMode;
@@ -22,6 +23,7 @@ namespace WorldBuild.BuildingSystem
             TileModel = tileModel;
             TileSet = tileSet;
             LastTilePlaced = lastTilePlaced;
+            ImmortalTiles = immortalTiles;
         }
     }
 }
