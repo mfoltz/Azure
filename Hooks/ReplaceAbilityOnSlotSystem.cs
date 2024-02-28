@@ -62,23 +62,14 @@ namespace WorldBuild.Hooks
                                 return;
                                 
                             }
+                            if (settings.DismantleMode)
+                            {
+
+                            }
                             else
                             {
-                                // want to return it to just cliffjump here if not in build mode
-                                if (entityManager.HasComponent<WeaponLevel>(entity))
-                                {
-                                    DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
-
-                                    Plugin.Logger.LogInfo($"Player equipping/unequipping weapon, removing build trigger spell from shift...");
-                                    ReplaceAbilityOnSlotBuff item = buffer[2];
-                                    ReplaceAbilityOnSlotBuff newItem = item;
-                                    newItem.Slot = 3;
-                                    newItem.NewGroupId = WorldBuild.Data.Prefabs.AllowJumpFromCliffsBuff;
-                                    buffer.Add(newItem);
-
-                                    // cliff jump
-                                    Plugin.Logger.LogInfo("Modification complete.");
-                                }
+                                // want to return it to just cliffjump here if not in build mode eventually, low priority
+                                
                                 return;
                             }
                         }
