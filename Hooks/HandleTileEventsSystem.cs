@@ -25,6 +25,7 @@ using Plugin = WorldBuild.Core.Plugin;
 using User = ProjectM.Network.User;
 using WorldBuild.BuildingSystem;
 using WorldBuild.Core.Toolbox;
+using WorldBuild.Data;
 
 //WIP
 
@@ -37,44 +38,45 @@ namespace WorldBuild.Hooks
 
         public static void Prefix(PlaceTileModelSystem __instance)
         {
+            //Plugin.Logger.LogInfo("PlaceTileModelSystem Prefix called...");
             EntityManager entityManager = VWorld.Server.EntityManager;
-            if (!WorldBuild.Core.Commands.WorldBuildToggle.wbFlag)
-            {
-                return;
-            }
 
+            var castJobs = __instance._AbilityCastFinishedQuery.ToEntityArray(Allocator.Temp);
             var jobs = __instance._BuildTileQuery.ToEntityArray(Allocator.Temp);
             foreach (var job in jobs)
             {
                 if (IsCastleHeart(job))
                 {
+                    if (!WorldBuild.Core.Commands.WorldBuildToggle.wbFlag)
+                    {
+                        return;
+                    }
                     CancelCastleHeartPlacement(entityManager, job);
                 }
             }
             jobs.Dispose();
-            var castJobs = __instance._AbilityCastFinishedQuery.ToEntityArray(Allocator.Temp);
+
             foreach (var job in castJobs)
             {
                 Plugin.Logger.LogInfo("AbilityCastFinished event...");
-
-                if (Utilities.HasComponent<AbilityPostCastFinishedEvent>(job))
+                job.LogComponentTypes();
+                if (Utilities.HasComponent<AbilityPreCastFinishedEvent>(job))
                 {
-                    Plugin.Logger.LogInfo("AbilityPostCastFinished event...");
-                    AbilityPostCastFinishedEvent abilityPostCastFinishedEvent = Utilities.GetComponentData<AbilityPostCastFinishedEvent>(job);
-                    Entity character = abilityPostCastFinishedEvent.Character;
-                    Entity abilityGroup = abilityPostCastFinishedEvent.AbilityGroup;
-                    if (Utilities.HasComponent<PrefabGUID>(abilityGroup))
+                    AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
+
+                    Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
+                    abilityGroupData.LogComponentTypes();
+                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
+                    Entity character = abilityPreCastFinishedEvent.Character;
+                    if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
                     {
-                        PrefabGUID abilityGroupData = Utilities.GetComponentData<PrefabGUID>(abilityGroup);
-                        if (abilityGroupData.Equals(WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
-                        {
-                            // run spawn tile method here
-                            Plugin.Logger.LogInfo("Charm T02 cast detected, spawning tile...");
-                            TileSets.SpawnTileModel(character);
-                        }
+                        // run spawn tile method here
+                        Plugin.Logger.LogInfo("Siege T02 cast detected, spawning tile...");
+                        TileSets.SpawnTileModel(character);
                     }
                 }
             }
+            castJobs.Dispose();
         }
 
         private static bool IsCastleHeart(Entity job)

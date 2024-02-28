@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +13,33 @@ namespace WorldBuild.Data;
 
 public static class Prefabs
 {
+    public static class FindPrefab
+    {
+        public static bool CheckForMatch(int inputGUID)
+        {
+            PrefabGUID input = new PrefabGUID(inputGUID);
+            // Get all static fields from the Prefabs class
+            FieldInfo[] fields = typeof(Prefabs).GetFields(BindingFlags.Public | BindingFlags.Static);
+
+            foreach (var field in fields)
+            {
+                // Check if the field is of type PrefabGUID
+                if (field.FieldType == typeof(PrefabGUID))
+                {
+                    PrefabGUID prefabGUID = (PrefabGUID)field.GetValue(null);
+                    // Compare the inputGUID with the current field's value
+                    
+
+                    if (prefabGUID.Equals(input))
+                    {
+                        return true; // Match found
+                    }
+                }
+            }
+
+            return false; // No match found
+        }
+    }
     public static readonly PrefabGUID Chain_BossBarrel = new PrefabGUID(-601059406);
 
     public static readonly PrefabGUID BP_Castle_Chain_Base = new PrefabGUID(-1188781940);

@@ -12,6 +12,8 @@ using System.Text.Json;
 using WorldBuild;
 using WorldBuild.Core.Services;
 using WorldBuild.Core.Toolbox;
+using WorldBuild.BuildingSystem;
+using WorldBuild.Data;
 
 namespace WorldBuild.Core
 {
@@ -58,6 +60,7 @@ namespace WorldBuild.Core
         {
             Config.Clear();
             _harmony.UnpatchSelf();
+            Databases.SaveBuildSettings();
             return true;
         }
 

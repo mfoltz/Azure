@@ -92,10 +92,11 @@ namespace WorldBuild.Core
             if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
             {
                 settings.BuildMode = !settings.BuildMode;
-                Databases.SaveBuildSettings();
+
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"Build mode: {(settings.BuildMode ? enabledColor : disabledColor)}");
+                Databases.SaveBuildSettings();
             }
         }
 
@@ -112,6 +113,15 @@ namespace WorldBuild.Core
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"Edit tiles outside of territories: {(settings.CanEditTiles ? enabledColor : disabledColor)}");
+            }
+            else
+            {
+                // create new settings for user
+                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", "");
+                newSettings.CanEditTiles = true;
+                Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
+                Databases.SaveBuildSettings();
+                ctx.Reply($"Created new build settings and set tile permissions to true.");
             }
         }
 
@@ -221,6 +231,31 @@ namespace WorldBuild.Core
             else
             {
                 ctx.Reply("Your build data could not be found.");
+            }
+        }
+
+        [Command(name: "tilemodelprefab", shortHand: "tmp", adminOnly: false, usage: ".wb tmp <PrefabGUID>", description: "Manually set tile model to use.")]
+        public static void SetTileByPrefab(ChatCommandContext ctx, int choice)
+        {
+            Entity character = ctx.Event.SenderCharacterEntity;
+            ulong SteamID = ctx.Event.User.PlatformId;
+
+            if (Databases.playerBuildSettings.TryGetValue(SteamID, out BuildSettings data))
+            {
+                if (Prefabs.FindPrefab.CheckForMatch(choice))
+                {
+                    ctx.Reply($"Tile model set.");
+                    data.TileModel = choice;
+                    Databases.SaveBuildSettings();
+                }
+                else
+                {
+                    ctx.Reply("Invalid tile choice.");
+                }
+            }
+            else
+            {
+                ctx.Reply("Your build data could not be found, create some by giving yourself tile permissions.");
             }
         }
 

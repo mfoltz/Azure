@@ -9,13 +9,14 @@ using Unity.Transforms;
 using WorldBuild.Core;
 using WorldBuild.Core.Services;
 using WorldBuild.Core.Toolbox;
+using WorldBuild.Data;
 using StringComparer = System.StringComparer;
 
 namespace WorldBuild.BuildingSystem
 {
     internal class TileSets
     {
-        // can activate this by monitoring for buff player gives themselves with shift key to place a tile at mouse location, genius
+        // can activate this by monitoring for buff player gives themselves with shift key to place a tile at mouse location
         // use charm T02 or something, monitor for abilitycast finishes that match that prefab and run this method
         public static void SpawnTileModel(Entity character)
         {
@@ -41,7 +42,7 @@ namespace WorldBuild.BuildingSystem
                     quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
                     TileModel tileModel = tileEntity.Read<TileModel>();
                     Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
-
+                    Utilities.SetComponentData(tileEntity, new Immortal { IsImmortal = true });
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
                     data.LastTilePlaced = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
@@ -68,6 +69,8 @@ namespace WorldBuild.BuildingSystem
             {
                 StaticTiles = new Dictionary<int, TileConstructor>
                 {
+                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", WorldBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
+                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", WorldBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
                     { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", WorldBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
                     { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", WorldBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
                     { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", WorldBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },

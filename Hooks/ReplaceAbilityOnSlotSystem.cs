@@ -4,7 +4,9 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using WorldBuild.BuildingSystem;
 using WorldBuild.Core;
+using WorldBuild.Data;
 
 namespace WorldBuild.Hooks
 {
@@ -45,7 +47,7 @@ namespace WorldBuild.Hooks
                                     ReplaceAbilityOnSlotBuff item = buffer[2];
                                     ReplaceAbilityOnSlotBuff newItem = item;
 
-                                    PrefabGUID prefabGUID = WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup;
+                                    PrefabGUID prefabGUID = WorldBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup;
 
                                     newItem.Slot = 3;
                                     newItem.NewGroupId = prefabGUID;
