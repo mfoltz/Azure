@@ -26,32 +26,66 @@ using User = ProjectM.Network.User;
 using WorldBuild.BuildingSystem;
 using WorldBuild.Core.Toolbox;
 using WorldBuild.Data;
+using ProjectM.Gameplay.Scripting;
+using ProjectM.Tiles;
+using ProjectM.Gameplay;
 
 //WIP
 
 namespace WorldBuild.Hooks
 {
-    [HarmonyPatch(typeof(CollisionDetectionSystem), nameof(CollisionDetectionSystem.OnUpdate))]
-
-    public static class CollisionDetectionPatch
+    [HarmonyPatch(typeof(CreateGameplayEventsOnDamageTakenSystem), nameof(CreateGameplayEventsOnDamageTakenSystem.OnUpdate))]
+    public static class CreateGameplayEventsOnDamageTakenSystem_Patch
     {
-        public static void Prefix(CollisionDetectionSystem __instance)
+        public static void Prefix(CreateGameplayEventsOnDamageTakenSystem __instance)
         {
-
-
-            // reliably gets called and doesnt crash the game when prefixed, sounds like what the doctor ordered
-            //Plugin.Logger.LogInfo("CollisionDetectionSystem Prefix called...");
-            NativeArray<Entity> entityArray = __instance._Query.ToEntityArray(Allocator.Temp);
-            foreach(Entity entity in entityArray)
+            NativeArray<Entity> entities = __instance._DamageTakenEventQuery.ToEntityArray(Allocator.Temp);
+            foreach (Entity entity in entities)
             {
-                entity.LogComponentTypes();
-
+                //Plugin.Logger.LogInfo("CreateGameplayEventsOnDamageTakenSystem Prefix called, processing DamageTakenEvent...");
+                //entity.LogComponentTypes();
+                DamageTakenEvent damageTakenEvent = Utilities.GetComponentData<DamageTakenEvent>(entity);
+                Entity damageTakenEventEntity = damageTakenEvent.Entity;
+                Entity source = damageTakenEvent.Source;
+                //damageTakenEventEntity.LogComponentTypes();
+                //source.LogComponentTypes();
+                if (Utilities.HasComponent<EntityOwner>(source))
+                {
+                    EntityOwner entityOwner = Utilities.GetComponentData<EntityOwner>(source);
+                    //entityOwner.Owner.LogComponentTypes();
+                    if (!Utilities.HasComponent<ControlledBy>(entityOwner.Owner))
+                    {
+                        continue;
+                    }
+                    ControlledBy controlledBy = Utilities.GetComponentData<ControlledBy>(entityOwner.Owner);
+                    Entity controller = controlledBy.Controller;
+                    //controller.LogComponentTypes();
+                    User user = Utilities.GetComponentData<User>(controller);
+                    if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+                    {
+                        if (settings.DismantleMode)
+                        {
+                            Plugin.Logger.LogInfo("Player is in dismantle mode, destroying tile...");
+                            if (Utilities.HasComponent<TileModel>(damageTakenEventEntity))
+                            {
+                                string entityString = damageTakenEventEntity.Index.ToString() + ", " + damageTakenEventEntity.Version.ToString();
+                                //Plugin.Logger.LogInfo(entityString);
+                                if (settings.TilesPlaced.Contains(entityString))
+                                {
+                                    Plugin.Logger.LogInfo("Tile is in player's list of placed tiles, destroying...");
+                                    SystemPatchUtil.Destroy(damageTakenEventEntity);
+                                }
+                                else
+                                {
+                                    Plugin.Logger.LogInfo("Tile is not in player's list of placed tiles, not destroying");
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            
-
+            entities.Dispose();
         }
-
-        
     }
 
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
@@ -81,45 +115,32 @@ namespace WorldBuild.Hooks
 
             foreach (var job in castJobs)
             {
-                Plugin.Logger.LogInfo("AbilityCastFinished event...");
-                job.LogComponentTypes();
+                //Plugin.Logger.LogInfo("AbilityCastFinished event...");
+                //job.LogComponentTypes();
                 if (Utilities.HasComponent<AbilityPreCastFinishedEvent>(job))
                 {
                     AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
 
                     Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
-                    abilityGroupData.LogComponentTypes();
+                    //abilityGroupData.LogComponentTypes();
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
                     Entity character = abilityPreCastFinishedEvent.Character;
+                    if (!Utilities.HasComponent<PlayerCharacter>(character))
+                    {
+                        continue;
+                    }
                     PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
                     Entity userEntity = playerCharacter.UserEntity;
                     User user = Utilities.GetComponentData<User>(userEntity);
                     if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
                     {
-                        
-                        
-                        
-                        if (settings.DismantleMode)
+                        if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
                         {
-                            if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
-                            {
-                                // run destroy tile method here
-                                Plugin.Logger.LogInfo("Siege T02 cast detected, dismantling tile...");
-                                TileSets.DestroyTileModel(character);
-                            }
-                        }
-                        else
-                        {
-                            if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
-                            {
-                                // run spawn tile method here
-                                Plugin.Logger.LogInfo("Siege T02 cast detected, spawning tile...");
-                                TileSets.SpawnTileModel(character);
-                            }
+                            // run spawn tile method here
+                            Plugin.Logger.LogInfo("Charm T02 cast detected, spawning tile at mouse...");
+                            TileSets.SpawnTileModel(character);
                         }
                     }
-                    
-                    
                 }
             }
             castJobs.Dispose();

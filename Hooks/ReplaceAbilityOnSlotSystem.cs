@@ -11,7 +11,6 @@ using WorldBuild.Data;
 
 namespace WorldBuild.Hooks
 {
-    // want to redo this to put charm T02 on shift
 
     [HarmonyPatch(typeof(ReplaceAbilityOnSlotSystem), "OnUpdate")]
     public class ReplaceAbilityOnSlotSystem_Patch

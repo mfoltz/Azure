@@ -27,12 +27,15 @@ using UnityEngine.Networking.Match;
 using WorldBuild.BuildingSystem;
 using WorldBuild.Core.Services;
 using WorldBuild.Core.Toolbox;
+using System.Collections.Generic;
 
 namespace WorldBuild.Core
 {
     [CommandGroup(name: "WorldBuild", shortHand: "wb")]
     public class Commands
     {
+
+        public static HashSet<Entity> disabledEntities = new HashSet<Entity>();
         public class WorldBuildToggle
         {
             public static bool wbFlag = false;
@@ -49,15 +52,19 @@ namespace WorldBuild.Core
                 Value = false
             };
 
-            [Command(name: "toggleworldbuild", shortHand: "twb", adminOnly: true, usage: ".wb twb", description: "Toggles worldbuild debug settings.")]
+            [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".wb twb", description: "Toggles worldbuild debug settings for no-cost building anywhere.")]
             public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
             {
                 User user = ctx.Event.User;
-                // want to disable resource nodes in active player territories here to avoid overgrowth
+                
 
                 DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 if (!wbFlag)
                 {
+                    // want to disable resource nodes in active player territories here to avoid overgrowth
+
+                    ResourceFunctions.SearchAndDestroy(disabledEntities);
+                    ctx.Reply("Resource nodes in player territories disabled.");
                     wbFlag = true;
                     BuildingCostsDebugSetting.Value = wbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
@@ -78,6 +85,8 @@ namespace WorldBuild.Core
                     BuildingPlacementRestrictionsDisabledSetting.Value = wbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
 
+                    ResourceFunctions.FindAndEnable(disabledEntities);
+                    ctx.Reply("Resource nodes in player territories re-enabled.");
                     string disabledColor = FontColors.Red("disabled");
                     ctx.Reply($"freebuild: {disabledColor}");
                     ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value}");
@@ -85,7 +94,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "togglebuildskills", shortHand: "bs", adminOnly: true, usage: ".wb bs", description: "Toggles build mode skills on unarmed (tiles will be placed when activating ability at mouse hover).")]
+        [Command(name: "toggleBuildSkills", shortHand: "bs", adminOnly: true, usage: ".wb bs", description: "Toggles build skills on unarmed, change weapons to activate (tiles will be placed when activating ability at mouse hover).")]
         public static void BuildModeCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -99,7 +108,7 @@ namespace WorldBuild.Core
                 Databases.SaveBuildSettings();
             }
         }
-        [Command(name: "toggledismantlemode", shortHand: "dm", adminOnly: true, usage: ".wb dm", description: "Toggles dismantle mode (will try to destroy tiles nearest to mouse hover if they can be found in list of placed tiles)).")]
+        [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".wb dm", description: "Toggles dismantle mode (if you hit something that is in your list of placed tiles it will be destroyed, even if immortal).")]
         public static void DismantleModeCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -114,7 +123,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "tilepermissions", shortHand: "tp", adminOnly: true, usage: ".wb tp <Name>", description: "Toggles tile permissions for a player.")]
+        [Command(name: "tilePermissions", shortHand: "tp", adminOnly: true, usage: ".wb tp <Name>", description: "Toggles tile permissions for a player.")]
         public static void ToggleEditTilesCommand(ChatCommandContext ctx, string name)
         {
             User setter = ctx.Event.User;
@@ -139,7 +148,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "tilerotation", shortHand: "tr", adminOnly: false, usage: ".wb tr [0/90/180/270]", description: "Sets rotation of tiles placed in buildmode.")]
+        [Command(name: "tileRotation", shortHand: "tr", adminOnly: false, usage: ".wb tr [0/90/180/270]", description: "Sets rotation of tiles placed.")]
         public static void SetTileRotationCommand(ChatCommandContext ctx, int rotation)
         {
             if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)
@@ -157,7 +166,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "listset", shortHand: "ls", adminOnly: true, usage: ".wb ls", description: "Lists available tiles from current set.")]
+        [Command(name: "listSet", shortHand: "ls", adminOnly: true, usage: ".wb ls", description: "Lists available tiles from current set.")]
         public static void ListTilesCommand(ChatCommandContext ctx)
         {
             ulong SteamID = ctx.Event.User.PlatformId;
@@ -186,7 +195,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "tileset", shortHand: "ts", adminOnly: false, usage: ".wb ts <name>", description: "Sets tile set to use tiles from.")]
+        [Command(name: "chooseSet", shortHand: "cs", adminOnly: false, usage: ".wb cs <name>", description: "Sets tile set to use tiles from.")]
         public static void TileSetChoice(ChatCommandContext ctx, string choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -220,7 +229,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "tilemodel", shortHand: "tm", adminOnly: false, usage: ".wb tm <#>", description: "Sets tile model to use.")]
+        [Command(name: "chooseModel", shortHand: "cm", adminOnly: false, usage: ".wb cm <#>", description: "Sets tile model to use.")]
         public static void SetTile(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -248,7 +257,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "tilemodelprefab", shortHand: "tmp", adminOnly: false, usage: ".wb tmp <PrefabGUID>", description: "Manually set tile model to use.")]
+        [Command(name: "setTileModelByPrefab", shortHand: "tmp", adminOnly: false, usage: ".wb tm <PrefabGUID>", description: "Manually set tile model to use.")]
         public static void SetTileByPrefab(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -314,7 +323,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "immortalTiles", shortHand: "it", adminOnly: true, usage: ".wb it", description: "Tiles placed will be immortal if toggled.")]
+        [Command(name: "toggleImmortalTiles", shortHand: "immortal", adminOnly: true, usage: ".wb immortal", description: "Tiles placed will be immortal if toggled.")]
         public static void MakeTilesImmortal(ChatCommandContext ctx)
         {
             User setter = ctx.Event.User;

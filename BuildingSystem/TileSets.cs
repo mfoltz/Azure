@@ -4,8 +4,10 @@ using ProjectM;
 using ProjectM.Network;
 using ProjectM.Shared.Mathematics;
 using ProjectM.Tiles;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using WorldBuild.Core;
@@ -13,6 +15,7 @@ using WorldBuild.Core.Services;
 using WorldBuild.Core.Toolbox;
 using WorldBuild.Data;
 using static ProjectM.SLSEntityRemapping;
+using Collider = Unity.Physics.Collider;
 using Ray = UnityEngine.Ray;
 using StringComparer = System.StringComparer;
 
@@ -22,7 +25,7 @@ namespace WorldBuild.BuildingSystem
     {
         // can activate this by monitoring for ability player gets to use with shift key to place a tile at mouse location
         // use charm/siege interact T02 or something, monitor for abilitycast finishes that match the prefab and run this method
-        public static void SpawnTileModel(Entity character)
+        public unsafe static void SpawnTileModel(Entity character)
         {
             Plugin.Logger.LogInfo("SpawnTileModel Triggered");
             if (Utilities.HasComponent<PlayerCharacter>(character))
@@ -45,6 +48,16 @@ namespace WorldBuild.BuildingSystem
                     float radians = math.radians(rotation);
                     quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
                     Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
+
+                    //instantiate entity to steal its collider component, sure why not
+                    //prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[WorldBuild.Data.Prefabs.TM_Fortressoflight_Brazier01];
+                    //Entity colliderEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
+                    //PhysicsCollider physicsCollider = Utilities.GetComponentData<PhysicsCollider>(colliderEntity);
+                    //Health health = Utilities.GetComponentData<Health>(colliderEntity);
+                    //Utilities.SetComponentData(tileEntity, physicsCollider);
+                    //Utilities.SetComponentData(tileEntity, health);
+                    //SystemPatchUtil.Destroy(colliderEntity);
+                    //that mostly worked but the chest became unlootable unless destroyed with nukeall, moving on for now
                     if (data.ImmortalTiles)
                     {
                         Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
@@ -53,6 +66,8 @@ namespace WorldBuild.BuildingSystem
                     string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
                     data.TilesPlaced.Add(entityString);
                     Plugin.Logger.LogInfo($"Tile placed: {entityString}");
+                    //tileEntity.LogComponentTypes();
+
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
                 }
                 else
@@ -63,9 +78,10 @@ namespace WorldBuild.BuildingSystem
             }
         }
 
+        /*
         public static void DestroyTileModel(Entity character)
         {
-            Plugin.Logger.LogInfo("DestroyTileNearHover Triggered");
+            //Plugin.Logger.LogInfo("DestroyTileNearHover Triggered");
             if (Utilities.HasComponent<PlayerCharacter>(character))
             {
                 PlayerCharacter player = Utilities.GetComponentData<PlayerCharacter>(character);
@@ -82,7 +98,7 @@ namespace WorldBuild.BuildingSystem
                         Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().ProjectileAimPosition);
                         Nullable_Unboxed<float3> aimDirection = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimDirection);
                         Ray aimRay = new Ray(aimPosition.Value, aimDirection.Value);
-                        Plugin.Logger.LogInfo("Ray casted for tile entity...");
+                        //Plugin.Logger.LogInfo("Ray casted for tile entity...");
                         if (Physics.Raycast(aimRay, out RaycastHit hitInfo))
                         {
                             Plugin.Logger.LogInfo("Hit detected...");
@@ -121,7 +137,7 @@ namespace WorldBuild.BuildingSystem
                 }
             }
         }
-
+        */
         public class TileConstructor(string name, int tilePrefabHash)
         {
             public string Name { get; set; } = name;
@@ -186,6 +202,8 @@ namespace WorldBuild.BuildingSystem
             {
                 RegisterTiles("Building", new Dictionary<int, TileConstructor>
                 {
+                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", WorldBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
+                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", WorldBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
                     { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", WorldBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
                     { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", WorldBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
                     { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", WorldBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },
@@ -218,6 +236,70 @@ namespace WorldBuild.BuildingSystem
                     "building" => Building.StaticTiles,
                     _ => null,
                 };
+            }
+        }
+
+        public class ResourceFunctions
+        {
+            // this actually disables but destroy is much catchier
+            
+            public static unsafe void SearchAndDestroy(HashSet<Entity> disabledEntities)
+            {
+                Plugin.Logger.LogInfo("Entering SearchAndDestroy...");
+                EntityManager entityManager = VWorld.Server.EntityManager;
+                int counter = 0;
+                bool includeDisabled = true;
+                var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = new ComponentType[] {
+                    ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
+                },
+                    Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                });
+
+                var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+                foreach (var node in resourceNodeEntities)
+                {
+                    if (ShouldRemoveNodeBasedOnTerritory(node))
+                    {
+
+                        counter += 1;
+                        disabledEntities.Add(node);
+                        SystemPatchUtil.Destroy(node);
+                        
+                        //node.LogComponentTypes();
+                    }
+                }
+                resourceNodeEntities.Dispose();
+                Plugin.Logger.LogInfo($"{counter} resource nodes disabled.");
+            }
+
+            private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
+            {
+                Entity territoryEntity;
+                if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            public static unsafe void FindAndEnable(HashSet<Entity> disabledEntities)
+            {
+                //Plugin.Logger.LogInfo("Entering FindAndEnable...");
+                int counter = 0;
+                foreach (var entity in disabledEntities)
+                {
+                    counter += 1;
+                    if (Utilities.HasComponent<DisabledDueToNoPlayersInRange>(entity))
+                    {
+                        // want to skip here
+                        continue;
+                    }
+                    VWorld.Server.EntityManager.Instantiate(entity);
+                }
+                disabledEntities.Clear();
+                Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
             }
         }
     }
