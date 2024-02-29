@@ -2,14 +2,18 @@
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.Shared.Mathematics;
 using ProjectM.Tiles;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using WorldBuild.Core;
 using WorldBuild.Core.Services;
 using WorldBuild.Core.Toolbox;
 using WorldBuild.Data;
+using static ProjectM.SLSEntityRemapping;
+using Ray = UnityEngine.Ray;
 using StringComparer = System.StringComparer;
 
 namespace WorldBuild.BuildingSystem
@@ -40,20 +44,80 @@ namespace WorldBuild.BuildingSystem
                     int rotation = data.TileRotation;
                     float radians = math.radians(rotation);
                     quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
-                    TileModel tileModel = tileEntity.Read<TileModel>();
                     Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
                     if (data.ImmortalTiles)
                     {
                         Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
                     }
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
-                    data.LastTilePlaced = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
+                    string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
+                    data.TilesPlaced.Add(entityString);
+                    Plugin.Logger.LogInfo($"Tile placed: {entityString}");
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
                 }
                 else
                 {
                     string message = "Couldn't find your build preferences, try again after setting them.";
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+                }
+            }
+        }
+
+        public static void DestroyTileModel(Entity character)
+        {
+            Plugin.Logger.LogInfo("DestroyTileNearHover Triggered");
+            if (Utilities.HasComponent<PlayerCharacter>(character))
+            {
+                PlayerCharacter player = Utilities.GetComponentData<PlayerCharacter>(character);
+                if (PlayerService.TryGetUserFromName(player.Name.ToString(), out Entity userEntity))
+                {
+                    User user = Utilities.GetComponentData<User>(userEntity);
+                    EntityInput entityInput = Utilities.GetComponentData<EntityInput>(character);
+                    if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
+                    {
+
+                        //Entity hoveredEntity = entityInput.HoveredEntity;
+                        // apparently hovered entity is only for hovered non-tiles or something
+                        
+                        Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().ProjectileAimPosition);
+                        Nullable_Unboxed<float3> aimDirection = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimDirection);
+                        Ray aimRay = new Ray(aimPosition.Value, aimDirection.Value);
+                        Plugin.Logger.LogInfo("Ray casted for tile entity...");
+                        if (Physics.Raycast(aimRay, out RaycastHit hitInfo))
+                        {
+                            Plugin.Logger.LogInfo("Hit detected...");
+                            // Retrieve the tile entity associated with the hit collider
+                            // This depends on how you've associated your game objects with entities
+                            Entity tileEntity = hitInfo.collider.GetComponent<EntityReference>().EntityTarget;
+
+                            // Now that you have the tile entity, you can proceed with your logic
+                            string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
+                            Plugin.Logger.LogInfo($"Hovered tile entity: {entityString}");
+                            if (data.TilesPlaced.Contains(entityString))
+                            {
+                                SystemPatchUtil.Destroy(tileEntity);
+                                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Tile destroyed at {entityInput.AimPosition.xy}.");
+                            }
+                            else
+                            {
+                                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "The hovered entity was not placed via VBuild and cannot be destroyed this way. For now...");
+                            }
+                            
+                        }
+                        else
+                        {
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "No tile found at the aim position.");
+                        }
+
+                        
+
+
+
+                    }
+                    else
+                    {
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Dismantle mode is not enabled.");
+                    }
                 }
             }
         }

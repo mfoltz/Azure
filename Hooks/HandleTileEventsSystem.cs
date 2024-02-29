@@ -31,6 +31,29 @@ using WorldBuild.Data;
 
 namespace WorldBuild.Hooks
 {
+    [HarmonyPatch(typeof(CollisionDetectionSystem), nameof(CollisionDetectionSystem.OnUpdate))]
+
+    public static class CollisionDetectionPatch
+    {
+        public static void Prefix(CollisionDetectionSystem __instance)
+        {
+
+
+            // reliably gets called and doesnt crash the game when prefixed, sounds like what the doctor ordered
+            //Plugin.Logger.LogInfo("CollisionDetectionSystem Prefix called...");
+            NativeArray<Entity> entityArray = __instance._Query.ToEntityArray(Allocator.Temp);
+            foreach(Entity entity in entityArray)
+            {
+                entity.LogComponentTypes();
+
+            }
+            
+
+        }
+
+        
+    }
+
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
     public static class CastleHeartPlacementPatch
     {
@@ -68,12 +91,35 @@ namespace WorldBuild.Hooks
                     abilityGroupData.LogComponentTypes();
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
                     Entity character = abilityPreCastFinishedEvent.Character;
-                    if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
+                    PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
+                    Entity userEntity = playerCharacter.UserEntity;
+                    User user = Utilities.GetComponentData<User>(userEntity);
+                    if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
                     {
-                        // run spawn tile method here
-                        Plugin.Logger.LogInfo("Siege T02 cast detected, spawning tile...");
-                        TileSets.SpawnTileModel(character);
+                        
+                        
+                        
+                        if (settings.DismantleMode)
+                        {
+                            if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
+                            {
+                                // run destroy tile method here
+                                Plugin.Logger.LogInfo("Siege T02 cast detected, dismantling tile...");
+                                TileSets.DestroyTileModel(character);
+                            }
+                        }
+                        else
+                        {
+                            if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
+                            {
+                                // run spawn tile method here
+                                Plugin.Logger.LogInfo("Siege T02 cast detected, spawning tile...");
+                                TileSets.SpawnTileModel(character);
+                            }
+                        }
                     }
+                    
+                    
                 }
             }
             castJobs.Dispose();

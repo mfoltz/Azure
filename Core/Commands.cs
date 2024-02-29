@@ -85,7 +85,7 @@ namespace WorldBuild.Core
             }
         }
 
-        [Command(name: "togglebuildmode", shortHand: "bm", adminOnly: true, usage: ".wb bm", description: "Toggles build mode (tiles will be placed when pressing shift at mouse hover).")]
+        [Command(name: "togglebuildskills", shortHand: "bs", adminOnly: true, usage: ".wb bs", description: "Toggles build mode skills on unarmed (tiles will be placed when activating ability at mouse hover).")]
         public static void BuildModeCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -96,6 +96,20 @@ namespace WorldBuild.Core
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"Build mode: {(settings.BuildMode ? enabledColor : disabledColor)}");
+                Databases.SaveBuildSettings();
+            }
+        }
+        [Command(name: "toggledismantlemode", shortHand: "dm", adminOnly: true, usage: ".wb dm", description: "Toggles dismantle mode (will try to destroy tiles nearest to mouse hover if they can be found in list of placed tiles)).")]
+        public static void DismantleModeCommand(ChatCommandContext ctx)
+        {
+            User user = ctx.Event.User;
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            {
+                settings.DismantleMode = !settings.DismantleMode;
+
+                string enabledColor = FontColors.Green("enabled");
+                string disabledColor = FontColors.Red("disabled");
+                ctx.Reply($"Dismantle mode: {(settings.DismantleMode ? enabledColor : disabledColor)}");
                 Databases.SaveBuildSettings();
             }
         }
@@ -117,7 +131,7 @@ namespace WorldBuild.Core
             else
             {
                 // create new settings for user
-                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", "", false);
+                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", [], false);
                 newSettings.CanEditTiles = true;
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
@@ -266,7 +280,7 @@ namespace WorldBuild.Core
             User user = ctx.Event.User;
             if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
             {
-                string lastTileRef = data.LastTilePlaced;
+                string lastTileRef = data.TilesPlaced.LastOrDefault();
                 // Assuming lastTileRef is in the format "index, version"
                 string[] parts = lastTileRef.Split(", ");
                 if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
@@ -281,7 +295,7 @@ namespace WorldBuild.Core
                         // Example: EntityManager.DestroyEntity(tileEntity);
                         SystemPatchUtil.Destroy(tileEntity);
                         ctx.Reply($"Successfully destroyed last tile placed.");
-                        data.LastTilePlaced = "";
+                        data.TilesPlaced.Remove(lastTileRef);
                         Databases.SaveBuildSettings();
                     }
                     else
