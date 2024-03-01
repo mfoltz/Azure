@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using WorldBuild.Core;
 using VampireCommandFramework;
+using WorldBuild.BuildingSystem;
 
 namespace WorldBuild.BuildingSystem
 {
@@ -13,18 +14,36 @@ namespace WorldBuild.BuildingSystem
         public int TileRotation { get; set; } // controls orientation of tiles placed
         public int TileModel { get; set; } // controls model of tiles placed
         public string TileSet { get; set; } // tileset of tiles to select from
-        public string LastTilePlaced { get; set; } // string representation of entity identifier of last tile models placed for easy undoing
-        public bool ImmortalTiles {  get; set; } // setting to make tiles indestructible
+        public Stack<string> LastTilesPlaced { get; set; } = new Stack<string>(); // string representation of entity identifier of last tile models placed for easy undoing
+        public bool ImmortalTiles { get; set; } // setting to make tiles indestructible
 
-        public BuildSettings(bool canEditTiles, bool buildMode, int tileRotation, int tileModel, string tileSet, string lastTilePlaced, bool immortalTiles)
+        public BuildSettings(bool canEditTiles, bool buildMode, int tileRotation, int tileModel, string tileSet, Stack<string> lastTilesPlaced, bool immortalTiles)
         {
             CanEditTiles = canEditTiles;
             BuildMode = buildMode;
             TileRotation = tileRotation;
             TileModel = tileModel;
             TileSet = tileSet;
-            LastTilePlaced = lastTilePlaced;
+            LastTilesPlaced = lastTilesPlaced;
             ImmortalTiles = immortalTiles;
         }
+
+        
+        public void AddTilePlaced(string tileRef)
+        {
+            if (LastTilesPlaced.Count >= 10)
+            {
+                LastTilesPlaced.Pop(); // Ensure we only keep the last 10
+            }
+            LastTilesPlaced.Push(tileRef);
+        }
+
+        public string PopLastTilePlaced()
+        {
+            return LastTilesPlaced.Count > 0 ? LastTilesPlaced.Pop() : null;
+        }
+        
     }
+
+    
 }

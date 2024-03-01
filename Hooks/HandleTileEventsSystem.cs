@@ -151,7 +151,7 @@ namespace WorldBuild.Hooks
             var userEntity = entityManager.GetComponentData<FromCharacter>(job).User;
             var user = entityManager.GetComponentData<User>(userEntity);
 
-            StringBuilder message = new StringBuilder("Bad vampire, no merlot! (Castle Heart placement is disabled during freebuild)");
+            StringBuilder message = new StringBuilder("Bad vampire, no merlot! (Castle Heart placement is disabled during worldbuild)");
 
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, message.ToString());
             SystemPatchUtil.Destroy(job);
@@ -167,95 +167,56 @@ namespace WorldBuild.Hooks
             if (!__result) return;
 
             Plugin.Logger.LogInfo("Intercepting dismantle event...");
-            //tileModelEntity.LogComponentTypes();
-            if (Utilities.HasComponent<UserOwner>(tileModelEntity))
+
+            if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
             {
-                NetworkedEntity networkedEntity = Utilities.GetComponentData<UserOwner>(tileModelEntity).Owner;
-                Entity entity = networkedEntity._Entity;
-                //entity.LogComponentTypes();
-                User user = Utilities.GetComponentData<User>(entity);
-                //User user = Utilities.GetComponentData<User>(userEntity);
-                if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
-                {
-                    if (data.CanEditTiles)
-                    {
-                        Plugin.Logger.LogInfo("Player has permission, allowing.");
-                        return; // Allow dismantling
-                    }
-                    else
-                    {
-                        // still want to allow dismantling if a player is acting on a tile in their territory
-                        Plugin.Logger.LogInfo("Player has no permissions, checking territory...");
-                        string name = user.CharacterName.ToString();
-                        Entity territoryEntity;
-                        if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out territoryEntity))
-                        {
-                            Plugin.Logger.LogInfo("Territory found for tile model, checking ownership...");
-                            if (Utilities.HasComponent<UserOwner>(territoryEntity))
-                            {
-                                NetworkedEntity networkedEntityToCheck = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
-                                Entity entityToCheck = networkedEntityToCheck._Entity;
-                                //entity.LogComponentTypes();
-                                User userToCheck = Utilities.GetComponentData<User>(entityToCheck);
-                                if (user.Equals(userToCheck))
-                                {
-                                    Plugin.Logger.LogInfo("Dismantling allowed if tile within player's territory.");
-                                    return; // Allow dismantling
-                                }
-                                else
-                                {
-                                    Plugin.Logger.LogInfo("Dismantling disallowed if tile is outside player's territory.");
-                                    __result = false;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo("Dismantling disallowed if tile is outside a territory and player has no permissions.");
-                            __result = false;
-                        }
-                    }
-                }
-                else
-                {
-                    // still want to allow dismantling if a player is acting on a tile in their territory
-                    Plugin.Logger.LogInfo("Player has no settings saved, checking territory...");
-                    string name = user.CharacterName.ToString();
-                    Entity territoryEntity;
-                    if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out territoryEntity))
-                    {
-                        Plugin.Logger.LogInfo("Territory found for tile model, checking ownership...");
-                        if (Utilities.HasComponent<UserOwner>(territoryEntity))
-                        {
-                            NetworkedEntity networkedEntityToCheck = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
-                            Entity entityToCheck = networkedEntityToCheck._Entity;
-                            //entity.LogComponentTypes();
-                            User userToCheck = Utilities.GetComponentData<User>(entityToCheck);
-                            if (user.Equals(userToCheck))
-                            {
-                                Plugin.Logger.LogInfo("Dismantling allowed if tile within player's territory.");
-                                return; // Allow dismantling
-                            }
-                            else
-                            {
-                                Plugin.Logger.LogInfo("Dismantling disallowed if tile is outside player's territory.");
-                                __result = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Dismantling disallowed if tile is outside a territory and player has no permissions.");
-                        __result = false;
-                    }
-                }
-            }
-            else
-            {
-                // Log or handle cases where the user component is missing or userEntity isn't valid
-                Plugin.Logger.LogInfo("Unable to verify user entity for dismantle operation, disallowing by default.");
+                LogDismantleDisallowed("Unable to verify user entity for dismantle operation, disallowing by default.");
                 __result = false;
+                return;
             }
+
+            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
+            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
+
+            if (CanEditTiles(user) || IsTileInUserTerritory(user, tileModelEntity))
+            {
+                LogDismantleAllowed();
+                return; // Allow dismantling
+            }
+
+            LogDismantleDisallowed("Dismantling disallowed based on permissions and territory ownership.");
+            __result = false;
+        }
+
+        private static bool CanEditTiles(User user)
+        {
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
+            {
+                return data.CanEditTiles;
+            }
+            return false;
+        }
+
+        private static bool IsTileInUserTerritory(User user, Entity tileModelEntity)
+        {
+            if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity) &&
+                Utilities.HasComponent<UserOwner>(territoryEntity))
+            {
+                var territoryOwner = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
+                var territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
+                return user.Equals(territoryUser);
+            }
+            return false;
+        }
+
+        private static void LogDismantleAllowed()
+        {
+            Plugin.Logger.LogInfo("Dismantling allowed.");
+        }
+
+        private static void LogDismantleDisallowed(string reason)
+        {
+            Plugin.Logger.LogInfo(reason);
         }
     }
 
@@ -264,99 +225,61 @@ namespace WorldBuild.Hooks
     {
         public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
         {
-            // Early exit if dismantling is already deemed not possible
+            // Early exit if moving is already deemed not possible
             if (!__result) return;
 
             Plugin.Logger.LogInfo("Intercepting move event...");
-            //tileModelEntity.LogComponentTypes();
-            if (Utilities.HasComponent<UserOwner>(tileModelEntity))
+
+            if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
             {
-                NetworkedEntity networkedEntity = Utilities.GetComponentData<UserOwner>(tileModelEntity).Owner;
-                Entity entity = networkedEntity._Entity;
-                //entity.LogComponentTypes();
-                User user = Utilities.GetComponentData<User>(entity);
-                //User user = Utilities.GetComponentData<User>(userEntity);
-                if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
-                {
-                    if (data.CanEditTiles)
-                    {
-                        Plugin.Logger.LogInfo("Player has permission, allowing.");
-                        return; // Allow dismantling
-                    }
-                    else
-                    {
-                        // still want to allow moving if a player is acting on a tile in their territory
-                        Plugin.Logger.LogInfo("Player has no permissions, checking territory...");
-                        string name = user.CharacterName.ToString();
-                        Entity territoryEntity;
-                        if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out territoryEntity))
-                        {
-                            Plugin.Logger.LogInfo("Territory found for tile model, checking ownership...");
-                            if (Utilities.HasComponent<UserOwner>(territoryEntity))
-                            {
-                                NetworkedEntity networkedEntityToCheck = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
-                                Entity entityToCheck = networkedEntityToCheck._Entity;
-                                //entity.LogComponentTypes();
-                                User userToCheck = Utilities.GetComponentData<User>(entityToCheck);
-                                if (user.Equals(userToCheck))
-                                {
-                                    Plugin.Logger.LogInfo("Moving allowed if tile within player's territory.");
-                                    return; // Allow dismantling
-                                }
-                                else
-                                {
-                                    Plugin.Logger.LogInfo("Moving disallowed if tile is outside player's territory.");
-                                    __result = false;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo("Moving disallowed if tile is outside a territory and player has no permissions.");
-                            __result = false;
-                        }
-                    }
-                }
-                else
-                {
-                    // still want to allow moving if a player is acting on a tile in their territory
-                    Plugin.Logger.LogInfo("Player has no settings saved, checking territory...");
-                    string name = user.CharacterName.ToString();
-                    Entity territoryEntity;
-                    if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out territoryEntity))
-                    {
-                        Plugin.Logger.LogInfo("Territory found for tile model, checking ownership...");
-                        if (Utilities.HasComponent<UserOwner>(territoryEntity))
-                        {
-                            NetworkedEntity networkedEntityToCheck = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
-                            Entity entityToCheck = networkedEntityToCheck._Entity;
-                            //entity.LogComponentTypes();
-                            User userToCheck = Utilities.GetComponentData<User>(entityToCheck);
-                            if (user.Equals(userToCheck))
-                            {
-                                Plugin.Logger.LogInfo("Moving allowed if tile within player's territory.");
-                                return; // Allow dismantling
-                            }
-                            else
-                            {
-                                Plugin.Logger.LogInfo("Moving disallowed if tile is outside player's territory.");
-                                __result = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Moving disallowed if tile is outside a territory and player has no permissions.");
-                        __result = false;
-                    }
-                }
-            }
-            else
-            {
-                // Log or handle cases where the user component is missing or userEntity isn't valid
-                Plugin.Logger.LogInfo("Unable to verify user entity for movement operation, disallowing by default.");
+                LogMoveDisallowed("Unable to verify user entity for movement operation, disallowing by default.");
                 __result = false;
+                return;
             }
+
+            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
+            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
+
+            if (CanEditTiles(user) || IsTileInUserTerritory(user, tileModelEntity))
+            {
+                LogMoveAllowed();
+                return; // Allow moving
+            }
+
+            LogMoveDisallowed("Moving disallowed based on permissions and territory ownership.");
+            __result = false;
+        }
+
+        private static bool CanEditTiles(User user)
+        {
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
+            {
+                return data.CanEditTiles;
+            }
+            return false;
+        }
+
+        private static bool IsTileInUserTerritory(User user, Entity tileModelEntity)
+        {
+            if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity) &&
+                Utilities.HasComponent<UserOwner>(territoryEntity))
+            {
+                var territoryOwner = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
+                var territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
+                return user.Equals(territoryUser);
+            }
+            return false;
+        }
+
+        private static void LogMoveAllowed()
+        {
+            Plugin.Logger.LogInfo("Moving allowed.");
+        }
+
+        private static void LogMoveDisallowed(string reason)
+        {
+            Plugin.Logger.LogInfo(reason);
         }
     }
+
 }

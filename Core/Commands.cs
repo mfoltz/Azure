@@ -137,7 +137,8 @@ namespace WorldBuild.Core
             else
             {
                 // create new settings for user
-                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", "", false);
+                Stack<string> stack = new Stack<string>();
+                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", stack , false);
                 newSettings.CanEditTiles = true;
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
@@ -286,32 +287,32 @@ namespace WorldBuild.Core
             User user = ctx.Event.User;
             if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
             {
-                string lastTileRef = data.LastTilePlaced;
-                // Assuming lastTileRef is in the format "index, version"
-                string[] parts = lastTileRef.Split(", ");
-                if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
+                string lastTileRef = data.PopLastTilePlaced();
+                if (!string.IsNullOrEmpty(lastTileRef))
                 {
-                    // Reconstruct the entity from index and version
-                    Entity tileEntity = new Entity { Index = index, Version = version };
-
-                    // Verify if the entity still exists and matches the version
-                    if (entityManager.Exists(tileEntity) && tileEntity.Version == version)
+                    string[] parts = lastTileRef.Split(", ");
+                    if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
                     {
-                        // Implement your logic to undo or destroy the tile entity
-                        // Example: EntityManager.DestroyEntity(tileEntity);
-                        SystemPatchUtil.Destroy(tileEntity);
-                        ctx.Reply($"Successfully destroyed last tile placed.");
-                        data.LastTilePlaced = "";
-                        Databases.SaveBuildSettings();
+                        Entity tileEntity = new Entity { Index = index, Version = version };
+                        if (entityManager.Exists(tileEntity) && tileEntity.Version == version)
+                        {
+                            SystemPatchUtil.Destroy(tileEntity);
+                            ctx.Reply($"Successfully destroyed last tile placed.");
+                            Databases.SaveBuildSettings();
+                        }
+                        else
+                        {
+                            ctx.Reply("The tile could not be found or has already been modified.");
+                        }
                     }
                     else
                     {
-                        ctx.Reply("The tile could not be found or has already been modified.");
+                        ctx.Reply("Failed to parse the reference to the last tile placed.");
                     }
                 }
                 else
                 {
-                    ctx.Reply("Failed to parse the reference to the last tile placed.");
+                    ctx.Reply("You have not placed any tiles yet or all undos have been used.");
                 }
             }
             else
@@ -349,7 +350,7 @@ namespace WorldBuild.Core
 
 
         [Command("destroyTiles", shortHand: "dt", adminOnly: true, description: "Destroys tiles in range matching entered PrefabGUID.",
-        usage: "Usage: .wb dt [name] [radius]")]
+        usage: "Usage: .wb dt [PrefabGUID] [radius]")]
         public static void DestroyTiles(ChatCommandContext ctx, string name, float radius = 25f)
         {
             // Check if a name is not provided or is empty
