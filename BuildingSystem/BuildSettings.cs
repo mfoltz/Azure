@@ -13,17 +13,17 @@ namespace WorldBuild.BuildingSystem
         public int TileRotation { get; set; } // controls orientation of tiles placed
         public int TileModel { get; set; } // controls model of tiles placed
         public string TileSet { get; set; } // tileset of tiles to select from
-        public List<string> TilesPlaced { get; set; } // string representation of entity identifier of last tile models placed for easy undoing
+        public string LastTilePlaced { get; set; } // string representation of entity identifier of last tile models placed for easy undoing
         public bool ImmortalTiles {  get; set; } // setting to make tiles indestructible
 
-        public BuildSettings(bool canEditTiles, bool buildMode, int tileRotation, int tileModel, string tileSet, List<string> tilesPlaced, bool immortalTiles)
+        public BuildSettings(bool canEditTiles, bool buildMode, int tileRotation, int tileModel, string tileSet, string lastTilePlaced, bool immortalTiles)
         {
             CanEditTiles = canEditTiles;
             BuildMode = buildMode;
             TileRotation = tileRotation;
             TileModel = tileModel;
             TileSet = tileSet;
-            TilesPlaced = tilesPlaced;
+            LastTilePlaced = lastTilePlaced;
             ImmortalTiles = immortalTiles;
         }
     }

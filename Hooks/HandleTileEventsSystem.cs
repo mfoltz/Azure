@@ -70,15 +70,8 @@ namespace WorldBuild.Hooks
                             {
                                 string entityString = damageTakenEventEntity.Index.ToString() + ", " + damageTakenEventEntity.Version.ToString();
                                 //Plugin.Logger.LogInfo(entityString);
-                                if (settings.TilesPlaced.Contains(entityString))
-                                {
-                                    Plugin.Logger.LogInfo("Tile is in player's list of placed tiles, destroying...");
-                                    SystemPatchUtil.Destroy(damageTakenEventEntity);
-                                }
-                                else
-                                {
-                                    Plugin.Logger.LogInfo("Tile is not in player's list of placed tiles, not destroying");
-                                }
+
+                                SystemPatchUtil.Destroy(damageTakenEventEntity);
                             }
                         }
                     }

@@ -68,7 +68,7 @@ namespace WorldBuild.BuildingSystem
                     }
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
                     string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
-                    data.TilesPlaced.Add(entityString);
+                    data.LastTilePlaced = entityString;
                     Plugin.Logger.LogInfo($"Tile placed: {entityString}");
                     //tileEntity.LogComponentTypes();
 

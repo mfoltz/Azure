@@ -137,7 +137,7 @@ namespace WorldBuild.Core
             else
             {
                 // create new settings for user
-                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", [], false);
+                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", "", false);
                 newSettings.CanEditTiles = true;
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
@@ -286,7 +286,7 @@ namespace WorldBuild.Core
             User user = ctx.Event.User;
             if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
             {
-                string lastTileRef = data.TilesPlaced.LastOrDefault();
+                string lastTileRef = data.LastTilePlaced;
                 // Assuming lastTileRef is in the format "index, version"
                 string[] parts = lastTileRef.Split(", ");
                 if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
@@ -301,7 +301,7 @@ namespace WorldBuild.Core
                         // Example: EntityManager.DestroyEntity(tileEntity);
                         SystemPatchUtil.Destroy(tileEntity);
                         ctx.Reply($"Successfully destroyed last tile placed.");
-                        data.TilesPlaced.Remove(lastTileRef);
+                        data.LastTilePlaced = "";
                         Databases.SaveBuildSettings();
                     }
                     else
