@@ -5,9 +5,9 @@ using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine.Analytics;
-using WorldBuild.BuildingSystem;
-using WorldBuild.Core;
-using WorldBuild.Data;
+using VBuild.BuildingSystem;
+using VBuild.Core;
+using VBuild.Data;
 
 namespace WorldBuild.Hooks
 {
@@ -37,11 +37,11 @@ namespace WorldBuild.Hooks
                     if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings) && settings.BuildMode)
                     {
                         DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
-                        if (buffer[0].NewGroupId == WorldBuild.Data.Prefabs.AB_Vampire_Unarmed_Primary_MeleeAttack_AbilityGroup)
+                        if (buffer[0].NewGroupId == VBuild.Data.Prefabs.AB_Vampire_Unarmed_Primary_MeleeAttack_AbilityGroup)
                         {
                             // Assuming you want to modify abilities when in build mode without checking the initial ability
-                            PrefabGUID spell1 = WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup; // Assigning build ability
-                            PrefabGUID spell2 = WorldBuild.Data.Prefabs.AB_Debug_NukeAll_Group; // Assigning nuke ability
+                            PrefabGUID spell1 = VBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup; // Assigning build ability
+                            PrefabGUID spell2 = VBuild.Data.Prefabs.AB_Debug_NukeAll_Group; // Assigning nuke ability
 
                             // Replacing or adding abilities directly without checking buffer length
                             ReplaceAbilityOnSlotBuff buildAbility = new ReplaceAbilityOnSlotBuff { Slot = 1, NewGroupId = spell1 };

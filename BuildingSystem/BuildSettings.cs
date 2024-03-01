@@ -1,10 +1,10 @@
 ﻿using ProjectM;
 using System.Text.RegularExpressions;
-using WorldBuild.Core;
+using VBuild.Core;
 using VampireCommandFramework;
-using WorldBuild.BuildingSystem;
+using VBuild.BuildingSystem;
 
-namespace WorldBuild.BuildingSystem
+namespace VBuild.BuildingSystem
 {
     public class BuildSettings
     {

@@ -10,9 +10,9 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
 using ProjectM.Shared;
-using static WorldBuild.Core.Services.PlayerService;
+using static VBuild.Core.Services.PlayerService;
 
-namespace WorldBuild.Core.Toolbox
+namespace VBuild.Core.Toolbox
 {
     public static class Utilities
     {

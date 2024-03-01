@@ -8,9 +8,9 @@
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
-using WorldBuild.Core.Toolbox;
+using VBuild.Core.Toolbox;
 
-namespace WorldBuild.Core.Services;
+namespace VBuild.Core.Services;
 
 public static class PlayerService
 {

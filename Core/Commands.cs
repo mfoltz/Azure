@@ -1,5 +1,5 @@
 ﻿using Bloodstone.API;
-using WorldBuild.Data;
+using VBuild.Data;
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Gameplay.Scripting;
@@ -22,15 +22,15 @@ using UnityEngine.SceneManagement;
 using VampireCommandFramework;
 using Il2CppSystem;
 using static ProjectM.Tiles.TileCellEnumReader;
-using static WorldBuild.BuildingSystem.TileSets;
+using static VBuild.BuildingSystem.TileSets;
 using UnityEngine.Networking.Match;
-using WorldBuild.BuildingSystem;
-using WorldBuild.Core.Services;
-using WorldBuild.Core.Toolbox;
+using VBuild.BuildingSystem;
+using VBuild.Core.Services;
+using VBuild.Core.Toolbox;
 using System.Collections.Generic;
 using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
 
-namespace WorldBuild.Core
+namespace VBuild.Core
 {
     [CommandGroup(name: "WorldBuild", shortHand: "wb")]
     public class Commands

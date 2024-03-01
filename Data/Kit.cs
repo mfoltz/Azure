@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ProjectM;
 
-namespace WorldBuild.Data;
+namespace VBuild.Data;
 
 public static class Kit
 {

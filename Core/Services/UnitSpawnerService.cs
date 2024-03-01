@@ -7,9 +7,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using WorldBuild.Core.Toolbox;
+using VBuild.Core.Toolbox;
 
-namespace WorldBuild.Core.Services;
+namespace VBuild.Core.Services;
 
 internal class UnitSpawnerService
 {

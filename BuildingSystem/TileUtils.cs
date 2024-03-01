@@ -8,7 +8,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using VampireCommandFramework;
 
-namespace WorldBuild.BuildingSystem;
+namespace VBuild.BuildingSystem;
 
 internal static class TileUtil
 {

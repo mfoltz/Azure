@@ -9,13 +9,13 @@ using UnityEngine;
 using VampireCommandFramework;
 using UnityEngine.SceneManagement;
 using System.Text.Json;
-using WorldBuild;
-using WorldBuild.Core.Services;
-using WorldBuild.Core.Toolbox;
-using WorldBuild.BuildingSystem;
-using WorldBuild.Data;
+using VBuild;
+using VBuild.Core.Services;
+using VBuild.Core.Toolbox;
+using VBuild.BuildingSystem;
+using VBuild.Data;
 
-namespace WorldBuild.Core
+namespace VBuild.Core
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]

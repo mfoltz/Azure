@@ -1,9 +1,4 @@
-﻿#region Assembly AdminCommands, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-
-// C:\Users\mitch\Downloads\AdminCommands.dll
-// Decompiled with ICSharpCode.Decompiler 8.1.1.7464
-
-#endregion
+﻿
 
 using System;
 using System.Collections.Generic;
@@ -20,10 +15,10 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using WorldBuild.Core.Services;
-using WorldBuild.Data;
+using VBuild.Core.Services;
+using VBuild.Data;
 
-namespace WorldBuild.Core.Toolbox;
+namespace VBuild.Core.Toolbox;
 
 public static class Helper
 {

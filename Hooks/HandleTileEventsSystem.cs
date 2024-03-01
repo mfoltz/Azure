@@ -1,5 +1,5 @@
 ﻿using Bloodstone.API;
-using WorldBuild.Core;
+using VBuild.Core;
 using FMOD.Studio;
 using HarmonyLib;
 using Il2CppSystem;
@@ -21,11 +21,11 @@ using static ProjectM.CastleBuilding.Placement.GetPlacementResult;
 using static ProjectM.Network.SetTimeOfDayEvent;
 using static VCF.Core.Basics.RoleCommands;
 using Exception = System.Exception;
-using Plugin = WorldBuild.Core.Plugin;
+using Plugin = VBuild.Core.Plugin;
 using User = ProjectM.Network.User;
-using WorldBuild.BuildingSystem;
-using WorldBuild.Core.Toolbox;
-using WorldBuild.Data;
+using VBuild.BuildingSystem;
+using VBuild.Core.Toolbox;
+using VBuild.Data;
 using ProjectM.Gameplay.Scripting;
 using ProjectM.Tiles;
 using ProjectM.Gameplay;
@@ -97,7 +97,7 @@ namespace WorldBuild.Hooks
             {
                 if (IsCastleHeart(job))
                 {
-                    if (!WorldBuild.Core.Commands.WorldBuildToggle.wbFlag)
+                    if (!VBuild.Core.Commands.WorldBuildToggle.wbFlag)
                     {
                         return;
                     }
@@ -127,7 +127,7 @@ namespace WorldBuild.Hooks
                     User user = Utilities.GetComponentData<User>(userEntity);
                     if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
                     {
-                        if (prefabGUID.Equals(WorldBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
+                        if (prefabGUID.Equals(VBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
                         {
                             // run spawn tile method here
                             Plugin.Logger.LogInfo("Charm T02 cast detected, spawning tile at mouse...");

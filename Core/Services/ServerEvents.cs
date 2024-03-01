@@ -4,10 +4,10 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using ProjectM;
 using Unity.Collections;
 using Unity.Entities;
-using WorldBuild.Core.Toolbox;
-using WorldBuild.Data;
+using VBuild.Core.Toolbox;
+using VBuild.Data;
 
-namespace WorldBuild.Core.Services
+namespace VBuild.Core.Services
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 

@@ -1,6 +1,6 @@
 using ProjectM;
 
-namespace WorldBuild.Data;
+namespace VBuild.Data;
 
 public class Item
 {

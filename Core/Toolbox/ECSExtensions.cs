@@ -8,7 +8,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace WorldBuild.Core.Toolbox;
+namespace VBuild.Core.Toolbox;
 
 public static class ECSExtensions
 {

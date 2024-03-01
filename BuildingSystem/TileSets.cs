@@ -13,17 +13,17 @@ using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using VampireCommandFramework;
-using WorldBuild.Core;
-using WorldBuild.Core.Services;
-using WorldBuild.Core.Toolbox;
-using WorldBuild.Data;
+using VBuild.Core;
+using VBuild.Core.Services;
+using VBuild.Core.Toolbox;
+using VBuild.Data;
 using static ProjectM.SLSEntityRemapping;
-using static WorldBuild.BuildingSystem.TileSets.HorseFunctions;
+using static VBuild.BuildingSystem.TileSets.HorseFunctions;
 using Collider = Unity.Physics.Collider;
 using Ray = UnityEngine.Ray;
 using StringComparer = System.StringComparer;
 
-namespace WorldBuild.BuildingSystem
+namespace VBuild.BuildingSystem
 {
     internal class TileSets
     {
@@ -157,23 +157,23 @@ namespace WorldBuild.BuildingSystem
             {
                 StaticTiles = new Dictionary<int, TileConstructor>
                 {
-                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", WorldBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
-                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", WorldBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
-                    { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", WorldBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
-                    { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", WorldBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
-                    { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", WorldBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },
-                    { 12, new TileConstructor("TM_Fortressoflight_Brazier01", WorldBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
-                    { 11, new TileConstructor("TM_Castle_Wall_Tier02_Stone_Entrance", WorldBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone_Entrance.GuidHash) },
-                    { 10, new TileConstructor("TM_Castle_Floor_Foundation_Stone01", WorldBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01.GuidHash) },
-                    { 9, new TileConstructor("TM_Castle_Wall_Tier02_Stone", WorldBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone.GuidHash) },
-                    { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", WorldBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
-                    { 7, new TileConstructor("TM_CraftingStation_BloodBank", WorldBuild.Data.Prefabs.TM_CraftingStation_BloodBank.GuidHash) },
-                    { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", WorldBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
-                    { 5, new TileConstructor("TM_SpecialStation_StablePen", WorldBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
-                    { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", WorldBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
-                    { 3, new TileConstructor("TM_CraftingStation_Altar_Unholy", WorldBuild.Data.Prefabs.TM_CraftingStation_Altar_Unholy.GuidHash) },
-                    { 2, new TileConstructor("TM_CraftingStation_Altar_Spectral", WorldBuild.Data.Prefabs.TM_CraftingStation_Altar_Spectral.GuidHash) },
-                    { 1, new TileConstructor("TM_Workstation_Waypoint_World_UnlockedFromStart", WorldBuild.Data.Prefabs.TM_Workstation_Waypoint_World_UnlockedFromStart.GuidHash) }
+                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", VBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
+                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", VBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
+                    { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", VBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
+                    { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", VBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
+                    { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", VBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },
+                    { 12, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
+                    { 11, new TileConstructor("TM_Castle_Wall_Tier02_Stone_Entrance", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone_Entrance.GuidHash) },
+                    { 10, new TileConstructor("TM_Castle_Floor_Foundation_Stone01", VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01.GuidHash) },
+                    { 9, new TileConstructor("TM_Castle_Wall_Tier02_Stone", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone.GuidHash) },
+                    { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", VBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
+                    { 7, new TileConstructor("TM_CraftingStation_BloodBank", VBuild.Data.Prefabs.TM_CraftingStation_BloodBank.GuidHash) },
+                    { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", VBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
+                    { 5, new TileConstructor("TM_SpecialStation_StablePen", VBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
+                    { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
+                    { 3, new TileConstructor("TM_CraftingStation_Altar_Unholy", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Unholy.GuidHash) },
+                    { 2, new TileConstructor("TM_CraftingStation_Altar_Spectral", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Spectral.GuidHash) },
+                    { 1, new TileConstructor("TM_Workstation_Waypoint_World_UnlockedFromStart", VBuild.Data.Prefabs.TM_Workstation_Waypoint_World_UnlockedFromStart.GuidHash) }
                 };
             }
 
@@ -207,23 +207,23 @@ namespace WorldBuild.BuildingSystem
             {
                 RegisterTiles("Building", new Dictionary<int, TileConstructor>
                 {
-                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", WorldBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
-                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", WorldBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
-                    { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", WorldBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
-                    { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", WorldBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
-                    { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", WorldBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },
-                    { 12, new TileConstructor("TM_Fortressoflight_Brazier01", WorldBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
-                    { 11, new TileConstructor("TM_Castle_Wall_Tier02_Stone_Entrance", WorldBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone_Entrance.GuidHash) },
-                    { 10, new TileConstructor("TM_Castle_Floor_Foundation_Stone01", WorldBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01.GuidHash) },
-                    { 9, new TileConstructor("TM_Castle_Wall_Tier02_Stone", WorldBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone.GuidHash) },
-                    { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", WorldBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
-                    { 7, new TileConstructor("TM_CraftingStation_BloodBank", WorldBuild.Data.Prefabs.TM_CraftingStation_BloodBank.GuidHash) },
-                    { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", WorldBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
-                    { 5, new TileConstructor("TM_SpecialStation_StablePen", WorldBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
-                    { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", WorldBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
-                    { 3, new TileConstructor("TM_CraftingStation_Altar_Unholy", WorldBuild.Data.Prefabs.TM_CraftingStation_Altar_Unholy.GuidHash) },
-                    { 2, new TileConstructor("TM_CraftingStation_Altar_Spectral", WorldBuild.Data.Prefabs.TM_CraftingStation_Altar_Spectral.GuidHash) },
-                    { 1, new TileConstructor("TM_Workstation_Waypoint_World_UnlockedFromStart", WorldBuild.Data.Prefabs.TM_Workstation_Waypoint_World_UnlockedFromStart.GuidHash) }
+                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", VBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
+                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", VBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
+                    { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", VBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
+                    { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", VBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
+                    { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", VBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },
+                    { 12, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
+                    { 11, new TileConstructor("TM_Castle_Wall_Tier02_Stone_Entrance", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone_Entrance.GuidHash) },
+                    { 10, new TileConstructor("TM_Castle_Floor_Foundation_Stone01", VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01.GuidHash) },
+                    { 9, new TileConstructor("TM_Castle_Wall_Tier02_Stone", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone.GuidHash) },
+                    { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", VBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
+                    { 7, new TileConstructor("TM_CraftingStation_BloodBank", VBuild.Data.Prefabs.TM_CraftingStation_BloodBank.GuidHash) },
+                    { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", VBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
+                    { 5, new TileConstructor("TM_SpecialStation_StablePen", VBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
+                    { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
+                    { 3, new TileConstructor("TM_CraftingStation_Altar_Unholy", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Unholy.GuidHash) },
+                    { 2, new TileConstructor("TM_CraftingStation_Altar_Spectral", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Spectral.GuidHash) },
+                    { 1, new TileConstructor("TM_Workstation_Waypoint_World_UnlockedFromStart", VBuild.Data.Prefabs.TM_Workstation_Waypoint_World_UnlockedFromStart.GuidHash) }
                 });
             }
 
