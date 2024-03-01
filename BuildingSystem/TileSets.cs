@@ -63,19 +63,7 @@ namespace VBuild.BuildingSystem
                     if (data.ImmortalTiles)
                     {
                         Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
-                        if (!Utilities.HasComponent<Health>(tileEntity))
-                        {
-                            ModifiableFloat modifiableFloat = new() { _Value = 1000000f };
-                            Utilities.AddComponentData(tileEntity, new Health { MaxHealth = modifiableFloat, Value = modifiableFloat.Value});
-                        }
-                        else
-                        {
-                            Health health = Utilities.GetComponentData<Health>(tileEntity);
-                            health.MaxHealth._Value = 1000000f;
-                            health.Value = 1000000f;
-                            Utilities.SetComponentData(tileEntity, health);
-                        
-                        }
+                        // this doesnt work for the altars and a few other things, not sure hwy yet
                     }
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
                     string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
