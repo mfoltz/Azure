@@ -9,8 +9,8 @@ namespace VBuild.BuildingSystem
     public class BuildSettings
     {
         public bool CanEditTiles { get; set; } // setting to allow moving or dismantling tiles outside of territories
-        public bool BuildMode { get; set; }  // setting to spawn tiles using siege interact T02 on shift
-        public bool DismantleMode { get; set; } // setting to dismantle tiles using siege interact T02 on shift
+        public bool BuildMode { get; set; }  // setting to spawn tiles using charm T02 on Q
+        public bool DismantleMode { get; set; } // setting to dismantle tiles by whacking them, doesn't work for things that can't be whacked
         public int TileRotation { get; set; } // controls orientation of tiles placed
         public int TileModel { get; set; } // controls model of tiles placed
         public string TileSet { get; set; } // tileset of tiles to select from

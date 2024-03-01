@@ -163,60 +163,21 @@ namespace WorldBuild.Hooks
     {
         public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
         {
-            // Early exit if dismantling is already deemed not possible
             if (!__result) return;
 
             Plugin.Logger.LogInfo("Intercepting dismantle event...");
 
-            if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
+            bool canDismantle = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
+            __result = canDismantle;
+
+            if (!canDismantle)
             {
-                LogDismantleDisallowed("Unable to verify user entity for dismantle operation, disallowing by default.");
-                __result = false;
-                return;
+                Plugin.Logger.LogInfo("Dismantling disallowed based on permissions and territory ownership.");
             }
-
-            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
-            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
-
-            if (CanEditTiles(user) || IsTileInUserTerritory(user, tileModelEntity))
+            else
             {
-                LogDismantleAllowed();
-                return; // Allow dismantling
+                Plugin.Logger.LogInfo("Dismantling allowed in territory or elsewhere if user has permissions.");
             }
-
-            LogDismantleDisallowed("Dismantling disallowed based on permissions and territory ownership.");
-            __result = false;
-        }
-
-        private static bool CanEditTiles(User user)
-        {
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
-            {
-                return data.CanEditTiles;
-            }
-            return false;
-        }
-
-        private static bool IsTileInUserTerritory(User user, Entity tileModelEntity)
-        {
-            if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity) &&
-                Utilities.HasComponent<UserOwner>(territoryEntity))
-            {
-                var territoryOwner = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
-                var territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
-                return user.Equals(territoryUser);
-            }
-            return false;
-        }
-
-        private static void LogDismantleAllowed()
-        {
-            Plugin.Logger.LogInfo("Dismantling allowed.");
-        }
-
-        private static void LogDismantleDisallowed(string reason)
-        {
-            Plugin.Logger.LogInfo(reason);
         }
     }
 
@@ -225,61 +186,60 @@ namespace WorldBuild.Hooks
     {
         public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
         {
-            // Early exit if moving is already deemed not possible
             if (!__result) return;
 
             Plugin.Logger.LogInfo("Intercepting move event...");
 
-            if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
+            bool canMove = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
+            __result = canMove;
+
+            if (!canMove)
             {
-                LogMoveDisallowed("Unable to verify user entity for movement operation, disallowing by default.");
-                __result = false;
-                return;
+                Plugin.Logger.LogInfo("Moving disallowed based on permissions and territory ownership.");
             }
-
-            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
-            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
-
-            if (CanEditTiles(user) || IsTileInUserTerritory(user, tileModelEntity))
+            else
             {
-                LogMoveAllowed();
-                return; // Allow moving
+                Plugin.Logger.LogInfo("Moving allowed in territory or elsewhere if user has permissions.");
             }
-
-            LogMoveDisallowed("Moving disallowed based on permissions and territory ownership.");
-            __result = false;
-        }
-
-        private static bool CanEditTiles(User user)
-        {
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
-            {
-                return data.CanEditTiles;
-            }
-            return false;
-        }
-
-        private static bool IsTileInUserTerritory(User user, Entity tileModelEntity)
-        {
-            if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity) &&
-                Utilities.HasComponent<UserOwner>(territoryEntity))
-            {
-                var territoryOwner = Utilities.GetComponentData<UserOwner>(territoryEntity).Owner;
-                var territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
-                return user.Equals(territoryUser);
-            }
-            return false;
-        }
-
-        private static void LogMoveAllowed()
-        {
-            Plugin.Logger.LogInfo("Moving allowed.");
-        }
-
-        private static void LogMoveDisallowed(string reason)
-        {
-            Plugin.Logger.LogInfo(reason);
         }
     }
+}
 
+public static class TileOperationUtility
+{
+    public static bool CanPerformOperation(EntityManager entityManager, Entity tileModelEntity)
+    {
+        if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
+        {
+            Plugin.Logger.LogInfo("Unable to verify user entity, disallowing by default.");
+            return false;
+        }
+
+        var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
+        var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
+
+        return CanEditTiles(user) || IsTileInUserTerritory(user, tileModelEntity);
+    }
+
+    private static bool CanEditTiles(User user)
+    {
+        if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
+        {
+            return data.CanEditTiles;
+        }
+        return false;
+    }
+
+    private static bool IsTileInUserTerritory(User user, Entity tileModelEntity)
+    {
+        if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity))
+        {
+            CastleTerritory castleTerritory = Utilities.GetComponentData<CastleTerritory>(territoryEntity);
+            Entity castleHeart = castleTerritory.CastleHeart;
+            NetworkedEntity territoryOwner = Utilities.GetComponentData<UserOwner>(castleHeart).Owner;
+            User territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
+            return user.PlatformId.Equals(territoryUser.PlatformId);
+        }
+        return false;
+    }
 }
