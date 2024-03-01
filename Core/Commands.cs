@@ -32,7 +32,7 @@ using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
 
 namespace VBuild.Core
 {
-    [CommandGroup(name: "WorldBuild", shortHand: "wb")]
+    [CommandGroup(name: "VBuild", shortHand: "vb")]
     public class Commands
     {
 
@@ -52,7 +52,7 @@ namespace VBuild.Core
                 Value = false
             };
 
-            [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".wb twb", description: "Toggles worldbuild debug settings for no-cost building anywhere.")]
+            [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".twb", description: "Toggles worldbuild debug settings for no-cost building anywhere.")]
             public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
             {
                 User user = ctx.Event.User;
@@ -91,7 +91,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "toggleBuildSkills", shortHand: "bs", adminOnly: true, usage: ".wb bs", description: "Toggles build skills on unarmed, change weapons to activate (tiles will be placed when activating ability at mouse hover).")]
+        [Command(name: "toggleBuildSkills", shortHand: "bs", adminOnly: true, usage: ".vb bs", description: "Toggles build skills on unarmed, change weapons to activate (tiles will be placed when activating ability at mouse hover).")]
         public static void BuildModeCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -105,7 +105,7 @@ namespace VBuild.Core
                 Databases.SaveBuildSettings();
             }
         }
-        [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".wb dm", description: "Toggles dismantle mode (if you hit something that is in your list of placed tiles it will be destroyed, even if immortal).")]
+        [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".vb dm", description: "Toggles dismantle mode (destroys any tile that takes damage from you, including immortal tiles).")]
         public static void DismantleModeCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -120,7 +120,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "tilePermissions", shortHand: "tp", adminOnly: true, usage: ".wb tp <Name>", description: "Toggles tile permissions for a player.")]
+        [Command(name: "tilePermissions", shortHand: "perms", adminOnly: true, usage: ".vb perms <Name>", description: "Toggles tile permissions for a player (allows moving or dismantling things outside of their territory if it is something that can be moved or disabled).")]
         public static void ToggleEditTilesCommand(ChatCommandContext ctx, string name)
         {
             User setter = ctx.Event.User;
@@ -146,7 +146,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "tileRotation", shortHand: "tr", adminOnly: false, usage: ".wb tr [0/90/180/270]", description: "Sets rotation of tiles placed.")]
+        [Command(name: "tileRotation", shortHand: "tr", adminOnly: false, usage: ".vb tr [0/90/180/270]", description: "Sets rotation of tiles placed.")]
         public static void SetTileRotationCommand(ChatCommandContext ctx, int rotation)
         {
             if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)
@@ -164,7 +164,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "listSet", shortHand: "ls", adminOnly: true, usage: ".wb ls", description: "Lists available tiles from current set.")]
+        [Command(name: "listSet", shortHand: "ls", adminOnly: true, usage: ".vb ls", description: "Lists available tiles from current set.")]
         public static void ListTilesCommand(ChatCommandContext ctx)
         {
             ulong SteamID = ctx.Event.User.PlatformId;
@@ -193,7 +193,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "chooseSet", shortHand: "cs", adminOnly: false, usage: ".wb cs <name>", description: "Sets tile set to use tiles from.")]
+        [Command(name: "chooseSet", shortHand: "cs", adminOnly: false, usage: ".vb cs <tileSetName>", description: "Sets tile set to use tiles from.")]
         public static void TileSetChoice(ChatCommandContext ctx, string choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -227,7 +227,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "chooseModel", shortHand: "cm", adminOnly: false, usage: ".wb cm <#>", description: "Sets tile model to use.")]
+        [Command(name: "chooseModel", shortHand: "cm", adminOnly: false, usage: ".vb cm <#>", description: "Sets tile model to use, list available tiles with '.vb ls'.")]
         public static void SetTile(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -255,7 +255,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "setTileModelByPrefab", shortHand: "tmp", adminOnly: false, usage: ".wb tm <PrefabGUID>", description: "Manually set tile model to use.")]
+        [Command(name: "setTileModelByPrefab", shortHand: "tmp", adminOnly: false, usage: ".wb tmp <PrefabGUID>", description: "Manually set tile model to use.")]
         public static void SetTileByPrefab(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -280,7 +280,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".wb undo", description: "Destroys the last tile placed.")]
+        [Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".wb undo", description: "Destroys the last tile placed (works on last 10 tiles placed).")]
         public static void UndoLastTilePlacedCommand(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -321,7 +321,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "toggleImmortalTiles", shortHand: "immortal", adminOnly: true, usage: ".wb immortal", description: "Tiles placed will be immortal if toggled.")]
+        [Command(name: "toggleImmortalTiles", shortHand: "immortal", adminOnly: true, usage: ".wb immortal", description: "Tiles placed will be immortal if toggled. Does not work for everything equally and not sure why yet.")]
         public static void MakeTilesImmortal(ChatCommandContext ctx)
         {
             User setter = ctx.Event.User;
@@ -341,7 +341,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".wb dr", description: "Destroys resources in player territories.")]
+        [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".wb dr", description: "Destroys resources in player territories. Only use this after disabling worldbuild.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             TileSets.ResourceFunctions.SearchAndDestroy();
@@ -349,7 +349,7 @@ namespace VBuild.Core
         }
 
 
-        [Command("destroyTiles", shortHand: "dt", adminOnly: true, description: "Destroys tiles in range matching entered PrefabGUID.",
+        [Command("destroyTiles", shortHand: "dt", adminOnly: true, description: "Destroys tiles in radius matching entered PrefabGUID.",
         usage: "Usage: .wb dt [PrefabGUID] [radius]")]
         public static void DestroyTiles(ChatCommandContext ctx, string name, float radius = 25f)
         {

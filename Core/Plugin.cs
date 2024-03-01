@@ -26,7 +26,7 @@ namespace VBuild.Core
         internal static Plugin Instance { get; private set; }
         public static ManualLogSource Logger;
 
-        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, "WorldBuild");
+        public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
         public static readonly string BuildSettingsJson = Path.Combine(Plugin.ConfigPath, "player_build_settings.json");
 
         public override void Load()

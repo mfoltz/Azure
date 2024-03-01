@@ -39,7 +39,6 @@ namespace VBuild.Core.Services
             {
                 Databases.SaveBuildSettings();
                 EntityManager entityManager = VWorld.Server.EntityManager;
-                // ISSUE: explicit reference operation
                 NativeArray<Entity> entityArray = entityManager.CreateEntityQuery(new EntityQueryDesc()
                 {
                     All = (Il2CppStructArray<ComponentType>)new ComponentType[4]

@@ -19,8 +19,6 @@ using VBuild.Core.Toolbox;
 using VBuild.Data;
 using static ProjectM.SLSEntityRemapping;
 using static VBuild.BuildingSystem.TileSets.HorseFunctions;
-using Collider = Unity.Physics.Collider;
-using Ray = UnityEngine.Ray;
 using StringComparer = System.StringComparer;
 
 namespace VBuild.BuildingSystem
@@ -61,10 +59,23 @@ namespace VBuild.BuildingSystem
                     //Utilities.SetComponentData(tileEntity, physicsCollider);
                     //Utilities.SetComponentData(tileEntity, health);
                     //SystemPatchUtil.Destroy(colliderEntity);
-                    //that mostly worked but the chest became unlootable unless destroyed with nukeall, moving on for now
+                    //that mostly worked but the chest became unlootable unless destroyed with nukeall, moving on for now since that sounds like quite the rabbit hole
                     if (data.ImmortalTiles)
                     {
                         Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
+                        if (!Utilities.HasComponent<Health>(tileEntity))
+                        {
+                            ModifiableFloat modifiableFloat = new() { _Value = 1000000f };
+                            Utilities.AddComponentData(tileEntity, new Health { MaxHealth = modifiableFloat, Value = modifiableFloat.Value});
+                        }
+                        else
+                        {
+                            Health health = Utilities.GetComponentData<Health>(tileEntity);
+                            health.MaxHealth._Value = 1000000f;
+                            health.Value = 1000000f;
+                            Utilities.SetComponentData(tileEntity, health);
+                        
+                        }
                     }
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
                     string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
@@ -157,17 +168,10 @@ namespace VBuild.BuildingSystem
             {
                 StaticTiles = new Dictionary<int, TileConstructor>
                 {
-                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", VBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
-                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", VBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
-                    { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", VBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
-                    { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", VBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
-                    { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", VBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },
-                    { 12, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
-                    { 11, new TileConstructor("TM_Castle_Wall_Tier02_Stone_Entrance", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone_Entrance.GuidHash) },
-                    { 10, new TileConstructor("TM_Castle_Floor_Foundation_Stone01", VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01.GuidHash) },
-                    { 9, new TileConstructor("TM_Castle_Wall_Tier02_Stone", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone.GuidHash) },
+                    { 10, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
+                    { 9, new TileConstructor("TM_Brazier_Elris01", VBuild.Data.Prefabs.TM_Brazier_Elris01.GuidHash) },
                     { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", VBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
-                    { 7, new TileConstructor("TM_CraftingStation_BloodBank", VBuild.Data.Prefabs.TM_CraftingStation_BloodBank.GuidHash) },
+                    { 7, new TileConstructor("TM_CastleRuins_Pillar_Broken01", VBuild.Data.Prefabs.TM_CastleRuins_Pillar_Broken01.GuidHash) },
                     { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", VBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
                     { 5, new TileConstructor("TM_SpecialStation_StablePen", VBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
                     { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
@@ -207,17 +211,11 @@ namespace VBuild.BuildingSystem
             {
                 RegisterTiles("Building", new Dictionary<int, TileConstructor>
                 {
-                    { 17, new TileConstructor("Dynamic_Bandit_SmallTent02", VBuild.Data.Prefabs.Dynamic_Bandit_SmallTent02.GuidHash) },
-                    { 16, new TileConstructor("TM_WorldChest_Epic_01_Full", VBuild.Data.Prefabs.TM_WorldChest_Epic_01_Full.GuidHash) },
-                    { 15, new TileConstructor("TM_Castle_Floor_Garden_Grass01", VBuild.Data.Prefabs.TM_Castle_Floor_Garden_Grass01.GuidHash) },
-                    { 14, new TileConstructor("TM_Castle_House_Pillar_Forge01", VBuild.Data.Prefabs.TM_Castle_House_Pillar_Forge01.GuidHash) },
-                    { 13, new TileConstructor("TM_ForgeMaster_Weaponrack01", VBuild.Data.Prefabs.TM_ForgeMaster_Weaponrack01.GuidHash) },
-                    { 12, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
-                    { 11, new TileConstructor("TM_Castle_Wall_Tier02_Stone_Entrance", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone_Entrance.GuidHash) },
-                    { 10, new TileConstructor("TM_Castle_Floor_Foundation_Stone01", VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01.GuidHash) },
-                    { 9, new TileConstructor("TM_Castle_Wall_Tier02_Stone", VBuild.Data.Prefabs.TM_Castle_Wall_Tier02_Stone.GuidHash) },
+                    
+                    { 10, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
+                    { 9, new TileConstructor("TM_Brazier_Elris01", VBuild.Data.Prefabs.TM_Brazier_Elris01.GuidHash) },
                     { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", VBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
-                    { 7, new TileConstructor("TM_CraftingStation_BloodBank", VBuild.Data.Prefabs.TM_CraftingStation_BloodBank.GuidHash) },
+                    { 7, new TileConstructor("TM_CastleRuins_Pillar_Broken01", VBuild.Data.Prefabs.TM_CastleRuins_Pillar_Broken01.GuidHash) },
                     { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", VBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
                     { 5, new TileConstructor("TM_SpecialStation_StablePen", VBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
                     { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
@@ -288,15 +286,13 @@ namespace VBuild.BuildingSystem
                 {
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(node);
                     string name = prefabGUID.LookupName();
-                    if (name.ToLower().Contains("plant"))
+                    if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber"))
                     {
-                        //Plugin.Logger.LogInfo($"Plant found: {name}, destroying");
                         if (ShouldRemoveNodeBasedOnTerritory(node))
                         {
                             counter += 1;
                             SystemPatchUtil.Destroy(node);
                         }
-                       
                     }
                 }
                 cleanUpEntities.Dispose();
@@ -353,12 +349,12 @@ namespace VBuild.BuildingSystem
                 NativeArray<Entity> entityArray = (entityManager).CreateEntityQuery(new EntityQueryDesc()
                 {
                     All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
-              {
-        ComponentType.ReadWrite<Immortal>(),
-        ComponentType.ReadWrite<Mountable>(),
-        ComponentType.ReadWrite<BuffBuffer>(),
-        ComponentType.ReadWrite<PrefabGUID>()
-              }
+                    {
+            ComponentType.ReadWrite<Immortal>(),
+            ComponentType.ReadWrite<Mountable>(),
+            ComponentType.ReadWrite<BuffBuffer>(),
+            ComponentType.ReadWrite<PrefabGUID>()
+                    }
                 }).ToEntityArray(Allocator.TempJob);
 
                 foreach (var entity in entityArray)
