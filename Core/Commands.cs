@@ -28,6 +28,7 @@ using WorldBuild.BuildingSystem;
 using WorldBuild.Core.Services;
 using WorldBuild.Core.Toolbox;
 using System.Collections.Generic;
+using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
 
 namespace WorldBuild.Core
 {
@@ -35,7 +36,6 @@ namespace WorldBuild.Core
     public class Commands
     {
 
-        public static HashSet<Entity> disabledEntities = new HashSet<Entity>();
         public class WorldBuildToggle
         {
             public static bool wbFlag = false;
@@ -63,8 +63,7 @@ namespace WorldBuild.Core
                 {
                     // want to disable resource nodes in active player territories here to avoid overgrowth
 
-                    ResourceFunctions.SearchAndDestroy(disabledEntities);
-                    ctx.Reply("Resource nodes in player territories disabled.");
+                    //ResourceFunctions.SearchAndDestroy();
                     wbFlag = true;
                     BuildingCostsDebugSetting.Value = wbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
@@ -85,8 +84,6 @@ namespace WorldBuild.Core
                     BuildingPlacementRestrictionsDisabledSetting.Value = wbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
 
-                    ResourceFunctions.FindAndEnable(disabledEntities);
-                    ctx.Reply("Resource nodes in player territories re-enabled.");
                     string disabledColor = FontColors.Red("disabled");
                     ctx.Reply($"freebuild: {disabledColor}");
                     ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value}");
@@ -340,6 +337,44 @@ namespace WorldBuild.Core
             else
             {
                 ctx.Reply("Your build data could not be found.");
+            }
+        }
+
+        [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".wb dr", description: "Destroys resources in player territories.")]
+        public static void DestroyResourcesCommand(ChatCommandContext ctx)
+        {
+            TileSets.ResourceFunctions.SearchAndDestroy();
+            ctx.Reply("Resource nodes in player territories destroyed. Probably.");
+        }
+
+
+        [Command("destroyTiles", shortHand: "dt", adminOnly: true, description: "Destroys tiles in range matching entered PrefabGUID.",
+        usage: "Usage: .wb dt [name] [radius]")]
+        public static void DestroyTiles(ChatCommandContext ctx, string name, float radius = 25f)
+        {
+            // Check if a name is not provided or is empty
+            if (string.IsNullOrEmpty(name))
+            {
+                ctx.Error("You need to specify a tile name!");
+                return;
+            }
+
+            var tiles = TileUtil.ClosestTiles(ctx, radius, name); 
+
+            foreach (var tile in tiles)
+            {
+                SystemPatchUtil.Destroy(tile);
+                ctx.Reply(name + " destroyed!");
+
+            }
+
+            if (tiles.Count < 1)
+            {
+                ctx.Error("Failed to destroy any tiles, are there any in range?");
+            }
+            else
+            {
+                ctx.Reply("Tiles have been destroyed!");
             }
         }
     }

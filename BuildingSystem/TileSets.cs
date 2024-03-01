@@ -1,20 +1,24 @@
 ﻿using Bloodstone.API;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.Shared.Mathematics;
 using ProjectM.Tiles;
+using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
+using VampireCommandFramework;
 using WorldBuild.Core;
 using WorldBuild.Core.Services;
 using WorldBuild.Core.Toolbox;
 using WorldBuild.Data;
 using static ProjectM.SLSEntityRemapping;
+using static WorldBuild.BuildingSystem.TileSets.HorseFunctions;
 using Collider = Unity.Physics.Collider;
 using Ray = UnityEngine.Ray;
 using StringComparer = System.StringComparer;
@@ -241,9 +245,8 @@ namespace WorldBuild.BuildingSystem
 
         public class ResourceFunctions
         {
-            // this actually disables but destroy is much catchier
             
-            public static unsafe void SearchAndDestroy(HashSet<Entity> disabledEntities)
+            public static unsafe void SearchAndDestroy()
             {
                 Plugin.Logger.LogInfo("Entering SearchAndDestroy...");
                 EntityManager entityManager = VWorld.Server.EntityManager;
@@ -264,14 +267,41 @@ namespace WorldBuild.BuildingSystem
                     {
 
                         counter += 1;
-                        disabledEntities.Add(node);
                         SystemPatchUtil.Destroy(node);
                         
                         //node.LogComponentTypes();
                     }
                 }
                 resourceNodeEntities.Dispose();
-                Plugin.Logger.LogInfo($"{counter} resource nodes disabled.");
+
+                var cleanUp = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = new ComponentType[]
+                    {
+                    ComponentType.ReadOnly<PrefabGUID>(),
+                },
+                    Options = EntityQueryOptions.IncludeDisabled
+                });
+                var cleanUpEntities = cleanUp.ToEntityArray(Allocator.Temp);
+                foreach (var node in cleanUpEntities)
+                {
+                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(node);
+                    string name = prefabGUID.LookupName();
+                    if (name.ToLower().Contains("plant"))
+                    {
+                        //Plugin.Logger.LogInfo($"Plant found: {name}, destroying");
+                        if (ShouldRemoveNodeBasedOnTerritory(node))
+                        {
+                            counter += 1;
+                            SystemPatchUtil.Destroy(node);
+                        }
+                       
+                    }
+                }
+                cleanUpEntities.Dispose();
+
+
+                Plugin.Logger.LogInfo($"{counter} resource nodes destroyed.");
             }
 
             private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
@@ -284,22 +314,102 @@ namespace WorldBuild.BuildingSystem
                 return false;
             }
 
-            public static unsafe void FindAndEnable(HashSet<Entity> disabledEntities)
+            
+        }
+
+        public class HorseFunctions
+        {
+            internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
+
+            [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
+            public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
             {
-                //Plugin.Logger.LogInfo("Entering FindAndEnable...");
-                int counter = 0;
-                foreach (var entity in disabledEntities)
+                var position = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
+                var prefabGuid = spectral ? Prefabs.CHAR_Mount_Horse_Spectral : Prefabs.CHAR_Mount_Horse;
+
+                for (int i = 0; i < num; i++)
                 {
-                    counter += 1;
-                    if (Utilities.HasComponent<DisabledDueToNoPlayersInRange>(entity))
+                    UnitSpawnerService.UnitSpawner.SpawnWithCallback(ctx.Event.SenderUserEntity, prefabGuid, position.xz, -1f, horse =>
                     {
-                        // want to skip here
-                        continue;
-                    }
-                    VWorld.Server.EntityManager.Instantiate(entity);
+                        var mountable = horse.Read<Mountable>() with
+                        {
+                            MaxSpeed = speed,
+                            Acceleration = acceleration,
+                            RotationSpeed = rotation * 10f
+                        };
+                        horse.Write(mountable);
+                    });
                 }
-                disabledEntities.Clear();
-                Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
+
+                var horseType = spectral ? "spectral" : "";
+                ctx.Reply($"Spawned {num} {horseType} horse{(num > 1 ? "s" : "")} (with speed: {speed}, accel: {acceleration}, and rotate: {rotation}) near you.");
+            }
+
+            [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
+            public static void DisableGhosts(ChatCommandContext ctx)
+            {
+                var entityManager = VWorld.Server.EntityManager;
+                NativeArray<Entity> entityArray = (entityManager).CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
+              {
+        ComponentType.ReadWrite<Immortal>(),
+        ComponentType.ReadWrite<Mountable>(),
+        ComponentType.ReadWrite<BuffBuffer>(),
+        ComponentType.ReadWrite<PrefabGUID>()
+              }
+                }).ToEntityArray(Allocator.TempJob);
+
+                foreach (var entity in entityArray)
+                {
+                    DynamicBuffer<BuffBuffer> buffer;
+                    VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out buffer);
+                    for (int index = 0; index < buffer.Length; ++index)
+                    {
+                        if (buffer[index].PrefabGuid.GuidHash == Prefabs.Buff_General_VampireMount_Dead.GuidHash && Utilities.HasComponent<EntityOwner>(entity))
+                        {
+                            Entity owner = Utilities.GetComponentData<EntityOwner>(entity).Owner;
+                            if (Utilities.HasComponent<PlayerCharacter>(owner))
+                            {
+                                User componentData = Utilities.GetComponentData<User>(Utilities.GetComponentData<PlayerCharacter>(owner).UserEntity);
+                                ctx.Reply("Found dead horse owner, disabling...");
+                                ulong platformId = componentData.PlatformId;
+                                TileSets.HorseFunctions.PlayerHorseStasisMap[platformId] = new TileSets.HorseFunctions.HorseStasisState(entity, true);
+                                SystemPatchUtil.Disable(entity);
+                            }
+                        }
+                    }
+                }
+                ctx.Reply("Placed dead player ghost horses in stasis. They can still be resummoned.");
+            }
+
+            [Command("enablehorse", "eh", description: "Reactivates the player's horse.", adminOnly: false)]
+            public static void ReactivateHorse(ChatCommandContext ctx)
+            {
+                ulong platformId = ctx.User.PlatformId;
+                if (TileSets.HorseFunctions.PlayerHorseStasisMap.TryGetValue(platformId, out HorseStasisState horseStasisState) && horseStasisState.IsInStasis)
+                {
+                    SystemPatchUtil.Enable(horseStasisState.HorseEntity);
+                    horseStasisState.IsInStasis = false;
+                    TileSets.HorseFunctions.PlayerHorseStasisMap[platformId] = horseStasisState;
+                    ctx.Reply("Your horse has been reactivated.");
+                }
+                else
+                {
+                    ctx.Reply("No horse in stasis found to reactivate.");
+                }
+            }
+
+            internal struct HorseStasisState
+            {
+                public Entity HorseEntity;
+                public bool IsInStasis;
+
+                public HorseStasisState(Entity horseEntity, bool isInStasis)
+                {
+                    this.HorseEntity = horseEntity;
+                    this.IsInStasis = isInStasis;
+                }
             }
         }
     }

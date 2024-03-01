@@ -1,8 +1,10 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using ProjectM;
 using Unity.Collections;
 using Unity.Entities;
+using WorldBuild.Core.Toolbox;
 using WorldBuild.Data;
 
 namespace WorldBuild.Core.Services
@@ -36,6 +38,25 @@ namespace WorldBuild.Core.Services
             public static void Prefix()
             {
                 Databases.SaveBuildSettings();
+                EntityManager entityManager = VWorld.Server.EntityManager;
+                // ISSUE: explicit reference operation
+                NativeArray<Entity> entityArray = entityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
+                  {
+            ComponentType.ReadWrite<Immortal>(),
+            ComponentType.ReadWrite<Mountable>(),
+            ComponentType.ReadWrite<BuffBuffer>(),
+            ComponentType.ReadWrite<PrefabGUID>()
+                  },
+                    Options = EntityQueryOptions.IncludeDisabled
+                }).ToEntityArray(Allocator.TempJob);
+                foreach (Entity entity in entityArray)
+                {
+                    if (Utilities.HasComponent<Disabled>(entity))
+                        SystemPatchUtil.Enable(entity);
+                }
+                entityArray.Dispose();
             }
         }
 
