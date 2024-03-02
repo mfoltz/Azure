@@ -23,7 +23,7 @@ namespace VPlus.Core.Commands
     [CommandGroup(name: "VPlus", shortHand: "v")]
     public class ChatCommands
     {
-
+        
         [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <Player>", description: "Resets a player's rank count.")]
         public static void WipeRanksCommand(ChatCommandContext ctx, string playerName)
         {

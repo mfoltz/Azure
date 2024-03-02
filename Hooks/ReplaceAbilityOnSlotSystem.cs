@@ -206,10 +206,7 @@ namespace VPlus.Hooks
 
                 Plugin.Logger.LogInfo($"Spell change recorded for slot {slot}.");
             }
-            else
-            {
-                Plugin.Logger.LogInfo("Player rank not found.");
-            }
+            
         }
     }
 }
