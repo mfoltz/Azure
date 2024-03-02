@@ -69,7 +69,7 @@ namespace WorldBuild.Hooks
                             Plugin.Logger.LogInfo("Player is in dismantle mode, destroying tile...");
                             if (Utilities.HasComponent<TileModel>(damageTakenEventEntity))
                             {
-                                string entityString = damageTakenEventEntity.Index.ToString() + ", " + damageTakenEventEntity.Version.ToString();
+                                string entityString = damageTakenEventEntity.Index.ToString() + ", " + damageTakenEventEntity.Version.ToString(); //funny story, ask me about it if you end up reading this :P
                                 //Plugin.Logger.LogInfo(entityString);
 
                                 SystemPatchUtil.Destroy(damageTakenEventEntity);
