@@ -658,15 +658,7 @@ namespace VPlus.Core.Commands
         }
         */
 
-        [Command(name: "getposition", shortHand: "pos", adminOnly: true, usage: ".v pos", description: "Returns position coordinates of player in console.")]
-        public static void GetPosition(ChatCommandContext ctx)
-        {
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            UserModel usermodel = GameData.Users.GetUserByCharacterName(ctx.Name);
-            Entity player = usermodel.FromCharacter.Character;
-            float3 playerPosition = usermodel.Position;
-            Plugin.Logger.LogError($"{playerPosition}");
-        }
+        
 
         
 

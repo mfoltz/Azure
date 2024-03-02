@@ -8,7 +8,6 @@ using Il2CppSystem;
 using ProjectM.Network;
 using Unity.Entities;
 using Unity.Mathematics;
-using VPlus.Core;
 using VBuild.Data;
 using VBuild.Core.Toolbox;
 using DateTime = System.DateTime;
@@ -16,6 +15,7 @@ using static ProjectM.Tiles.TileConstants;
 using VPlus.Core.Toolbox;
 using Il2CppSystem.Security.Cryptography;
 using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
+using Databases = VPlus.Core.Databases;
 
 namespace VPlus.Augments.Rank
 {
@@ -114,11 +114,8 @@ namespace VPlus.Augments.Rank
             }
         }
         
-        public interface ICharacterClass
-        {
-            bool TryGetSpell(int choice, out RankSpellConstructor spellConstructor);
-        }
-        public class Nightmarshal : ICharacterClass
+       
+        public class Nightmarshal
         {
             public Dictionary<int, RankSpellConstructor> Spells { get; }
 
@@ -126,11 +123,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("BatSwarm", VBuild.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5) },
-                    { 4, new RankSpellConstructor("NightDash", VBuild.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4) },
-                    { 3, new RankSpellConstructor("BatStorm", VBuild.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3) },
-                    { 2, new RankSpellConstructor("MeleeTest", VBuild.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup, 2) },
-                    { 1, new RankSpellConstructor("BatWhirlwind", VBuild.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1) },
+                    { 5, new RankSpellConstructor("BatSwarm", VBuild.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup.GuidHash, 5) },
+                    { 4, new RankSpellConstructor("NightDash", VBuild.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup.GuidHash, 4) },
+                    { 3, new RankSpellConstructor("BatStorm", VBuild.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("MeleeTest", VBuild.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("BatWhirlwind", VBuild.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup.GuidHash, 1) },
                 };
             }
 
@@ -139,7 +136,7 @@ namespace VPlus.Augments.Rank
                 return Spells.TryGetValue(choice, out spellConstructor);
             }
         }
-        public class Paladin : ICharacterClass
+        public class Paladin
         {
             public Dictionary<int, RankSpellConstructor> Spells { get; }
 
@@ -147,11 +144,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("HolySpinners", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolySpinners_AbilityGroup, 5) },
-                    { 4, new RankSpellConstructor("DivineRays", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup, 4) },
-                    { 3, new RankSpellConstructor("HolyFlackCannon", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyFlackCannon_AbilityGroup, 3) },
-                    { 2, new RankSpellConstructor("ChargedSwing", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_ChargedSwing_AbilityGroup, 2) },
-                    { 1, new RankSpellConstructor("AngelicAscent", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup, 1) },
+                    { 5, new RankSpellConstructor("HolySpinners", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolySpinners_AbilityGroup.GuidHash, 5) },
+                    { 4, new RankSpellConstructor("DivineRays", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup.GuidHash, 4) },
+                    { 3, new RankSpellConstructor("HolyFlackCannon", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyFlackCannon_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("ChargedSwing", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_ChargedSwing_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("AngelicAscent", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup.GuidHash, 1) },
                 };
             }
 
@@ -161,7 +158,7 @@ namespace VPlus.Augments.Rank
             }
         }
 
-        public class Default : ICharacterClass
+        public class Default
         {
             public Dictionary<int, RankSpellConstructor> Spells { get; }
 
@@ -169,11 +166,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("LightningStornm", VBuild.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup, 5) },
-                    { 4, new RankSpellConstructor("WispDance", VBuild.Data.Prefabs.AB_Cursed_MountainBeast_GhostCall_AbilityGroup, 4) },
-                    { 3, new RankSpellConstructor("Heal", VBuild.Data.Prefabs.AB_Nun_VBlood_HealCommand_AbilityGroup, 3) },
-                    { 2, new RankSpellConstructor("LightningShield", VBuild.Data.Prefabs.AB_Monster_LightningShieldV2_AbilityGroup, 2) },
-                    { 1, new RankSpellConstructor("ChaosWave", VBuild.Data.Prefabs.AB_Bandit_Tourok_VBlood_ChaosWave_AbilityGroup, 1) },
+                    { 5, new RankSpellConstructor("LightningStornm", VBuild.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup.GuidHash, 5) },
+                    { 4, new RankSpellConstructor("WispDance", VBuild.Data.Prefabs.AB_Cursed_MountainBeast_GhostCall_AbilityGroup.GuidHash, 4) },
+                    { 3, new RankSpellConstructor("Heal", VBuild.Data.Prefabs.AB_Nun_VBlood_HealCommand_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("LightningShield", VBuild.Data.Prefabs.AB_Monster_LightningShieldV2_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("ChaosWave", VBuild.Data.Prefabs.AB_Bandit_Tourok_VBlood_ChaosWave_AbilityGroup.GuidHash, 1) },
                 };
             }
 
@@ -185,10 +182,10 @@ namespace VPlus.Augments.Rank
         public class RankSpellConstructor
         {
             public string Name { get; set; }
-            public PrefabGUID SpellGUID { get; set; }
+            public int SpellGUID { get; set; }
             public int RequiredRank { get; set; }
 
-            public RankSpellConstructor(string name, PrefabGUID spellGUID, int requiredRank)
+            public RankSpellConstructor(string name, int spellGUID, int requiredRank)
             {
                 Name = name;
                 SpellGUID = spellGUID;
@@ -198,21 +195,17 @@ namespace VPlus.Augments.Rank
 
         public static class ClassFactory
         {
-            // Method to create class instance based on class choice
-            public static ICharacterClass CreateClassInstance(string className)
+            public static object CreateClassInstance(string className)
             {
                 switch (className.ToLower())
                 {
                     case "nightmarshal": return new Nightmarshal();
                     case "paladin": return new Paladin();
                     case "default": return new Default();
-                    // Add more cases as needed
                     default: return null;
                 }
             }
         }
-
-        /*
 
         [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs <#>", description: "Sets class spell to shift.")]
         public static void SpellChoice(ChatCommandContext ctx, int choice)
@@ -222,35 +215,41 @@ namespace VPlus.Augments.Rank
 
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
             {
-                // Use factory to get the class instance
                 var classInstance = ClassFactory.CreateClassInstance(rankData.ClassChoice);
-                if (classInstance != null && classInstance.TryGetSpell(choice, out RankSpellConstructor spellConstructor))
+                if (classInstance is Nightmarshal nightmarshal)
                 {
-                    if (rankData.Rank >= spellConstructor.RequiredRank)
+                    if (nightmarshal.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructor) && rankData.Rank >= spellConstructor.RequiredRank)
                     {
-                        PrefabGUID newSpell = spellConstructor.SpellGUID;
-                        VPlus.Data.FoundPrefabGuid foundPrefabGuid = new VPlus.Data.FoundPrefabGuid(newSpell);
-                        rankData.RankSpell = newSpell.GuidHash;
-                        // Assuming CastCommand is a method to cast the spell
-                        // CastCommand(ctx, foundPrefabGuid, null);
-                        ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
+                        // Logic to apply the spell
+                        rankData.RankSpell = spellConstructor.SpellGUID;
                         ChatCommands.SavePlayerRanks();
+                        ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
                     }
-                    else
-                    {
-                        ctx.Reply($"You must be at least rank {spellConstructor.RequiredRank} to use this ability.");
-                    }
+                }
+                else if (classInstance is Paladin paladin)
+                {
+                    // Similar logic for Paladin
+                }
+                else if (classInstance is Default defaultClass)
+                {
+                    // Similar logic for Default
                 }
                 else
                 {
                     ctx.Reply("Invalid class or spell choice.");
                 }
+                
+                
             }
             else
             {
                 ctx.Reply("Your rank data could not be found.");
             }
         }
+
+        
+
+        
 
         [Command(name: "chooseClass", shortHand: "cc", adminOnly: false, usage: ".cc <className>", description: "Sets class to use spells from.")]
         public static void ChooseClass(ChatCommandContext ctx, string className)
@@ -280,46 +279,6 @@ namespace VPlus.Augments.Rank
             }
         }
         
-        public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
-        {
-            PlayerService.Player player1;
-            Entity entity1;
-            if ((object)player == null)
-            {
-                entity1 = ctx.Event.SenderUserEntity;
-            }
-            else
-            {
-                player1 = player.Value;
-                entity1 = player1.User;
-            }
-            Entity entity2 = entity1;
-            Entity entity3;
-            if ((object)player == null)
-            {
-                entity3 = ctx.Event.SenderCharacterEntity;
-            }
-            else
-            {
-                player1 = player.Value;
-                entity3 = player1.Character;
-            }
-            Entity entity4 = entity3;
-            FromCharacter fromCharacter = new FromCharacter()
-            {
-                User = entity2,
-                Character = entity4
-            };
-            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            CastAbilityServerDebugEvent serverDebugEvent = new CastAbilityServerDebugEvent()
-            {
-                AbilityGroup = prefabGuid.Value,
-                AimPosition = new Nullable_Unboxed<float3>(entity2.Read<EntityInput>().AimPosition),
-                Who = entity4.Read<NetworkId>()
-            };
-            existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
-        }
-        */
-
+       
     }
 }
