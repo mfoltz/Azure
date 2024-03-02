@@ -210,6 +210,7 @@ namespace VPlus.Augments.Rank
             }
         }
 
+        /*
 
         [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs <#>", description: "Sets class spell to shift.")]
         public static void SpellChoice(ChatCommandContext ctx, int choice)
@@ -252,17 +253,18 @@ namespace VPlus.Augments.Rank
         [Command(name: "chooseClass", shortHand: "cc", adminOnly: false, usage: ".cc <className>", description: "Sets class to use spells from.")]
         public static void ChooseClass(ChatCommandContext ctx, string className)
         {
+            string nameClass = className.ToLower();
             ulong SteamID = ctx.Event.User.PlatformId;
 
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
             {
                 // Check if the class name provided is valid
-                var classInstance = ClassFactory.CreateClassInstance(className);
+                var classInstance = ClassFactory.CreateClassInstance(nameClass);
                 if (classInstance != null)
                 {
                     // Update the player's class choice
-                    rankData.ClassChoice = className.ToLower();
-                    ctx.Reply($"Class set to {className}. You can now use spells associated with this class.");
+                    rankData.ClassChoice = nameClass;
+                    ctx.Reply($"Class set to {nameClass}. You can now use spells associated with this class.");
                     ChatCommands.SavePlayerRanks();
                 }
                 else
@@ -275,6 +277,7 @@ namespace VPlus.Augments.Rank
                 ctx.Reply("Your rank data could not be found.");
             }
         }
+        
         public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
         {
             PlayerService.Player player1;
@@ -314,6 +317,7 @@ namespace VPlus.Augments.Rank
             };
             existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
         }
+        */
 
     }
 }

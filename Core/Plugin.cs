@@ -72,11 +72,13 @@ namespace VPlus.Core
             Logger = Log;
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
+
             CommandRegistry.RegisterAll();
             InitConfig();
             ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
             GameData.OnInitialize += GameDataOnInitialize;
             LoadData();
+            
             Plugin.Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded!");
         }
 
