@@ -77,8 +77,8 @@ namespace VPlus.Augments.Rank
             //lightning bolt goes here
 
             PrefabGUID lightning = new PrefabGUID(838368210);// eye of god
-            VPlus.Data.FoundPrefabGuid foundPrefabGuid = new(lightning);
-            CastCommand(ctx, foundPrefabGuid, null);
+            VBuild.Core.Converters.FoundPrefabGuid foundPrefabGuid = new(lightning);
+            VBuild.Core.Commands.CastCommand(ctx, foundPrefabGuid, null);
             ChatCommands.SavePlayerRanks();
             return;
         }
