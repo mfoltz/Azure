@@ -4,17 +4,19 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Entities;
 using Unity.Mathematics;
-using V.Core;
-using V.Core.Commands;
-using V.Core.Services;
-using V.Core.Tools;
-using V.Data;
+using VPlus.Core;
+using VPlus.Core.Commands;
+using VPlus.Core.Services;
+using VPlus.Core.Tools;
+using VPlus.Data;
 using VampireCommandFramework;
-using Plugin = V.Core.Plugin;
+using Plugin = VPlus.Core.Plugin;
+using StringComparer = System.StringComparer;
+using static VPlus.Augments.Rank.CastCommands;
 
 #nullable disable
 
-namespace V.Augments.Rank
+namespace VPlus.Augments.Rank
 {
     internal class CastCommands
     {
@@ -74,147 +76,69 @@ namespace V.Augments.Rank
             }
         }
 
-        public class Nightmarshal
+
+
+        public class SpellRegistry
         {
-            public Dictionary<int, RankSpellConstructor> Spells = new Dictionary<int, RankSpellConstructor>();
+            public static Dictionary<int, RankSpellConstructor> StaticSpells { get; private set; }
 
-            public Nightmarshal()
+            static SpellRegistry()
             {
-                Spells.Add(5, new RankSpellConstructor("Batswarm", V.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5));
-                Spells.Add(4, new RankSpellConstructor("Nightdash", V.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4));
-                Spells.Add(3, new RankSpellConstructor("Batstorm", V.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3));
-                Spells.Add(2, new RankSpellConstructor("Batleap", V.Data.Prefabs.AB_BatVampire_SummonMinions_AbilityGroup, 2));
-                Spells.Add(1, new RankSpellConstructor("Batwhirlwind", V.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1));
-            }
-        }
-
-        public class Deus
-        {
-            public Dictionary<int, RankSpellConstructor> Spells = new Dictionary<int, RankSpellConstructor>();
-
-            public Deus()
-            {
-                Spells.Add(5, new RankSpellConstructor("NukeAll", V.Data.Prefabs.AB_Debug_NukeAll_Group, 5));
-                Spells.Add(4, new RankSpellConstructor("DivineShield", V.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyBubble_Beam_AbilityGroup, 4));
-                Spells.Add(3, new RankSpellConstructor("LightningStorm", V.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup, 3));
-                Spells.Add(2, new RankSpellConstructor("ChaosBreath", V.Data.Prefabs.AB_Manticore_ChaosBreath_AbilityGroup, 2));
-                Spells.Add(1, new RankSpellConstructor("Leapattack", V.Data.Prefabs.AB_Cursed_MountainBeast_LeapAttack_Travel_AbilityGroup, 1));
-            }
-        }
-
-        public static class CommandHandler
-        {
-            private static readonly Dictionary<string, System.Func<object>> classFactories = new Dictionary<string, System.Func<object>>
-            {
-                { "nightmarshal", () => new Nightmarshal() },
-                { "deus", () => new Deus() },
+                StaticSpells = new Dictionary<int, RankSpellConstructor>
+                {
+                    Spells.Add(5, new RankSpellConstructor("Batswarm", VPlus.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5));
+                Spells.Add(4, new RankSpellConstructor("Nightdash", VPlus.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4));
+                Spells.Add(3, new RankSpellConstructor("Batstorm", VPlus.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3));
+                Spells.Add(2, new RankSpellConstructor("Batleap", VPlus.Data.Prefabs.AB_BatVampire_SummonMinions_AbilityGroup, 2));
+                Spells.Add(1, new RankSpellConstructor("Batwhirlwind", VPlus.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1));
+                // Add more spells as needed
             };
-
-            [Command(name: "chooseClass", shortHand: "cc", adminOnly: false, usage: ".cs <name>", description: "Sets class to use spells from.")]
-            public static void ClassChoice(ChatCommandContext ctx, string choice)
-            {
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    if (classFactories.ContainsKey(choice))
-                    {
-                        if (choice == "deus" || choice == "Deus")
-                        {
-                            if (!ctx.Event.User.IsAdmin)
-                            {
-                                ctx.Reply("You must be an admin to use this class.");
-                                return;
-                            }
-                            else
-                            {
-                                rankData.ClassChoice = choice;
-                                ctx.Reply($"Class set to {choice}.");
-                            }
-                        }
-                        else
-                        {
-                            rankData.ClassChoice = choice;
-                            ctx.Reply($"Class set to {choice}.");
-                        }
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
-            }
-
-            [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs <#>", description: "Sets class spell to shift.")]
-            public static void SpellChoice(ChatCommandContext ctx, int choice)
-            {
-                Entity character = ctx.Event.SenderCharacterEntity;
-                ulong SteamID = ctx.Event.User.PlatformId;
-
-                if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
-                {
-                    // Attempt to get the class instance from the class choice
-                    if (classFactories.TryGetValue(rankData.ClassChoice, out var classFactory))
-                    {
-                        var classInstance = classFactory.Invoke();
-                        // classInstance is as
-                        // Check if the class instance is of expected type and contains the spell
-                        if (classInstance is Nightmarshal nightmarshal && nightmarshal.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructorNightmarshal))
-                        {
-                            // Now you have the spellConstructor, you can check the player's rank
-                            if (rankData.Rank >= spellConstructorNightmarshal.RequiredRank)
-                            {
-                                // Here you would typically cast the spell or apply its effects
-                                PrefabGUID newSpell = spellConstructorNightmarshal.SpellGUID;
-                                V.Data.FoundPrefabGuid foundPrefabGuid = new(newSpell);
-                                rankData.RankSpell = newSpell.GuidHash;
-                                //CastCommand(ctx, foundPrefabGuid, null); // Assuming this is how you cast the spell
-                                V.Core.Tools.Helper.BuffCharacter(character, V.Data.Prefabs.AllowJumpFromCliffsBuff, 0, false);
-                                ctx.Reply($"Rank spell set to {spellConstructorNightmarshal.Name}.");
-                                ChatCommands.SavePlayerRanks();
-                            }
-                            else
-                            {
-                                ctx.Reply($"You must be at least rank {spellConstructorNightmarshal.RequiredRank} to use this ability.");
-                            }
-                        }
-                        else
-                        {
-                            if (classInstance is Deus deus && deus.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructorDeus))
-                            {
-                                if (rankData.Rank >= spellConstructorDeus.RequiredRank)
-                                {
-                                    // Here you would typically cast the spell or apply its effects
-                                    PrefabGUID newSpell = spellConstructorDeus.SpellGUID;
-                                    V.Data.FoundPrefabGuid foundPrefabGuid = new(newSpell);
-                                    rankData.RankSpell = newSpell.GuidHash;
-                                    //CastCommand(ctx, foundPrefabGuid, null); // Assuming this is how you cast the spell
-                                    V.Core.Tools.Helper.BuffCharacter(character, V.Data.Prefabs.AllowJumpFromCliffsBuff, 0, false);
-                                    ctx.Reply($"Rank spell set to {spellConstructorDeus.Name}.");
-                                    ChatCommands.SavePlayerRanks();
-                                }
-                                else
-                                {
-                                    ctx.Reply($"You must be at least rank {spellConstructorDeus.RequiredRank} to use this ability.");
-                                }
-                            }
-                            else
-                            {
-                                ctx.Reply("Invalid spell choice.");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ctx.Reply("Invalid class choice.");
-                    }
-                }
-                else
-                {
-                    ctx.Reply("Your rank data could not be found.");
-                }
-            }
         }
+
+        public Dictionary<int, RankSpellConstructor> Spells { get; private set; }
+
+        public SpellRegistry()
+        {
+            Spells = SpellRegistry.StaticSpells;
+        }
+
+
+        public static Dictionary<int, RankSpellConstructor> GetSpellsBySet(string setName)
+        {
+            if (ModelRegistry.spellsBySet.TryGetValue(setName, out var setTiles))
+            {
+                return setTiles.ToDictionary(kv => kv.Key, kv => kv.Value);
+            }
+            return null;
+        }
+
+        public static readonly HashSet<string> adminSets = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "T0",
+        };
+
+        public static class ModelRegistry
+        {
+            public static readonly Dictionary<string, Dictionary<int, RankSpellConstructor>> spellsBySet = new(StringComparer.OrdinalIgnoreCase);
+
+            static ModelRegistry()
+            {
+                // Register spells similar to how tiles were registered
+                RegisterSpells("BasicSpells", new Dictionary<int, RankSpellConstructor>
+                {
+                    { 1, new RankSpellConstructor("Fireball", new PrefabGUID(123456)) },
+                    { 2, new RankSpellConstructor("Ice Spear", new PrefabGUID(234567)) },
+                    // Add more spells
+                });
+            }
+
+            public static void RegisterSpells(string setName, Dictionary<int, RankSpellConstructor> spells)
+            {
+                spellsBySet[setName] = spells;
+            }
+
+
+        }
+
     }
 }

@@ -2,12 +2,12 @@
 using ProjectM;
 using Unity.Entities;
 using Unity.Transforms;
-using V.Core.Services;
-using V.Core.Tools;
-using V.Data;
+using VPlus.Core.Services;
+using VPlus.Core.Tools;
+using VPlus.Data;
 using VampireCommandFramework;
 
-namespace V.Core.Commands
+namespace VPlus.Core.Commands
 {
     [CommandGroup(name: "VPlus", shortHand: "v")]
     internal class GodCommands

@@ -1,6 +1,6 @@
 ﻿using ProjectM;
 
-namespace V.Data;
+namespace VPlus.Data;
 public record struct FoundPrefabGuid(PrefabGUID Value);
 public static class Prefabs
 {

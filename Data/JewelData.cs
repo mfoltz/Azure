@@ -5,7 +5,7 @@
 
 using ProjectM;
 
-namespace V.Data;
+namespace VPlus.Data;
 
 public static class JewelData
 {

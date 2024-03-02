@@ -1,11 +1,11 @@
 ﻿using ProjectM;
 using System.Text.RegularExpressions;
-using V.Core;
-using V.Core.Commands;
-using V.Core.Tools;
+using VPlus.Core;
+using VPlus.Core.Commands;
+using VPlus.Core.Tools;
 using VampireCommandFramework;
 
-namespace V.Augments.Rank
+namespace VPlus.Augments.Rank
 {
     public class RankData
     {

@@ -2,10 +2,10 @@
 using ProjectM;
 using System.Runtime.CompilerServices;
 using Unity.Entities;
-using V.Core.Tools;
+using VPlus.Core.Tools;
 using VampireCommandFramework;
 
-namespace V.Core.Commands
+namespace VPlus.Core.Commands
 {
     [CommandGroup(name: "VPlus", shortHand: "v")]
     internal class GiveItemCommands

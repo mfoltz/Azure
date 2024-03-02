@@ -3,7 +3,7 @@ using ProjectM;
 using Unity.Entities;
 using V.Core.Commands;
 
-namespace V.Core.Services
+namespace VPlus.Core.Services
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 

@@ -1,10 +1,10 @@
 ﻿using Bloodstone.API;
 using ProjectM;
 using Unity.Entities;
-using V.Core;
-using V.Core.Tools;
+using VPlus.Core;
+using VPlus.Core.Tools;
 
-namespace V.Augments
+namespace VPlus.Augments
 {
     public static class ArmorModifierSystem
     {

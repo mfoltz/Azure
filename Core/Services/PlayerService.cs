@@ -8,7 +8,7 @@ using Unity.Collections;
 using Unity.Entities;
 using V.Core.Tools;
 
-namespace V.Core.Services;
+namespace VPlus.Core.Services;
 public record FoundPlayer(PlayerService.Player Value);
 public static class PlayerService
 {

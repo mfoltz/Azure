@@ -3,7 +3,7 @@ using System.Text.Json;
 using V.Augments;
 using V.Augments.Rank;
 
-namespace V.Core
+namespace VPlus.Core
 {
     public class Databases
     {

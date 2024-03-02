@@ -9,7 +9,7 @@ using Plugin = V.Core.Plugin;
 #nullable disable
 // almost ready for live maybe
 
-namespace RPGAddOnsEx.Hooks
+namespace VPlus.Hooks
 {
     [HarmonyPatch(typeof(ModifyUnitStatBuffSystem_Spawn), "OnUpdate")]
     public class ModifyUnitStatBuffSystem_Spawn_Patch

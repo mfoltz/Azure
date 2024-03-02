@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
 using static V.Core.Services.PlayerService;
-namespace V.Core.Tools
+namespace VPlus.Core.Tools
 {
     public static class Utilities
     {

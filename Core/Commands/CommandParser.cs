@@ -1,4 +1,4 @@
-﻿namespace V.Core.Commands
+﻿namespace VPlus.Core.Commands
 {
     public class CommandParser
     {

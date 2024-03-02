@@ -7,7 +7,7 @@
 using ProjectM;
 
 #nullable disable
-namespace V.Data
+namespace VPlus.Data
 {
     public static class Buff
     {

@@ -1,6 +1,6 @@
 ﻿using ProjectM;
 
-namespace V.Core.Tools
+namespace VPlus.Core.Tools
 {
     public class MUSB_DOTS
     {

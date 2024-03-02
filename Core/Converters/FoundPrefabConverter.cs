@@ -3,7 +3,7 @@ using V.Core.Tools;
 using V.Data;
 using VampireCommandFramework;
 
-namespace V.Core.Converters
+namespace VPlus.Core.Converters
 {
     internal class FoundPrefabConverter : CommandArgumentConverter<FoundPrefabGuid>
     {

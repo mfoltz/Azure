@@ -1,7 +1,7 @@
 ﻿using V.Core.Services;
 using VampireCommandFramework;
 
-namespace V.Core.Converters
+namespace VPlus.Core.Converters
 {
     internal class FoundPlayerConverter : CommandArgumentConverter<FoundPlayer>
     {

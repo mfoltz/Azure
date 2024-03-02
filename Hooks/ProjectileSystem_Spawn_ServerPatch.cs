@@ -7,7 +7,6 @@ using Unity.Entities;
 using V.Core.Commands;
 using V.Core.Tools;
 
-namespace AdminCommands.Patches;
 
 [HarmonyPatch(typeof(ProjectileSystem_Spawn_Server), nameof(ProjectileSystem_Spawn_Server.OnUpdate))]
 public static class ProjectileSystem_Spawn_ServerPatch

@@ -14,7 +14,7 @@ using VRising.GameData.Models;
 using Math = System.Math;
 using Random = System.Random;
 
-namespace RPGAddOnsEx.Hooks
+namespace VPlus.Hooks
 {
     [HarmonyPatch]
     internal class VBloodSystem
@@ -42,29 +42,18 @@ namespace RPGAddOnsEx.Hooks
                 {
                     if (!VWorld.Server.EntityManager.TryGetComponentData(_event.Target, out PlayerCharacter playerData)) continue;
 
-                    // there were 2 events from 1 kill, what does this imply?
                     //Plugin.Logger.LogInfo($"Processing event: {_event}"); // Log details about each event
 
-                    //EntityQuery query = __instance.__ConsumeBloodJob_entityQuery; //this seems to be the player entity as it did not have a unit level component
-                    //NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
+                
 
                     Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
                     string vBloodName = __instance._PrefabCollectionSystem._PrefabDataLookup[_event.Source].AssetName.ToString();
-                    //Plugin.Logger.LogInfo($"VBlood name format: {vBloodName}"); // Log details about each event
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
-                    //var testWar = user.Read<ProjectM.UI.GoToHUDMenu>();
 
                     try
                     {
-                        // need to check for hypothetical players in the ascension locations as well as if they have the mats required, should be kinda easy in this context? famous last words...
-                        // need to define zones elsewhere or here, who cares really
-                        // need to check for mats per level
-                        // need to check for appropriate vblood kill
-                        // then ascend player?
-                        // should get coordinates and extrapolate to a map if possible
-                        //1365358996 prefab for li9ghtning strike on ascension, looks neat
                         UserModel usermodel = GameData.Users.GetUserByCharacterName(playerName);
                         Entity characterEntity = usermodel.FromCharacter.Character;
                         float3 playerPosition = usermodel.Position;
@@ -241,6 +230,5 @@ namespace RPGAddOnsEx.Hooks
             }
         }
 
-        // Usage
     }
 }

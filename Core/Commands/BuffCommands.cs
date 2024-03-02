@@ -1,11 +1,11 @@
 using ProjectM;
-using V.Core.Services;
-using V.Core.Tools;
-using V.Data;
+using VPlus.Core.Services;
+using VPlus.Core.Tools;
+using VPlusV.Data;
 using VampireCommandFramework;
 using Buff = ProjectM.Buff;
 
-namespace V.Commands
+namespace VPlus.Commands
 {
     [CommandGroup(name: "V+(Rising)", shortHand: "v")]
     internal class BuffCommands

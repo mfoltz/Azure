@@ -19,7 +19,7 @@ using V.Core.Services;
 using V.Data;
 using Buff = ProjectM.Buff;
 
-namespace V.Core.Tools;
+namespace VPlus.Core.Tools;
 
 public static class Helper
 {

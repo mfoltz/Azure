@@ -15,7 +15,7 @@ using VampireCommandFramework;
 using VRising.GameData;
 using MyPluginInfo = VPlus.MyPluginInfo;
 
-namespace V.Core
+namespace VPlus.Core
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]

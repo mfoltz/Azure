@@ -5,7 +5,6 @@ using Unity.Entities;
 using V.Core.Commands;
 using V.Core.Tools;
 
-namespace AdminCommands.Patches;
 
 [HarmonyPatch(typeof(BuffSystem_Spawn_Server), nameof(BuffSystem_Spawn_Server.OnUpdate))]
 public static class BuffSystem_Spawn_ServerPatch

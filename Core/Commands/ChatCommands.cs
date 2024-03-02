@@ -7,16 +7,16 @@ using System.Text.RegularExpressions;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using V.Augments;
-using V.Augments.Rank;
-using V.Core.Services;
-using V.Core.Tools;
-using V.Data;
+using VPlus.Augments;
+using VPlus.Augments.Rank;
+using VPlus.Core.Services;
+using VPlus.Core.Tools;
+using VPlus.Data;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
 
-namespace V.Core.Commands
+namespace VPlus.Core.Commands
 {
     [CommandGroup(name: "VPlus", shortHand: "v")]
     public class ChatCommands
@@ -845,13 +845,13 @@ namespace V.Core.Commands
                     if (check)
                     {
                         // item was present and removed, add it back
-                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
+                        VPlus.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                     else
                     {
                         // item was not present and should be added
-                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
+                        VPlus.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                 }
@@ -881,13 +881,13 @@ namespace V.Core.Commands
                     if (check)
                     {
                         // item was present and removed, add it back
-                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
+                        VPlus.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                     else
                     {
                         // item was not present and should be added
-                        RPGAddOnsEx.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
+                        VPlus.Hooks.VBloodSystem.AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
                 }
