@@ -1,20 +1,15 @@
 ﻿using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
-using Steamworks;
 using Unity.Collections;
 using Unity.Entities;
-using VPlus.Augments.Rank;
-using VPlus.Core;
-using VPlus.Core.Commands;
-using VBuild.BuildingSystem;
 using VPlus.Augments.Rank;
 using VPlus.Core;
 using VPlus.Core.Commands;
 using Plugin = VPlus.Core.Plugin;
 using VPlus.Core.Toolbox;
 
-#nullable disable
+
 
 // almost ready for live maybe
 // wow, famoust last words huh ^

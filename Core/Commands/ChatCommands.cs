@@ -292,7 +292,6 @@ namespace VPlus.Core.Commands
                 try
                 {
                     var playerBuffs = data.Buffs;
-                    //WillisCore.Helper.ClearExtraBuffs(player);
                     foreach (var buff in playerBuffs)
                     {
                         PrefabGUID buffguid = new(buff);
