@@ -124,11 +124,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("Batswarm", VPlus.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5) },
-                    { 4, new RankSpellConstructor("Nightdash", VPlus.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4) },
-                    { 3, new RankSpellConstructor("Batstorm", VPlus.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3) },
-                    { 2, new RankSpellConstructor("Batleap", VPlus.Data.Prefabs.AB_BatVampire_SummonMinions_AbilityGroup, 2) },
-                    { 1, new RankSpellConstructor("Batwhirlwind", VPlus.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1) },
+                    { 5, new RankSpellConstructor("BatSwarm", VPlus.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5) },
+                    { 4, new RankSpellConstructor("NightDash", VPlus.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4) },
+                    { 3, new RankSpellConstructor("BatStorm", VPlus.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3) },
+                    { 2, new RankSpellConstructor("MeleeTest", VPlus.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup, 2) },
+                    { 1, new RankSpellConstructor("BatWhirlwind", VPlus.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1) },
                 };
             }
 
@@ -203,6 +203,7 @@ namespace VPlus.Augments.Rank
                 {
                     case "nightmarshal": return new Nightmarshal();
                     case "paladin": return new Paladin();
+                    case "default": return new Default();
                     // Add more cases as needed
                     default: return null;
                 }
@@ -211,7 +212,6 @@ namespace VPlus.Augments.Rank
 
 
         [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs <#>", description: "Sets class spell to shift.")]
-
         public static void SpellChoice(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
