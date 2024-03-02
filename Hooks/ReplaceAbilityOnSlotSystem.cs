@@ -19,7 +19,7 @@ namespace VPlus.Hooks
     [HarmonyPatch(typeof(ReplaceAbilityOnSlotSystem), "OnUpdate")]
     public class ReplaceAbilityOnSlotSystem_Patch
     {
-        private static readonly PrefabGUID fishingPole = new(-1016182556);
+        private static readonly PrefabGUID fishingPole = new(-1016182556); //as you might have guessed, this is -REDACTED-
         private static void Prefix(ReplaceAbilityOnSlotSystem __instance)
         {
             try
