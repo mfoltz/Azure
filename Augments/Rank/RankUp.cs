@@ -78,7 +78,7 @@ namespace VPlus.Augments.Rank
             ctx.Reply($"Congratulations {playerString}! You have increased your PvE rank to {rankString}.");
             //lightning bolt goes here
 
-            PrefabGUID lightning = new PrefabGUID(838368210);// eye of god
+            PrefabGUID lightning = VBuild.Data.Prefabs.AB_Militia_BishopOfDunley_SummonEyeOfGod_Cast;
             VBuild.Core.Converters.FoundPrefabGuid foundPrefabGuid = new(lightning);
             VBuild.Core.CoreCommands.CastCommand(ctx, foundPrefabGuid, null);
             ChatCommands.SavePlayerRanks();
@@ -126,7 +126,7 @@ namespace VPlus.Augments.Rank
                     { 5, new RankSpellConstructor("BatSwarm", VBuild.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup.GuidHash, 5) },
                     { 4, new RankSpellConstructor("NightDash", VBuild.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup.GuidHash, 4) },
                     { 3, new RankSpellConstructor("BatStorm", VBuild.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("MeleeTest", VBuild.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup.GuidHash, 2) },
+                    { 2, new RankSpellConstructor("MeleeAttack", VBuild.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup.GuidHash, 2) },
                     { 1, new RankSpellConstructor("BatWhirlwind", VBuild.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup.GuidHash, 1) },
                 };
             }
@@ -148,7 +148,7 @@ namespace VPlus.Augments.Rank
                     { 4, new RankSpellConstructor("DivineRays", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup.GuidHash, 4) },
                     { 3, new RankSpellConstructor("HolyFlackCannon", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyFlackCannon_AbilityGroup.GuidHash, 3) },
                     { 2, new RankSpellConstructor("ChargedSwing", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_ChargedSwing_AbilityGroup.GuidHash, 2) },
-                    { 1, new RankSpellConstructor("AngelicAscent", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup.GuidHash, 1) },
+                    { 1, new RankSpellConstructor("EmpoweredMelee", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_EmpoweredMelee_AbilityGroup.GuidHash, 1) },
                 };
             }
 

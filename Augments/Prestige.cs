@@ -189,7 +189,8 @@ namespace VPlusV.Augments
                     string quantityString = FontColors.Yellow(itemQuantity.ToString());
                     string itemString = FontColors.Purple(itemName);
                     //animation thing goes here
-                    PrefabGUID lightning = new PrefabGUID(-2061047741);// lightningpillar
+                    //PrefabGUID lightning = new PrefabGUID(-2061047741);// lightningpillar
+                    PrefabGUID lightning = VBuild.Data.Prefabs.AB_Monster_SummonLightningPillars_Cast;
                     VBuild.Core.Converters.FoundPrefabGuid foundPrefabGuid = new(lightning);
                     VBuild.Core.CoreCommands.CastCommand(ctx, foundPrefabGuid, null);
 
@@ -200,7 +201,7 @@ namespace VPlusV.Augments
                 ChatCommands.SavePlayerPrestige();
                 return;
             }
-
+            /*
             public static void ApplyResists(ChatCommandContext ctx, string playerName, ulong SteamID, PrestigeData data)
             {
                 int preHealth = 0;
@@ -235,6 +236,8 @@ namespace VPlusV.Augments
                 }
                 PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
             }
+            */
         }
     }
 }
+            
