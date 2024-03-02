@@ -1,10 +1,11 @@
 ﻿using HarmonyLib;
 using ProjectM;
 using Unity.Entities;
+using VPlus.Core;
 using VPlus.Core.Commands;
 using VPlus.Core.Commands;
 
-namespace VPlus.Core.Services
+namespace VPlus.Data
 {
     public delegate void OnGameDataInitializedEventHandler(World world);
 

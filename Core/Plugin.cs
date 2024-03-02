@@ -9,13 +9,13 @@ using Unity.Entities;
 using V.Augments;
 using VPlus.Augments.Rank;
 using VPlus.Core.Commands;
-using VPlus.Core.Services;
 using VampireCommandFramework;
 using VRising.GameData;
 using MyPluginInfo = VPlus.MyPluginInfo;
 using VPlus.Augments;
 using VPlusV.Augments;
 using VPlus.Core.Toolbox;
+using VPlus.Data;
 
 namespace VPlus.Core
 {

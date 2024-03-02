@@ -9,7 +9,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VPlus.Augments;
 using VPlus.Augments.Rank;
-using VPlus.Core.Services;
+using VPlus.Core;
 using VBuild.Data;
 using VampireCommandFramework;
 using VRising.GameData;

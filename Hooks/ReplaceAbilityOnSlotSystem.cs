@@ -8,6 +8,7 @@ using VPlus.Core;
 using VPlus.Core.Commands;
 using Plugin = VPlus.Core.Plugin;
 using VPlus.Core.Toolbox;
+using ProjectM.UI;
 
 
 
@@ -171,14 +172,26 @@ namespace VPlus.Hooks
 
             if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
             {
-                data.Spells ??= [];
+                
 
                 // Assuming slot 5 and 6 are relevant for spell changes
                 if (slot == 5 || slot == 6)
                 {
-                    data.Spells[slot == 5 ? 0 : 1] = buffer[0].NewGroupId.GuidHash;
-                    ChatCommands.SavePlayerRanks();
-                    Plugin.Logger.LogInfo($"Spell change for slot {slot} recorded.");
+                    if (data.Spells == null)
+                    {
+                        RankData newData = data;
+                        newData.Spells = [0, 0];
+                        newData.Spells[slot == 5 ? 0 : 1] = buffer[0].NewGroupId.GuidHash;
+                        Databases.playerRanks[steamID]= newData;
+                    }
+                    else
+                    {
+                        data.Spells[slot == 5 ? 0 : 1] = buffer[0].NewGroupId.GuidHash;
+                        Databases.playerRanks.Add(steamID, data);
+                    }
+                    
+                    
+                    Plugin.Logger.LogInfo($"Spell change recorded.");
                 }
             }
             else
