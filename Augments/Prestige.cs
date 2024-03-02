@@ -7,6 +7,8 @@ using VPlus.Core.Commands;
 using VampireCommandFramework;
 using VPlus.Core.Toolbox;
 using VPlus.Augments.Rank;
+using VBuild.Core.Toolbox;
+using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
 
 namespace VPlusV.Augments
 {
@@ -188,8 +190,8 @@ namespace VPlusV.Augments
                     string itemString = FontColors.Purple(itemName);
                     //animation thing goes here
                     PrefabGUID lightning = new PrefabGUID(-2061047741);// lightningpillar
-                    VPlus.Data.FoundPrefabGuid foundPrefabGuid = new(lightning);
-                    PvERankSystem.CastCommand(ctx, foundPrefabGuid, null);
+                    VBuild.Core.Converters.FoundPrefabGuid foundPrefabGuid = new(lightning);
+                    VBuild.Core.CoreCommands.CastCommand(ctx, foundPrefabGuid, null);
 
                     ctx.Reply($"You've been awarded with: {quantityString} {itemString}");
                 }

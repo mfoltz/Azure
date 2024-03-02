@@ -1,6 +1,7 @@
 ﻿using Bloodstone.API;
 using ProjectM;
 using Unity.Entities;
+using VBuild.Data;
 using VPlus.Core;
 using VPlus.Core.Toolbox;
 
@@ -8,6 +9,23 @@ namespace VPlus.Augments
 {
     public static class ArmorModifierSystem
     {
+        public static List<PrefabGUID> deathSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1055898174), // Chest
+                new PrefabGUID(1400688919), // Boots
+                new PrefabGUID(125611165),  // Legs
+                new PrefabGUID(-204401621),  // Gloves
+            };
+
+        public static List<PrefabGUID> noctumSet = new List<PrefabGUID>
+            {
+                new PrefabGUID(1076026390), // Chest
+                new PrefabGUID(735487676), // Boots
+                new PrefabGUID(-810609112),  // Legs
+                new PrefabGUID(776192195),  // Gloves
+            };
+
+    
         public static void ModifyArmorPrefabEquipmentSet()
         {
             if (!Plugin.modifyDeathSetBonus)
@@ -17,7 +35,7 @@ namespace VPlus.Augments
             EntityManager entityManager = VWorld.Server.EntityManager;
             PrefabGUID setBonus = new(35317589); // Bloodmoon Set Bonus
 
-            foreach (PrefabGUID prefabGUID in VPlus.Data.Kit.deathSet)
+            foreach (PrefabGUID prefabGUID in ArmorModifierSystem.deathSet)
             {
                 Entity armorEntity = GetPrefabEntityByPrefabGUID(prefabGUID, entityManager);
 

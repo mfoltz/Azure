@@ -53,7 +53,7 @@ namespace VPlus.Hooks
                             {
                                 Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
 
-                                PrefabGUID shard = VPlus.Data.Prefabs.Item_Building_Relic_Paladin;
+                                PrefabGUID shard = VBuild.Data.Prefabs.Item_Building_Relic_Paladin;
                                 if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
                                 {
                                     InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, shard, 1);

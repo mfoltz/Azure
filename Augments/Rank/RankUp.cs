@@ -9,11 +9,13 @@ using ProjectM.Network;
 using Unity.Entities;
 using Unity.Mathematics;
 using VPlus.Core.Services;
-using VPlus.Data;
+using VBuild.Data;
+using VBuild.Core.Toolbox;
 using DateTime = System.DateTime;
 using static ProjectM.Tiles.TileConstants;
 using VPlus.Core.Toolbox;
 using Il2CppSystem.Security.Cryptography;
+using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
 
 namespace VPlus.Augments.Rank
 {
@@ -78,7 +80,7 @@ namespace VPlus.Augments.Rank
 
             PrefabGUID lightning = new PrefabGUID(838368210);// eye of god
             VBuild.Core.Converters.FoundPrefabGuid foundPrefabGuid = new(lightning);
-            VBuild.Core.Commands.CastCommand(ctx, foundPrefabGuid, null);
+            VBuild.Core.CoreCommands.CastCommand(ctx, foundPrefabGuid, null);
             ChatCommands.SavePlayerRanks();
             return;
         }
@@ -124,11 +126,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("BatSwarm", VPlus.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5) },
-                    { 4, new RankSpellConstructor("NightDash", VPlus.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4) },
-                    { 3, new RankSpellConstructor("BatStorm", VPlus.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3) },
-                    { 2, new RankSpellConstructor("MeleeTest", VPlus.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup, 2) },
-                    { 1, new RankSpellConstructor("BatWhirlwind", VPlus.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1) },
+                    { 5, new RankSpellConstructor("BatSwarm", VBuild.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup, 5) },
+                    { 4, new RankSpellConstructor("NightDash", VBuild.Data.Prefabs.AB_BatVampire_NightDash_AbilityGroup, 4) },
+                    { 3, new RankSpellConstructor("BatStorm", VBuild.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup, 3) },
+                    { 2, new RankSpellConstructor("MeleeTest", VBuild.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup, 2) },
+                    { 1, new RankSpellConstructor("BatWhirlwind", VBuild.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup, 1) },
                 };
             }
 
@@ -145,11 +147,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("HolySpinners", VPlus.Data.Prefabs.AB_ChurchOfLight_Paladin_HolySpinners_AbilityGroup, 5) },
-                    { 4, new RankSpellConstructor("DivineRays", VPlus.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup, 4) },
-                    { 3, new RankSpellConstructor("HolyFlackCannon", VPlus.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyFlackCannon_AbilityGroup, 3) },
-                    { 2, new RankSpellConstructor("ChargedSwing", VPlus.Data.Prefabs.AB_ChurchOfLight_Paladin_ChargedSwing_AbilityGroup, 2) },
-                    { 1, new RankSpellConstructor("AngelicAscent", VPlus.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup, 1) },
+                    { 5, new RankSpellConstructor("HolySpinners", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolySpinners_AbilityGroup, 5) },
+                    { 4, new RankSpellConstructor("DivineRays", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup, 4) },
+                    { 3, new RankSpellConstructor("HolyFlackCannon", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyFlackCannon_AbilityGroup, 3) },
+                    { 2, new RankSpellConstructor("ChargedSwing", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_ChargedSwing_AbilityGroup, 2) },
+                    { 1, new RankSpellConstructor("AngelicAscent", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup, 1) },
                 };
             }
 
@@ -167,11 +169,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("LightningStornm", VPlus.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup, 5) },
-                    { 4, new RankSpellConstructor("WispDance", VPlus.Data.Prefabs.AB_Cursed_MountainBeast_GhostCall_AbilityGroup, 4) },
-                    { 3, new RankSpellConstructor("Heal", VPlus.Data.Prefabs.AB_Nun_VBlood_HealCommand_AbilityGroup, 3) },
-                    { 2, new RankSpellConstructor("LightningShield", VPlus.Data.Prefabs.AB_Monster_LightningShieldV2_AbilityGroup, 2) },
-                    { 1, new RankSpellConstructor("ChaosWave", VPlus.Data.Prefabs.AB_Bandit_Tourok_VBlood_ChaosWave_AbilityGroup, 1) },
+                    { 5, new RankSpellConstructor("LightningStornm", VBuild.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup, 5) },
+                    { 4, new RankSpellConstructor("WispDance", VBuild.Data.Prefabs.AB_Cursed_MountainBeast_GhostCall_AbilityGroup, 4) },
+                    { 3, new RankSpellConstructor("Heal", VBuild.Data.Prefabs.AB_Nun_VBlood_HealCommand_AbilityGroup, 3) },
+                    { 2, new RankSpellConstructor("LightningShield", VBuild.Data.Prefabs.AB_Monster_LightningShieldV2_AbilityGroup, 2) },
+                    { 1, new RankSpellConstructor("ChaosWave", VBuild.Data.Prefabs.AB_Bandit_Tourok_VBlood_ChaosWave_AbilityGroup, 1) },
                 };
             }
 
