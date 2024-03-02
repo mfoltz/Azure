@@ -99,7 +99,7 @@ namespace WorldBuild.Hooks
             {
                 if (IsCastleHeart(job))
                 {
-                    if (!VBuild.Core.Commands.WorldBuildToggle.wbFlag)
+                    if (!VBuild.Core.CoreCommands.WorldBuildToggle.wbFlag)
                     {
                         return;
                     }

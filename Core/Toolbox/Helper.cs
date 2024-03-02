@@ -17,6 +17,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using VBuild.Core.Services;
 using VBuild.Data;
+using Buff = ProjectM.Buff;
 
 namespace VBuild.Core.Toolbox;
 

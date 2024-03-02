@@ -34,7 +34,7 @@ using VBuild.Core.Converters;
 namespace VBuild.Core
 {
     [CommandGroup(name: "VBuild", shortHand: "vb")]
-    public class Commands
+    public class CoreCommands
     {
 
         public class WorldBuildToggle
