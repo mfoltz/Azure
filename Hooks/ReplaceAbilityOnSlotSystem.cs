@@ -177,31 +177,30 @@ namespace VPlus.Hooks
             ulong steamID = user.PlatformId;
 
             DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
+            if (!(buffer.Length > 0))
+            {
+                Plugin.Logger.LogInfo("Buffer length not great than zero, skipping...");
+                return;
+            }
             int slot = buffer[0].Slot;
 
-            if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
+            
+            // Assuming slot 5 and 6 are relevant for spell changes
+            if (slot == 5 || slot == 6)
             {
+                // Assume RankData is a class and Databases.playerRanks[steamID] directly returns a reference.
+                RankData rankData = Databases.playerRanks.ContainsKey(steamID) ? Databases.playerRanks[steamID] : new RankData(0, 0, [], 0, [],"", false);
                 
+                // Initialize Spells if null
+                rankData.Spells ??= [0, 0];
 
-                // Assuming slot 5 and 6 are relevant for spell changes
-                if (slot == 5 || slot == 6)
-                {
-                    if (data.Spells == null)
-                    {
-                        RankData newData = data;
-                        newData.Spells = [0, 0];
-                        newData.Spells[slot == 5 ? 0 : 1] = buffer[0].NewGroupId.GuidHash;
-                        Databases.playerRanks[steamID]= newData;
-                    }
-                    else
-                    {
-                        data.Spells[slot == 5 ? 0 : 1] = buffer[0].NewGroupId.GuidHash;
-                        Databases.playerRanks.Add(steamID, data);
-                    }
-                    
-                    
-                    Plugin.Logger.LogInfo($"Spell change recorded.");
-                }
+                // Update the specific spell slot
+                rankData.Spells[slot == 5 ? 0 : 1] = buffer[0].NewGroupId.GuidHash;
+
+                // Update or add the modified RankData back to the dictionary
+                Databases.playerRanks[steamID] = rankData;
+
+                Plugin.Logger.LogInfo($"Spell change recorded for slot {slot}.");
             }
             else
             {
