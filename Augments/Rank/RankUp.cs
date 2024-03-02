@@ -167,10 +167,10 @@ namespace VPlus.Augments.Rank
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
                     { 5, new RankSpellConstructor("LightningStornm", VBuild.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup.GuidHash, 5) },
-                    { 4, new RankSpellConstructor("WispDance", VBuild.Data.Prefabs.AB_Cursed_MountainBeast_GhostCall_AbilityGroup.GuidHash, 4) },
-                    { 3, new RankSpellConstructor("Heal", VBuild.Data.Prefabs.AB_Nun_VBlood_HealCommand_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("LightningShield", VBuild.Data.Prefabs.AB_Monster_LightningShieldV2_AbilityGroup.GuidHash, 2) },
-                    { 1, new RankSpellConstructor("ChaosWave", VBuild.Data.Prefabs.AB_Bandit_Tourok_VBlood_ChaosWave_AbilityGroup.GuidHash, 1) },
+                    { 4, new RankSpellConstructor("AngelicAscent", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup.GuidHash, 4) },
+                    { 3, new RankSpellConstructor("HealBomb", VBuild.Data.Prefabs.AB_ChurchOfLight_Priest_HealBomb_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("LightningShield", VBuild.Data.Prefabs.AB_Monster_LightningShield_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("ChaosQuake", VBuild.Data.Prefabs.AB_Purifier_ChaosQuake_AbilityGroup.GuidHash, 1) },
                 };
             }
 
@@ -225,13 +225,39 @@ namespace VPlus.Augments.Rank
                         ChatCommands.SavePlayerRanks();
                         ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
                     }
+                    else
+                    {
+                        ctx.Reply($"Invalid spell choice or rank requirement not met. ({spellConstructor.RequiredRank})");
+                    }
                 }
                 else if (classInstance is Paladin paladin)
                 {
+                    if (paladin.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructor) && rankData.Rank >= spellConstructor.RequiredRank)
+                    {
+                        // Logic to apply the spell
+                        rankData.RankSpell = spellConstructor.SpellGUID;
+                        ChatCommands.SavePlayerRanks();
+                        ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
+                    }
+                    else
+                    {
+                        ctx.Reply($"Invalid spell choice or rank requirement not met. ({spellConstructor.RequiredRank})");
+                    }
                     // Similar logic for Paladin
                 }
                 else if (classInstance is Default defaultClass)
                 {
+                    if (defaultClass.Spells.TryGetValue(choice, out RankSpellConstructor spellConstructor) && rankData.Rank >= spellConstructor.RequiredRank)
+                    {
+                        // Logic to apply the spell
+                        rankData.RankSpell = spellConstructor.SpellGUID;
+                        ChatCommands.SavePlayerRanks();
+                        ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
+                    }
+                    else
+                    {
+                        ctx.Reply($"Invalid spell choice or rank requirement not met. ({spellConstructor.RequiredRank})");
+                    }
                     // Similar logic for Default
                 }
                 else
@@ -251,7 +277,7 @@ namespace VPlus.Augments.Rank
 
         
 
-        [Command(name: "chooseClass", shortHand: "cc", adminOnly: false, usage: ".cc <className>", description: "Sets class to use spells from.")]
+        [Command(name: "chooseClass", shortHand: "cc", adminOnly: true, usage: ".cc <className>", description: "Sets class to use spells from.")]
         public static void ChooseClass(ChatCommandContext ctx, string className)
         {
             string nameClass = className.ToLower();
