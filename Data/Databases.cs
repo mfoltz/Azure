@@ -1,7 +1,7 @@
 ﻿
 using System.Text.Json;
-using V.Augments;
-using V.Augments.Rank;
+using VPlus.Augments.Rank;
+using VPlusV.Augments;
 
 namespace VPlus.Core
 {

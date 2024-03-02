@@ -7,13 +7,15 @@ using System.Reflection;
 using System.Text.Json;
 using Unity.Entities;
 using V.Augments;
-using V.Augments.Rank;
-using V.Core.Commands;
-using V.Core.Services;
-using V.Core.Tools;
+using VPlus.Augments.Rank;
+using VPlus.Core.Commands;
+using VPlus.Core.Services;
+using VPlus.Core.Tools;
 using VampireCommandFramework;
 using VRising.GameData;
 using MyPluginInfo = VPlus.MyPluginInfo;
+using VPlus.Augments;
+using VPlusV.Augments;
 
 namespace VPlus.Core
 {

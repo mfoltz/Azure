@@ -4,6 +4,15 @@ using VPlus.Core;
 using VPlus.Core.Commands;
 using VPlus.Core.Tools;
 using VampireCommandFramework;
+using Bloodstone.API;
+using Il2CppSystem;
+using ProjectM.Network;
+using Unity.Entities;
+using Unity.Mathematics;
+using VPlus.Core.Services;
+using VPlus.Data;
+using DateTime = System.DateTime;
+using static ProjectM.Tiles.TileConstants;
 
 namespace VPlus.Augments.Rank
 {
@@ -66,9 +75,9 @@ namespace VPlus.Augments.Rank
             ctx.Reply($"Congratulations {playerString}! You have increased your PvE rank to {rankString}.");
             //lightning bolt goes here
 
-            PrefabGUID lightning = new PrefabGUID(1365358996);
-            V.Data.FoundPrefabGuid foundPrefabGuid = new(lightning);
-            CastCommands.CastCommand(ctx, foundPrefabGuid, null);
+            PrefabGUID lightning = new PrefabGUID(838368210);// eye of god
+            VPlus.Data.FoundPrefabGuid foundPrefabGuid = new(lightning);
+            CastCommand(ctx, foundPrefabGuid, null);
             ChatCommands.SavePlayerRanks();
             return;
         }
@@ -100,6 +109,50 @@ namespace VPlus.Augments.Rank
             {
                 return (buffname, buffguid, buffFlag);
             }
+        }
+        public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
+        {
+            PlayerService.Player player1;
+            Entity entity1;
+            if ((object)player == null)
+            {
+                entity1 = ctx.Event.SenderUserEntity;
+            }
+            else
+            {
+                player1 = player.Value;
+                entity1 = player1.User;
+            }
+            Entity entity2 = entity1;
+            Entity entity3;
+            if ((object)player == null)
+            {
+                entity3 = ctx.Event.SenderCharacterEntity;
+            }
+            else
+            {
+                player1 = player.Value;
+                entity3 = player1.Character;
+            }
+            Entity entity4 = entity3;
+            FromCharacter fromCharacter = new FromCharacter()
+            {
+                User = entity2,
+                Character = entity4
+            };
+            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            CastAbilityServerDebugEvent serverDebugEvent = new CastAbilityServerDebugEvent()
+            {
+                AbilityGroup = prefabGuid.Value,
+                AimPosition = new Nullable_Unboxed<float3>(entity2.Read<EntityInput>().AimPosition),
+                Who = entity4.Read<NetworkId>()
+            };
+            existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
+        }
+        public class Classes
+        {
+
+            
         }
     }
 }

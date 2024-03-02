@@ -4,10 +4,10 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Entities;
 using Unity.Mathematics;
-using V.Augments.Rank;
-using V.Core;
-using V.Core.Commands;
-using V.Core.Tools;
+using VPlus.Augments.Rank;
+using VPlus.Core;
+using VPlus.Core.Commands;
+using VPlus.Core.Tools;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
@@ -25,26 +25,15 @@ namespace VPlus.Hooks
         [HarmonyPrefix]
         public static void OnUpdate(ProjectM.VBloodSystem __instance)
         {
-            //Plugin.Logger.LogInfo("VBloodSystem OnUpdate called...");
-
-            // for whatever reason one vblood kill triggers 2 events so make a cooldown or something
-            // maybe one event for the vblood and one for the player
             if (!__instance.EventList.IsEmpty)
             {
-                // is OnUpdate happening twice or is there just 2 events per kill?
                 var check = __instance.EventList.Length.ToString();
-                //Plugin.Logger.LogInfo($"EventList events: {check}"); // Log details about each event
 
-                //EntityManager entityManager = __instance.EntityManager;
                 EntityManager entityManager = VWorld.Server.EntityManager;
 
                 foreach (var _event in __instance.EventList)
                 {
                     if (!VWorld.Server.EntityManager.TryGetComponentData(_event.Target, out PlayerCharacter playerData)) continue;
-
-                    //Plugin.Logger.LogInfo($"Processing event: {_event}"); // Log details about each event
-
-                
 
                     Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
                     string vBloodName = __instance._PrefabCollectionSystem._PrefabDataLookup[_event.Source].AssetName.ToString();
@@ -58,29 +47,23 @@ namespace VPlus.Hooks
                         Entity characterEntity = usermodel.FromCharacter.Character;
                         float3 playerPosition = usermodel.Position;
 
-                        // so what all do I need to define a zone... wonder if it's easier to make a circle around a point with a radius or 4 points for a square
                         if (vBloodName == "CHAR_ChurchOfLight_Paladin_VBlood")
                         {
                             if (Plugin.shardDrop)
                             {
                                 Plugin.Logger.LogInfo($"Attempting to add shard to player inventory"); // Log details about each event
 
-                                PrefabGUID shard = V.Data.Prefabs.Item_Building_Relic_Paladin;
-                                // sure I should properly fix the vblood 2 for 1 kill event thing orrrr I coould just keep doing simple bandaid fixes like this
+                                PrefabGUID shard = VPlus.Data.Prefabs.Item_Building_Relic_Paladin;
                                 if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
                                 {
                                     InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, shard, 1);
                                 }
                                 AddItemToInventory(shard, 1, usermodel);
                             }
-                            //add solarus shard to player inventory
                         }
                         if (entityManager.TryGetComponentData(user, out User component))
                         {
                             ulong SteamID = component.PlatformId;
-                            //Plugin.Logger.LogInfo($"SteamID: {SteamID}"); // Log details about each event
-                            //Plugin.Logger.LogInfo($"Player Level: {RPGMods.Systems.ExperienceSystem.getLevel(SteamID)}"); // Log details about each event
-                            //Plugin.Logger.LogInfo($"Unit Level: {entityManager.GetComponentData<UnitLevel>(_vblood).Level}"); // Log details about each event
                             int playerLevel = RPGMods.Systems.ExperienceSystem.getLevel(SteamID);
                             int unitLevel = entityManager.GetComponentData<UnitLevel>(_vblood).Level;
                             int delta = playerLevel - unitLevel;

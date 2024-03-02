@@ -17,7 +17,7 @@ namespace VPlus.Augments
             EntityManager entityManager = VWorld.Server.EntityManager;
             PrefabGUID setBonus = new(35317589); // Bloodmoon Set Bonus
 
-            foreach (PrefabGUID prefabGUID in V.Data.Kit.deathSet)
+            foreach (PrefabGUID prefabGUID in VPlus.Data.Kit.deathSet)
             {
                 Entity armorEntity = GetPrefabEntityByPrefabGUID(prefabGUID, entityManager);
 
