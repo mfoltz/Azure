@@ -19,6 +19,7 @@ namespace VPlus.Hooks
     [HarmonyPatch(typeof(ReplaceAbilityOnSlotSystem), "OnUpdate")]
     public class ReplaceAbilityOnSlotSystem_Patch
     {
+        private static readonly PrefabGUID fishingPole = new(-1016182556);
         private static void Prefix(ReplaceAbilityOnSlotSystem __instance)
         {
             try
@@ -63,33 +64,41 @@ namespace VPlus.Hooks
         {
             DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
             int bufferLength = buffer.Length;
-
-            if (bufferLength == 3)
+            User user = Utilities.GetComponentData<User>(entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity);
+            ulong steamID = user.PlatformId;
+            if (bufferLength == 1)
+            {
+                
+                // unequip or equipping bone weapon here or fishing pole
+                if (Databases.playerRanks.TryGetValue(steamID, out RankData rankData) && rankData.FishingPole)
+                {
+                    HandleFishingPole(entityManager, entity, owner, buffer);
+                    return;
+                }
+                else if (buffer[0].NewGroupId == fishingPole)
+                {
+                    // fishing pole equipped
+                    
+                    if (Databases.playerRanks.TryGetValue(user.PlatformId, out RankData data))
+                    {
+                        data.FishingPole = true;
+                        ChatCommands.SavePlayerRanks();
+                        return;
+                    }
+                    else
+                    {
+                        Plugin.Logger.LogInfo("Player rank not found for setting spells.");
+                        return;
+                    }
+                }
+                //HandleFishingPole(entityManager, entity, owner, buffer);
+            }
+            else if (bufferLength == 3)
             {
                 // I think the buffer here refers to the abilities possessed by the weapon (primary auto, weapon skill 1, and weapon skill 2)
                 EquipIronOrHigherWeapon(entityManager, entity, owner, buffer);
             }
-            else if (bufferLength == 1)
-            {
-                // unequip or equipping bone weapon here
-
-                PrefabGUID prefabGUID = new(-1016182556); //fishing pole
-                if (buffer[0].NewGroupId == prefabGUID)
-                {
-                    // fishing pole equipped
-                    User user = Utilities.GetComponentData<User>(entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity);
-                    if (Databases.playerRanks.TryGetValue(user.PlatformId, out RankData rankData))
-                    {
-                        rankData.FishingPole = true;
-                        ChatCommands.SavePlayerRanks();
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Player rank not found.");
-                    }
-                }
-                HandleFishingPole(entityManager, entity, owner, buffer);
-            }
+            
         }
 
         private static void EquipIronOrHigherWeapon(EntityManager entityManager, Entity entity, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
@@ -116,7 +125,7 @@ namespace VPlus.Hooks
 
         private static void HandleFishingPole(EntityManager entityManager, Entity entity, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {
-            Plugin.Logger.LogInfo("Player unequipping weapon, modifying slots if fishing pole was equipped...");
+            Plugin.Logger.LogInfo("Fishing pole unequipped, modifiying unarmed slots...");
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
             ulong steamID = user.PlatformId;
