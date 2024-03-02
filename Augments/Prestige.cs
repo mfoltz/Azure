@@ -4,8 +4,8 @@ using RPGMods.Systems;
 using System.Text.RegularExpressions;
 using VPlus.Core;
 using VPlus.Core.Commands;
-using VPlus.Core.Tools;
 using VampireCommandFramework;
+using VPlus.Core.Toolbox;
 
 namespace VPlusV.Augments
 {

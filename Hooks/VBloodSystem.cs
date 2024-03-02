@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using VPlus.Augments.Rank;
 using VPlus.Core;
 using VPlus.Core.Commands;
-using VPlus.Core.Tools;
+using VPlus.Core.Toolbox;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;

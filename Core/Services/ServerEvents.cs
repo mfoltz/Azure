@@ -1,7 +1,8 @@
 ﻿using HarmonyLib;
 using ProjectM;
 using Unity.Entities;
-using V.Core.Commands;
+using VPlus.Core.Commands;
+using VPlus.Core.Commands;
 
 namespace VPlus.Core.Services
 {

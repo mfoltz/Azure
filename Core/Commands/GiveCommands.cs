@@ -2,8 +2,8 @@
 using ProjectM;
 using System.Runtime.CompilerServices;
 using Unity.Entities;
-using VPlus.Core.Tools;
 using VampireCommandFramework;
+using VPlus.Core.Toolbox;
 
 namespace VPlus.Core.Commands
 {

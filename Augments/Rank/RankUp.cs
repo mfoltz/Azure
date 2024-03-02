@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 using VPlus.Core;
 using VPlus.Core.Commands;
-using VPlus.Core.Tools;
 using VampireCommandFramework;
 using Bloodstone.API;
 using Il2CppSystem;
@@ -13,6 +12,7 @@ using VPlus.Core.Services;
 using VPlus.Data;
 using DateTime = System.DateTime;
 using static ProjectM.Tiles.TileConstants;
+using VPlus.Core.Toolbox;
 
 namespace VPlus.Augments.Rank
 {

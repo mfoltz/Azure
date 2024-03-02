@@ -1,6 +1,6 @@
 ﻿using ProjectM;
-using V.Core.Tools;
-using V.Data;
+using VPlus.Core.Toolbox;
+using VPlus.Data;
 using VampireCommandFramework;
 
 namespace VPlus.Core.Converters

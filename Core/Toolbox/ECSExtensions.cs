@@ -8,7 +8,7 @@ using Unity.Collections;
 using Unity.Entities;
 using VRising.GameData.Models.Internals;
 
-namespace VPlus.Core.Tools;
+namespace VPlus.Core.Toolbox;
 
 public static class ECSExtensions
 {

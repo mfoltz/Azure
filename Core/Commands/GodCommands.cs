@@ -3,9 +3,9 @@ using ProjectM;
 using Unity.Entities;
 using Unity.Transforms;
 using VPlus.Core.Services;
-using VPlus.Core.Tools;
 using VPlus.Data;
 using VampireCommandFramework;
+using VPlus.Core.Toolbox;
 
 namespace VPlus.Core.Commands
 {

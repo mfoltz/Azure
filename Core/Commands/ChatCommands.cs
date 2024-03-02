@@ -10,11 +10,12 @@ using UnityEngine;
 using VPlus.Augments;
 using VPlus.Augments.Rank;
 using VPlus.Core.Services;
-using VPlus.Core.Tools;
 using VPlus.Data;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
+using VPlusV.Augments;
+using VPlus.Core.Toolbox;
 
 namespace VPlus.Core.Commands
 {

@@ -15,11 +15,12 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using V.Core.Services;
-using V.Data;
+using VPlus.Core.Services;
+using VPlus.Data;
+using VPlus.Core.Toolbox;
 using Buff = ProjectM.Buff;
 
-namespace VPlus.Core.Tools;
+namespace VPlus.Core.Toolbox;
 
 public static class Helper
 {

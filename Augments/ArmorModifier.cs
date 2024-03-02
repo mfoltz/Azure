@@ -2,7 +2,7 @@
 using ProjectM;
 using Unity.Entities;
 using VPlus.Core;
-using VPlus.Core.Tools;
+using VPlus.Core.Toolbox;
 
 namespace VPlus.Augments
 {

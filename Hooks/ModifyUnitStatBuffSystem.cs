@@ -3,8 +3,8 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
-using V.Core.Tools;
-using Plugin = V.Core.Plugin;
+using VPlus.Core.Toolbox;
+using Plugin = VPlus.Core.Plugin;
 
 #nullable disable
 // almost ready for live maybe
