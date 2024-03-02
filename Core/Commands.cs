@@ -1,34 +1,16 @@
 ﻿using Bloodstone.API;
 using VBuild.Data;
 using ProjectM;
-using ProjectM.CastleBuilding;
-using ProjectM.Gameplay.Scripting;
 using ProjectM.Network;
-using ProjectM.Scripting;
-using ProjectM.Terrain;
-using ProjectM.Tiles;
-using ProjectM.UI;
-using Stunlock.Core;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Services.Core.Scheduler.Internal;
-using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Experimental.AssetBundlePatching;
-using UnityEngine.SceneManagement;
 using VampireCommandFramework;
 using Il2CppSystem;
-using static ProjectM.Tiles.TileCellEnumReader;
 using static VBuild.BuildingSystem.TileSets;
-using UnityEngine.Networking.Match;
 using VBuild.BuildingSystem;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
-using System.Collections.Generic;
-using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
 using VBuild.Core.Converters;
 using static VBuild.Core.CommandParser;
 using System.Runtime.CompilerServices;
@@ -326,6 +308,25 @@ namespace VBuild.Core
             else
             {
                 ctx.Reply("You have not placed any tiles yet.");
+            }
+        }
+
+        [Command(name: "mapicontoggle", shortHand: "mit", adminOnly: true, usage: ".vb mit", description: "Toggles adding selected map component to tiles you place.")]
+
+        public static void MapIconToggle(ChatCommandContext ctx)
+        {
+            User user = ctx.Event.User;
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            {
+                settings.MapIconToggle = !settings.MapIconToggle;
+                Databases.SaveBuildSettings();
+                string enabledColor = FontColors.Green("enabled");
+                string disabledColor = FontColors.Red("disabled");
+                ctx.Reply($"Map icon toggle: {(settings.MapIconToggle ? enabledColor : disabledColor)}");
+            }
+            else
+            {
+                ctx.Reply("Your build data could not be found.");
             }
         }
 
@@ -686,36 +687,7 @@ namespace VBuild.Core
             chatCommandContext.Reply(stringAndClear);
         }
 
-        [Command(name: "revive", shortHand: "r", adminOnly: true, usage: ".v r <Player>", description: "Revives player.")]
-        public void ReviveCommand(ChatCommandContext ctx, string playerName)
-        {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            PlayerService.Player player1;
-            Entity entity1;
-            if ((object)player == null)
-            {
-                entity1 = ctx.Event.SenderCharacterEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity1 = player1.Character;
-            }
-            Entity Character = entity1;
-            Entity entity2;
-            if ((object)player == null)
-            {
-                entity2 = ctx.Event.SenderUserEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity2 = player1.User;
-            }
-            Entity User = entity2;
-            Helper.ReviveCharacter(Character, User);
-            ctx.Reply("Revived");
-        }
+        
 
         [Command("ping", "p", null, "Shows your latency.", null, false)]
         public static void PingCommand(ChatCommandContext ctx, string mode = "")
