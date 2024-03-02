@@ -256,7 +256,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "setTileModelByPrefab", shortHand: "tmp", adminOnly: false, usage: ".wb tmp <PrefabGUID>", description: "Manually set tile model to use.")]
+        [Command(name: "setTileModelByPrefab", shortHand: "tmp", adminOnly: false, usage: ".vb tmp <PrefabGUID>", description: "Manually set tile model to use.")]
         public static void SetTileByPrefab(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -281,7 +281,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".wb undo", description: "Destroys the last tile placed (works on last 10 tiles placed).")]
+        [Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".vb undo", description: "Destroys the last tile placed (works on last 10 tiles placed).")]
         public static void UndoLastTilePlacedCommand(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -342,7 +342,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".wb dr", description: "Destroys resources in player territories. Only use this after disabling worldbuild.")]
+        [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".vb dr", description: "Destroys resources in player territories. Only use this after disabling worldbuild.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             TileSets.ResourceFunctions.SearchAndDestroy();
@@ -350,8 +350,8 @@ namespace VBuild.Core
         }
 
 
-        [Command("destroyTiles", shortHand: "dt", adminOnly: true, description: "Destroys tiles in radius matching entered PrefabGUID.",
-        usage: "Usage: .wb dt [PrefabGUID] [radius]")]
+        [Command("destroyTiles", shortHand: "dt", adminOnly: true, description: "Destroys tiles in entered radius matching entered PrefabGUID.",
+        usage: "Usage: .vb dt [PrefabGUID] [radius]")]
         public static void DestroyTiles(ChatCommandContext ctx, string name, float radius = 25f)
         {
             // Check if a name is not provided or is empty
