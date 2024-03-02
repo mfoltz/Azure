@@ -105,6 +105,7 @@ namespace VBuild.Core
                 Databases.SaveBuildSettings();
             }
         }
+        /*
         [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".vb dm", description: "Toggles dismantle mode (destroys any tile that takes damage from you, including immortal tiles).")]
         public static void DismantleModeCommand(ChatCommandContext ctx)
         {
@@ -119,7 +120,7 @@ namespace VBuild.Core
                 Databases.SaveBuildSettings();
             }
         }
-
+        */
         [Command(name: "tilePermissions", shortHand: "perms", adminOnly: true, usage: ".vb perms <Name>", description: "Toggles tile permissions for a player (allows moving or dismantling things outside of their territory if it is something that can be moved or disabled).")]
         public static void ToggleEditTilesCommand(ChatCommandContext ctx, string name)
         {

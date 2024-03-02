@@ -63,6 +63,7 @@ namespace WorldBuild.Hooks
                     User user = Utilities.GetComponentData<User>(controller);
                     if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
                     {
+                        /*
                         if (settings.DismantleMode)
                         {
                             Plugin.Logger.LogInfo("Player is in dismantle mode, destroying tile...");
@@ -74,6 +75,7 @@ namespace WorldBuild.Hooks
                                 SystemPatchUtil.Destroy(damageTakenEventEntity);
                             }
                         }
+                        */
                     }
                 }
             }
