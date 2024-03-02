@@ -10,8 +10,27 @@ using VampireCommandFramework;
 
 namespace VBuild.BuildingSystem;
 
-internal static class TileUtil
+internal static class TileUtils
 {
+    public static class MapIconFunctions
+    {
+        public static Dictionary<int, int> mapIcons = new Dictionary<int, int>
+        {
+            {1, VBuild.Data.Prefabs.MapIcon_CastleObject_Anvil.GuidHash },
+            {2, VBuild.Data.Prefabs.MapIcon_DraculasCastle.GuidHash },
+            {3, VBuild.Data.Prefabs.MapIcon_Siege_Summon_T01.GuidHash },
+            {4, VBuild.Data.Prefabs.MapIcon_Siege_Summon_T02.GuidHash },
+            {5, VBuild.Data.Prefabs.MapIcon_CastleObject_CastleHeart.GuidHash },
+            {6, VBuild.Data.Prefabs.MapIcon_CastleObject_BloodAltar.GuidHash },
+            {7, VBuild.Data.Prefabs.MapIcon_WorldWaypoint_Active.GuidHash },
+            {8, VBuild.Data.Prefabs.MapIcon_Crypt.GuidHash },
+            {9, VBuild.Data.Prefabs.MapIcon_PlayerPathDot.GuidHash },
+            {10, VBuild.Data.Prefabs.MapIcon_Cave_Entryway.GuidHash }
+        };
+    }
+
+
+
     private static NativeArray<Entity> GetTiles()
     {
         var tileQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
@@ -60,3 +79,6 @@ internal static class TileUtil
         }
     }
 }
+
+
+    

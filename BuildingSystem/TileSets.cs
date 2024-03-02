@@ -1,10 +1,13 @@
 ﻿using Bloodstone.API;
+using Gee.External.Capstone.X86;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
+using LibCpp2IL.BinaryStructures;
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.Shared.Mathematics;
 using ProjectM.Tiles;
+using ProjectM.UI;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
@@ -65,13 +68,36 @@ namespace VBuild.BuildingSystem
                         Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
                         // this doesnt work for the altars and a few other things, not sure hwy yet
                     }
+                    if (data.MapIconToggle)
+                    {
+                        PrefabGUID prefab = new(data.MapIcon);
+                        if (data.MapIcon == 0)
+                        {
+                            string noIcon = "No map icon selected.";
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, noIcon);
+                            return;
+                        }
+                        if (!Utilities.HasComponent<AttachMapIconsToEntity>(tileEntity))
+                        {
+                            VWorld.Server.EntityManager.AddBuffer<AttachMapIconsToEntity>(tileEntity);
+                            
+                            VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
+
+                            // if you really need to just borrow one from the weird waygate
+
+                        }
+                        else
+                        {
+                            VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
+
+                        }
+                    }
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
                     string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
                     //data.LastTilesPlaced = entityString;
                     data.AddTilePlaced(entityString);
                     Plugin.Logger.LogInfo($"Tile placed: {entityString}");
                     //tileEntity.LogComponentTypes();
-
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
                 }
                 else

@@ -18,6 +18,8 @@ using VRising.GameData;
 using Exception = System.Exception;
 using VRising.GameData.Models;
 using VRising.GameData.Methods;
+using UnityEngine.Rendering;
+using System.Text;
 
 namespace VBuild.Core
 {
@@ -128,7 +130,7 @@ namespace VBuild.Core
             {
                 // create new settings for user
                 Stack<string> stack = new Stack<string>();
-                BuildSettings newSettings = new BuildSettings(false, false, 0, 0, "", stack , false);
+                BuildSettings newSettings = new BuildSettings(false, false, 0, 0,0, "", stack , false, false);
                 newSettings.CanEditTiles = true;
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
@@ -330,6 +332,51 @@ namespace VBuild.Core
             }
         }
 
+        [Command(name: "chooseMapIcon", shortHand: "cmi", adminOnly: true, usage: ".vb cmi <#>", description: "Choose map icon to add to tiles placed.")]
+        public static void ChooseMapIcon(ChatCommandContext ctx, int choice)
+        {
+            User user = ctx.Event.User;
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            {
+
+                if (TileUtils.MapIconFunctions.mapIcons.TryGetValue(choice, out int mapIcon))
+                {
+                    settings.MapIcon = mapIcon;
+                    Databases.SaveBuildSettings();
+                    ctx.Reply($"Map icon set to {choice}.");
+                }
+                else
+                {
+                    ctx.Reply($"Invalid map icon choice, must be greater than 0 and less than {TileUtils.MapIconFunctions.mapIcons.Count}.");
+                
+                }
+            }
+            else
+            {
+                ctx.Reply("Your build data could not be found.");
+            }
+        }
+        [Command(name: "listMapIcons", shortHand: "lmi", adminOnly: true, usage: ".vb lmi", description: "List all available map icons.")]
+        public static void ListMapIcons(ChatCommandContext ctx)
+        {
+            // Building the list message
+            StringBuilder listMessage = new StringBuilder();
+            listMessage.AppendLine("Available Map Icons:");
+
+            foreach (var iconEntry in TileUtils.MapIconFunctions.mapIcons)
+            {
+                // Assuming you have a method to get a friendly name for the map icon by its hash
+                PrefabGUID prefabGUID = new PrefabGUID(iconEntry.Value);
+                string iconName = prefabGUID.LookupName(); // Implement this method based on your needs
+                listMessage.AppendLine($"{iconEntry.Key}: {iconName}");
+            }
+
+            // Sending the compiled list as a reply in chat
+            ctx.Reply(listMessage.ToString());
+        }
+
+        
+
         [Command(name: "toggleImmortalTiles", shortHand: "immortal", adminOnly: true, usage: ".wb immortal", description: "Tiles placed will be immortal if toggled. Does not work for everything equally and not sure why yet.")]
         public static void MakeTilesImmortal(ChatCommandContext ctx)
         {
@@ -369,7 +416,7 @@ namespace VBuild.Core
                 return;
             }
 
-            var tiles = TileUtil.ClosestTiles(ctx, radius, name); 
+            var tiles = TileUtils.ClosestTiles(ctx, radius, name); 
 
             foreach (var tile in tiles)
             {
