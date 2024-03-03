@@ -55,7 +55,7 @@ namespace VPlus.Hooks
                 }
                 if (!VPlus.Data.Databases.playerRanks.ContainsKey(steamId) && VPlus.Core.Plugin.PlayerRankUp)
                 {
-                    RankData rankData = new RankData(0, 0, [], 0, [], "default", false);
+                    RankData rankData = new RankData(0, 0, [], 0, [0,0], "default", false);
                     VPlus.Data.Databases.playerRanks.Add(steamId, rankData);
                     ChatCommands.SavePlayerRanks();
                 }
@@ -65,11 +65,14 @@ namespace VPlus.Hooks
                     VPlus.Data.Databases.playerPrestige.Add(steamId, prestigeData);
                     ChatCommands.SavePlayerPrestige();
                 }
-                if (VPlus.Data.Databases.playerDivinity.ContainsKey(steamId) && VPlus.Core.Plugin.PlayerAscension)
+                if (VPlus.Core.Plugin.PlayerAscension)
                 {
-                    DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
-                    currentPlayerDivineData.OnUserConnected(); // Mark the connection time
-                    ChatCommands.SavePlayerDivinity();
+                    if (VPlus.Data.Databases.playerDivinity.ContainsKey(steamId))
+                    {
+                        DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
+                        currentPlayerDivineData.OnUserConnected();
+                        ChatCommands.SavePlayerDivinity();
+                    }
                 }
 
             }

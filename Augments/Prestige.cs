@@ -191,7 +191,7 @@ namespace VPlus.Augments
                     string itemString = FontColors.Purple(itemName);
                     //animation thing goes here
                     //PrefabGUID lightning = new PrefabGUID(-2061047741);// lightningpillar
-                    PrefabGUID lightning = VBuild.Data.Prefabs.AB_Monster_SummonLightningPillars_Cast;
+                    PrefabGUID lightning = VBuild.Data.Prefabs.AB_BloodAltar_TrackVbloodUnit_Trigger;
                     VBuild.Core.Converters.FoundPrefabGuid foundPrefabGuid = new(lightning);
                     VBuild.Core.CoreCommands.CastCommand(ctx, foundPrefabGuid, null);
 

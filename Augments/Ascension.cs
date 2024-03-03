@@ -5,20 +5,27 @@ using VPlus.Core;
 using VPlus;
 using Plugin = VPlus.Core.Plugin;
 using VPlus.Core.Commands;
+using VRising.GameData.Models;
+using Epic.OnlineServices.Sanctions;
+using VBuild.Core.Services;
+using Unity.Entities;
+using ProjectM.Network;
+using ProjectM;
+using Bloodstone.API;
 
 namespace V.Augments
 {
     public class DivineData
     {
         public int Divinity { get; set; }
-        public int VPoints { get; set; }
+        public int VTokens { get; set; }
         public DateTime LastConnectionTime { get; private set; }
         public DateTime LastAwardTime { get; private set; }
 
-        public DivineData(int divinity, int vpoints)
+        public DivineData(int divinity, int vtokens)
         {
             Divinity = divinity;
-            VPoints = vpoints;
+            VTokens = vtokens;
             LastConnectionTime = DateTime.UtcNow;
             LastAwardTime = DateTime.UtcNow;
         }
@@ -34,15 +41,15 @@ namespace V.Augments
             LastConnectionTime = DateTime.UtcNow; // Reset for next session
         }
 
-        // This method now only calculates points without updating LastAwardTime
         public void UpdateVPoints()
         {
             TimeSpan timeOnline = DateTime.UtcNow - LastConnectionTime;
-            int hoursOnline = (int)timeOnline.TotalHours;
-            if (hoursOnline > 0)
+            int minutesOnline = (int)timeOnline.TotalMinutes;
+            if (minutesOnline > 0)
             {
-                VPoints += hoursOnline * VPlus.Core.Plugin.PointsPerHour;
+                VTokens += minutesOnline * VPlus.Core.Plugin.PointsPerMinute;
                 LastAwardTime = DateTime.UtcNow;
+
             }
         }
     }
@@ -54,7 +61,8 @@ namespace V.Augments
         public static void AscensionCheck(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
         {
             // check requirements are met and return true if so, false if not
-            bool requirementsMet = true; //need to implement this
+            bool requirementsMet = false; //need to implement this
+            requirementsMet = CheckRequirements(ctx, playerName, SteamID, data);
             if (requirementsMet)
             {
                 // run thing here, thing return true if works
@@ -86,6 +94,8 @@ namespace V.Augments
             }
 
             // Set stat bonus values and add pre-existing bonuses for continuity
+
+           
             int extraHealth = preHealth + Plugin.AscensionHealthBonus;
             int extraPhysicalPower = prePhysicalPower + Plugin.AscensionPhysicalPowerBonus * Plugin.divineMultiplier;
             int extraSpellPower = preSpellPower + Plugin.AscensionSpellPowerBonus * Plugin.divineMultiplier;
@@ -95,13 +105,92 @@ namespace V.Augments
             // Example condition to limit the maximum number of ascensions
             if (data.Divinity > Plugin.MaxAscensions)
             {
-                // Don't give more bonuses after 10 ascensions
                 ctx.Reply("You have reached the maximum number of ascensions.");
                 return false;
             }
 
             // Apply the updated stats to the player
             PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
+            return true;
+        }
+
+        public enum AscensionLevel
+        {
+            Level1,
+            Level2,
+            Level3,
+            Level4
+        }
+        private static List<int> ParsePrefabIdentifiers(string prefabIds)
+        {
+            // Removing the brackets at the start and end, then splitting by commas
+            var ids = prefabIds.Trim('[', ']').Split(',');
+            return ids.Select(int.Parse).ToList();
+        }
+
+
+
+        public static bool CheckRequirements(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
+        {
+            AscensionLevel ascensionLevel = (AscensionLevel)(data.Divinity);
+            List<int> prefabIds;
+
+            // Determine the prefab IDs based on the ascension level
+            switch (ascensionLevel)
+            {
+                case AscensionLevel.Level1:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFirstAscension);
+                    break;
+                case AscensionLevel.Level2:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsSecondAscension);
+                    break;
+                case AscensionLevel.Level3:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsThirdAscension);
+                    break;
+                case AscensionLevel.Level4:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFourthAscension);
+                    break;
+                default:
+                    throw new InvalidOperationException("Unknown Ascension Level");
+            }
+
+            return CheckLevelRequirements(ctx, data, prefabIds);
+        }
+
+        public static bool CheckLevelRequirements(ChatCommandContext ctx, DivineData data, List<int> prefabIds)
+        {
+            bool itemCheck = true;
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            var user = ctx.User;
+            UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(user.PlatformId);
+            Entity characterEntity = userModel.FromCharacter.Character;
+            List<PrefabGUID> prefabGUIDs = prefabIds.Select(id => new PrefabGUID(id)).ToList();
+
+            for (int i = 0; i < prefabGUIDs.Count; i++)
+            {
+                if (prefabGUIDs[i].GuidHash == 0)
+                {
+                    continue;
+                }
+                int prefabQuantity = i + 1; // cost multiplier per prefab based on position in the list
+
+                if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
+                {
+                    if (!InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, prefabGUIDs[i], prefabQuantity))
+                    {
+                        itemCheck = false;
+                        break; // Exit the loop if any required item is missing
+                    }
+                }
+            }
+
+            if (!itemCheck)
+            {
+                ctx.Reply("You do not have the required items to ascend.");
+                return false;
+            }
+
+            // Since we're ignoring the bloodline check for now, we assume it's always true
             return true;
         }
 

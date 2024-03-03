@@ -31,7 +31,7 @@ namespace VPlus.Core.Commands
         [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".v redeem", description: "Redeems all VPoints for the crystal equivalent, drops if inventory full.")]
         public static void RedeemPoints(ChatCommandContext ctx)
         {
-            if (!Plugin.VPoints)
+            if (!Plugin.VTokens)
             {
                 ctx.Reply("VPoints is disabled.");
                 return;
@@ -44,18 +44,18 @@ namespace VPlus.Core.Commands
             ulong SteamID = user.PlatformId;
             if (Databases.playerDivinity.TryGetValue(SteamID, out DivineData data))
             {
-                if (data.VPoints < Plugin.RewardFactor)
+                if (data.VTokens < Plugin.RewardFactor)
                 {
-                    ctx.Reply($"You need at least {VPlus.Core.Toolbox.FontColors.Yellow(Plugin.RewardFactor.ToString())} VPoints to redeem for a crystal. ({VPlus.Core.Toolbox.FontColors.White(data.VPoints.ToString())})");
+                    ctx.Reply($"You need at least {VPlus.Core.Toolbox.FontColors.Yellow(Plugin.RewardFactor.ToString())} VPoints to redeem for a crystal. ({VPlus.Core.Toolbox.FontColors.White(data.VTokens.ToString())})");
                     return;
                 }
-                int reward = data.VPoints / Plugin.RewardFactor;
+                int reward = data.VTokens / Plugin.RewardFactor;
 
                 // Calculate the exact cost in VPoints for those rewards
                 int cost = reward * Plugin.RewardFactor;
 
                 // Subtract the cost from the player's VPoints
-                PrefabGUID prefabGUID = new PrefabGUID(Plugin.VPointsItemPrefab);
+                PrefabGUID prefabGUID = new PrefabGUID(Plugin.VTokensItemPrefab);
                 bool success = Helper.AddItemToInventory(characterEntity, prefabGUID, reward, out Entity entity);
                 if (!success)
                 {
@@ -63,8 +63,8 @@ namespace VPlus.Core.Commands
                     InventoryUtilitiesServer.CreateDropItem(VWorld.Server.EntityManager, characterEntity, prefabGUID, reward, entity);
                 }
 
-                data.VPoints -= cost;
-                int remainder = data.VPoints;
+                data.VTokens -= cost;
+                int remainder = data.VTokens;
                 ctx.Reply($"VPoints redeemed for {VPlus.Core.Toolbox.FontColors.White(reward.ToString())} {VPlus.Core.Toolbox.FontColors.Pink("crystals")}.");
             }
             else
@@ -618,9 +618,6 @@ namespace VPlus.Core.Commands
             if (Databases.playerDivinity.TryGetValue(SteamID, out DivineData data))
             {
                 Ascension.AscensionCheck(ctx, name, SteamID, data);
-                
-                   
-               
             }
             
         }

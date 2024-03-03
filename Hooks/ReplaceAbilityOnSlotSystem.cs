@@ -11,8 +11,6 @@ using VPlus.Core.Toolbox;
 using ProjectM.UI;
 using VPlus.Data;
 
-
-
 // almost ready for live maybe
 // wow, famoust last words huh ^
 namespace VPlus.Hooks
@@ -21,10 +19,9 @@ namespace VPlus.Hooks
     public class ReplaceAbilityOnSlotSystem_Patch
     {
         private static readonly PrefabGUID fishingPole = new(-1016182556); //as you might have guessed, this is -REDACTED-
-        
+
         private static void Prefix(ReplaceAbilityOnSlotSystem __instance)
         {
-            
             try
             {
                 EntityManager entityManager = __instance.EntityManager;
@@ -71,7 +68,6 @@ namespace VPlus.Hooks
             ulong steamID = user.PlatformId;
             if (bufferLength == 1)
             {
-                
                 // unequip or equipping bone weapon here or fishing pole
                 if (Databases.playerRanks.TryGetValue(steamID, out RankData rankData) && rankData.FishingPole)
                 {
@@ -81,7 +77,7 @@ namespace VPlus.Hooks
                 else if (buffer[0].NewGroupId == fishingPole)
                 {
                     // fishing pole equipped
-                    
+
                     if (Databases.playerRanks.TryGetValue(user.PlatformId, out RankData data))
                     {
                         data.FishingPole = true;
@@ -101,7 +97,6 @@ namespace VPlus.Hooks
                 // I think the buffer here refers to the abilities possessed by the weapon (primary auto, weapon skill 1, and weapon skill 2)
                 EquipIronOrHigherWeapon(entityManager, entity, owner, buffer);
             }
-            
         }
 
         private static void EquipIronOrHigherWeapon(EntityManager entityManager, Entity entity, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
@@ -114,10 +109,9 @@ namespace VPlus.Hooks
 
             if (Databases.playerRanks.TryGetValue(steamID, out RankData data) && data.RankSpell != 0)
             {
-                
                 PrefabGUID prefabGUID = new PrefabGUID(data.RankSpell);
                 newItem.NewGroupId = prefabGUID;
-                
+
                 newItem.Slot = 3; // Assuming slot 3 is where the rank spell should go
                 buffer.Add(newItem);
                 Plugin.Logger.LogInfo("Modification complete.");
@@ -153,10 +147,22 @@ namespace VPlus.Hooks
                         PrefabGUID firstSpellGUID = new PrefabGUID(rankData.Spells.First());
                         PrefabGUID secondSpellGUID = new PrefabGUID(rankData.Spells.Last());
 
+                        if (rankData.Rank < 1)// first and second slot locked until rank 1 and 3 for now
+                        {
+                            rankData.FishingPole = false;
+                            ChatCommands.SavePlayerRanks();
+                            return;
+                        }
                         newItem.NewGroupId = firstSpellGUID;
                         newItem.Slot = 1;
                         buffer.Add(newItem);
 
+                        if (rankData.Rank < 3)
+                        {
+                            rankData.FishingPole = false;
+                            ChatCommands.SavePlayerRanks();
+                            return;
+                        }
                         newItem.NewGroupId = secondSpellGUID;
                         newItem.Slot = 4;
                         buffer.Add(newItem);
@@ -182,32 +188,35 @@ namespace VPlus.Hooks
             ulong steamID = user.PlatformId;
 
             DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
-            if (!(buffer.Length > 0))
+            int slotIndex = buffer[0].Slot == 5 ? 0 : buffer[0].Slot == 6 ? 1 : -1; // Determine if we're dealing with slot 5 or 6, otherwise set to -1
+
+            if (slotIndex != -1) // Proceed only if it's slot 5 or 6
             {
-                Plugin.Logger.LogInfo("Buffer length not great than zero, skipping...");
-                return;
+                if (Databases.playerRanks.TryGetValue(steamID, out RankData data))
+                {
+                    // Ensure Spells list is initialized and has at least 2 elements to accommodate both slots.
+                    if (data.Spells == null)
+                    {
+                        data.Spells = new List<int> { 0, 0 }; // Initialize with two default values
+                    }
+                    else if (data.Spells.Count < 2)
+                    {
+                        // Ensure there are two slots available, padding with 0 if necessary
+                        while (data.Spells.Count < 2)
+                        {
+                            data.Spells.Add(0);
+                        }
+                    }
+
+                    // Now safely assign value to the corresponding slot
+                    data.Spells[slotIndex] = buffer[0].NewGroupId.GuidHash;
+                    ChatCommands.SavePlayerRanks();
+                }
+                else
+                {
+                    Plugin.Logger.LogInfo("Player rank not found.");
+                }
             }
-            int slot = buffer[0].Slot;
-
-            
-            // Assuming slot 5 and 6 are relevant for spell changes
-            if (slot == 5 || slot == 6)
-            {
-                // Assume RankData is a class and Databases.playerRanks[steamID] directly returns a reference.
-                RankData rankData = Databases.playerRanks.ContainsKey(steamID) ? Databases.playerRanks[steamID] : new RankData(0, 0, [], 0, [],"", false);
-                
-                // Initialize Spells if null
-                rankData.Spells ??= [0, 0];
-
-                // Update the specific spell slot
-                rankData.Spells[slot == 5 ? 0 : 1] = buffer[0].NewGroupId.GuidHash;
-
-                // Update or add the modified RankData back to the dictionary
-                Databases.playerRanks[steamID] = rankData;
-
-                Plugin.Logger.LogInfo($"Spell change recorded for slot {slot}.");
-            }
-            
         }
     }
 }
