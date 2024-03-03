@@ -27,7 +27,7 @@ namespace VPlus.Core.Commands
     public class ChatCommands
     {
 
-        [Command(name: "redeempoints", shortHand: "redeem", adminOnly: true, usage: ".v redeem", description: "Redeems all VPoints for the crystal equivalent, drops if inventory full.")]
+        [Command(name: "redeempoints", shortHand: "redeem", adminOnly: false, usage: ".v redeem", description: "Redeems all VPoints for the crystal equivalent, drops if inventory full.")]
         public static void RedeemPoints(ChatCommandContext ctx)
         {
             if (!Plugin.VPoints)
