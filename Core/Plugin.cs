@@ -13,7 +13,6 @@ using VampireCommandFramework;
 using VRising.GameData;
 using MyPluginInfo = VPlus.MyPluginInfo;
 using VPlus.Augments;
-using VPlusV.Augments;
 using VPlus.Core.Toolbox;
 using VPlus.Data;
 
@@ -36,6 +35,7 @@ namespace VPlus.Core
        
         public static int MaxPrestiges;
         public static int MaxRanks;
+        public static int MaxAscensions;
 
         public static bool PlayerAscension;
         public static bool PlayerPrestige;
@@ -45,10 +45,19 @@ namespace VPlus.Core
         public static int PointsPerHour;
         public static int VPointsItemPrefab;
 
+
         public static bool ItemReward;
         public static int ItemPrefab;
         public static int ItemQuantity;
         public static bool ItemMultiplier;
+
+        public static int divineMultiplier;
+        public static string ItemPrefabsFirstAscension;
+        public static string ItemPrefabsSecondAscension;
+        public static string ItemPrefabsThirdAscension;
+        public static string ItemPrefabsFourthAscension;
+
+
 
         public static bool BuffRewardsPrestige;
         public static bool BuffRewardsRankUp;
@@ -61,6 +70,12 @@ namespace VPlus.Core
         public static int deathSetBonus;
         public static string extraStatType;
         public static double extraStatValue;
+
+        public static int AscensionHealthBonus;
+        public static int AscensionPhysicalPowerBonus;
+        public static int AscensionSpellPowerBonus;
+        public static double AscensionPhysicalResistanceBonus;
+        public static double AscensionSpellResistanceBonus;
 
         public static bool shardDrop;
 
@@ -94,11 +109,19 @@ namespace VPlus.Core
 
             MaxPrestiges = Config.Bind("Config", "MaxPrestiges", 10, "Maximum number of times players can prestige their level. -1 is infinite").Value;
             MaxRanks = Config.Bind("Config", "MaxRanks", 5, "Maximum number of times players can rank up.").Value;
+            MaxAscensions = Config.Bind("Config", "MaxAscensions", 4, "Maximum number of times players can ascend.").Value;
 
             ItemReward = Config.Bind("Config", "ItemRewards", true, "Gives specified item/quantity to players when prestiging if enabled.").Value;
             ItemPrefab = Config.Bind("Config", "ItemPrefab", -77477508, "Item prefab to give players when resetting. Demon fragments default").Value;
             ItemQuantity = Config.Bind("Config", "ItemQuantity", 1, "Item quantity to give players when resetting.").Value;
             ItemMultiplier = Config.Bind("Config", "ItemMultiplier", true, "Multiplies the item quantity by the player's prestige if enabled.").Value;
+
+            ItemPrefabsFirstAscension = Config.Bind("Config", "ItemPrefabsFirstAscension", "[-77477508,-77477508,-77477508,-77477508,-77477508]", "Item prefab cost of first ascension, leave as 0 to skip.").Value;
+            ItemPrefabsSecondAscension = Config.Bind("Config", "ItemPrefabsSecondAscension", "[-77477508,-77477508,-77477508,-77477508,-77477508]", "Item prefab cost of second ascension, leave as 0 to skip.").Value;
+            ItemPrefabsThirdAscension = Config.Bind("Config", "ItemPrefabsThirdAscension", "[-77477508,-77477508,-77477508,-77477508,-77477508]", "Item prefab cost of third ascension, leave as 0 to skip.").Value;
+            ItemPrefabsFourthAscension = Config.Bind("Config", "ItemPrefabsFourthAscension", "[-77477508,-77477508,-77477508,-77477508,-77477508]", "Item prefab cost of fourth ascension, leave as 0 to skip.").Value;
+
+            divineMultiplier = Config.Bind("Config", "DivineMultiplier", 1, "Multiplier for stats on ascending.").Value;
 
             BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsReset", true, "Grants permanent buff to players when prestiging if enabled.").Value;
             BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", true, "Grants permanent buff to players when ranking up if enabled.").Value;
@@ -111,11 +134,18 @@ namespace VPlus.Core
             extraStatType = Config.Bind("Config", "ExtraStatType", "SpellResistance", "Stat type to add to the death set. ").Value;
             extraStatValue = Config.Bind("Config", "ExtraStatValue", 0.025, "Stat value to add to the death set. Be mindful as not all stat increases are equal.").Value;
 
+
+            AscensionHealthBonus = Config.Bind("Config", "AscensionHealthBonus", 50, "Health bonus on ascending.").Value;
+            AscensionPhysicalPowerBonus = Config.Bind("Config", "AscensionPhysicalPowerBonus", 5, "Physical power bonus on ascending.").Value;
+            AscensionSpellPowerBonus = Config.Bind("Config", "AscensionSpellPowerBonus", 5, "Spell power bonus on ascending.").Value;
+            AscensionPhysicalResistanceBonus = Config.Bind("Config", "AscensionPhysicalResistanceBonus", 0.025, "Physical resistance bonus on ascending.").Value;
+            AscensionSpellResistanceBonus = Config.Bind("Config", "AscensionSpellResistanceBonus", 0.025, "Spell resistance bonus on ascending.").Value;
+
             PlayerAscension = Config.Bind("Config", "PlayerAscension", true, "Enable player ascension").Value;
             PlayerPrestige = Config.Bind("Config", "PlayerPrestige", true, "Enable player prestige").Value;
             PlayerRankUp = Config.Bind("Config", "PlayerRankUp", true, "Enable player rank up").Value;
             VPoints = Config.Bind("Config", "VPoints", true, "Enable VPoints").Value;
-            VPointsItemPrefab = Config.Bind("Config", "VPoints", -257494203, "Enable VPoints").Value;
+            VPointsItemPrefab = Config.Bind("Config", "VPointsItemPrefab", -257494203, "item prefab to exchange vpoints for").Value;
             RewardFactor = Config.Bind("Config", "RewardFactor", 15, "Points to crystal ratio.").Value;
             PointsPerHour = Config.Bind("Config", "PointsPerHour", 5, "Points gained per hour.").Value;
 

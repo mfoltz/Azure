@@ -11,7 +11,7 @@ using VBuild.Core.Toolbox;
 using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
 using VPlus.Data;
 
-namespace VPlusV.Augments
+namespace VPlus.Augments
 {
     public class PrestigeData
     {
@@ -202,42 +202,7 @@ namespace VPlusV.Augments
                 ChatCommands.SavePlayerPrestige();
                 return;
             }
-            /*
-            public static void ApplyResists(ChatCommandContext ctx, string playerName, ulong SteamID, PrestigeData data)
-            {
-                int preHealth = 0;
-                int prePhysicalPower = 0;
-                int preSpellPower = 0;
-                int prePhysicalResistance = 0;
-                int preSpellResistance = 0;
-
-                if (RPGMods.Utils.Database.PowerUpList.ContainsKey(SteamID) != null)
-                {
-                    if (RPGMods.Utils.Database.PowerUpList.TryGetValue(SteamID, out RPGMods.Utils.PowerUpData preStats))
-                    {
-                        preHealth = (int)preStats.MaxHP;
-                        prePhysicalPower = (int)preStats.PATK;
-                        preSpellPower = (int)preStats.SATK;
-                        prePhysicalResistance = (int)preStats.PDEF;
-                        preSpellResistance = (int)preStats.SDEF;
-                    }
-                }
-
-                // set stat bonus values and add pre-existing bonuses for continuity
-
-                int extraHealth = preHealth;
-                int extraPhysicalPower = prePhysicalPower;
-                int extraSpellPower = preSpellPower;
-                float extraPhysicalResistance = (float)resists + prePhysicalResistance;
-                float extraSpellResistance = (float)resists + preSpellResistance;
-                if (data.Prestiges > 10)
-                {
-                    // dont give more resists after 10
-                    return;
-                }
-                PowerUp.powerUP(ctx, playerName, "add", extraHealth, extraPhysicalPower, extraSpellPower, extraPhysicalResistance, extraSpellResistance);
-            }
-            */
+            
         }
     }
 }

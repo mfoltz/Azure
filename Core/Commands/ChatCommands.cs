@@ -15,11 +15,12 @@ using VPlus.Data;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
-using VPlusV.Augments;
+using VPlus.Augments;
 using VPlus.Core.Toolbox;
 using VBuild.Core.Toolbox;
 using Databases = VPlus.Data.Databases;
 using V.Augments;
+using VBuild.Core.Services;
 
 namespace VPlus.Core.Commands
 {
@@ -601,7 +602,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        /*
+        
         [Command(name: "playerascend", shortHand: "asc", adminOnly: false, usage: ".v asc", description: "Ascends player if requirements are met.")]
         public static void PlayerAscendCommand(ChatCommandContext ctx)
         {
@@ -616,46 +617,24 @@ namespace VPlus.Core.Commands
             string StringID = SteamID.ToString();
             if (Databases.playerDivinity.TryGetValue(SteamID, out DivineData data))
             {
-                if (Ascension.AscensionCheck(ctx, name, SteamID, data))
-                {
-                    // if requirements are met handle ascension appropriately for path, level, etc
-                    //Ascension.AscendPlayer(ctx, name, SteamID, data);
-                }
-                else
-                {
-                    ctx.Reply("You don't meet the requirements for ascending yet.");
-                }
+                Ascension.AscensionCheck(ctx, name, SteamID, data);
+                
+                   
+               
             }
-            else
-            {
-                //ctx.Reply("You haven't ascended yet.");
-                // handle creating new data for player
-                DivineData divineData = new(0, 0);
-
-                Databases.playerDivinity.Add(SteamID, divineData);
-                // check if requirements are met and ascend them if yes, if not reply with not met
-                if (Ascension.AscensionCheck(ctx, name, SteamID, divineData))
-                {
-                    //Ascension.AscendPlayer(ctx, name, SteamID, divineData);
-                }
-                else
-                {
-                    ctx.Reply("You don't meet the requirements for ascending yet.");
-                }
-                SavePlayerDivinity();
-            }
+            
         }
 
         [Command(name: "resetdivinity", shortHand: "rd", adminOnly: true, usage: ".v rd <PlayerName>", description: "Resets player divinity data.")]
         public static void ResetDivinityCommand(ChatCommandContext ctx, string playerName)
         {
-            if (Plugin.PlayerAscension == false)
+            if (!Plugin.PlayerAscension)
             {
                 ctx.Reply("Ascension is disabled.");
                 return;
             }
-            RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity);
-            ulong SteamID = ctx.User.PlatformId;
+            PlayerService.TryGetPlayerFromString(playerName, out var player);
+            ulong SteamID = player.SteamID;
             if (Databases.playerDivinity.ContainsKey(SteamID))
             {
                 Databases.playerDivinity[SteamID] = new DivineData(0, 0); // Reset the divinity data
@@ -668,39 +647,8 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "setdivinity", shortHand: "sd", adminOnly: true, usage: ".v sd <PlayerName> <DivinityLevel> <Path>", description: "Sets the player's divinity level and path (1 for phys and 2 for spell, 0 by default).")]
-        public static void SetDivinityCommand(ChatCommandContext ctx, string playerName, int divinityLevel, int path)
-        {
-            if (Plugin.PlayerAscension == false)
-            {
-                ctx.Reply("Ascension is disabled.");
-                return;
-            }
-            // Attempt to find the player and get their SteamID
-            if (RPGMods.Utils.Helper.FindPlayer(playerName, false, out Entity playerEntity, out Entity userEntity))
-            {
-                ulong SteamID = ctx.User.PlatformId;
-                // Check if divinity data exists for the player and update or create as necessary
-                if (Databases.playerDivinity.ContainsKey(SteamID))
-                {
-                    // Update existing divinity data
-                    Databases.playerDivinity[SteamID] = new DivineData(divinityLevel, path);
-                    ctx.Reply($"Divinity level for {playerName} set to {divinityLevel} with path {path}.");
-                }
-                else
-                {
-                    // Create new divinity data
-                    Databases.playerDivinity.Add(SteamID, new DivineData(divinityLevel, path));
-                    ctx.Reply($"Divinity level for {playerName} initialized to {divinityLevel} with path {path}.");
-                }
-                SavePlayerDivinity(); // Save changes to persistent storage
-            }
-            else
-            {
-                ctx.Reply($"Player {playerName} not found.");
-            }
-        }
-        */
+       
+        
 
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
