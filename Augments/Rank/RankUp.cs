@@ -16,6 +16,7 @@ using VPlus.Core.Toolbox;
 using Il2CppSystem.Security.Cryptography;
 using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
 using Databases = VPlus.Data.Databases;
+using VBuild.Core.Converters;
 
 namespace VPlus.Augments.Rank
 {
@@ -78,9 +79,9 @@ namespace VPlus.Augments.Rank
             ctx.Reply($"Congratulations {playerString}! You have increased your PvE rank to {rankString}.");
             //lightning bolt goes here
 
-            PrefabGUID lightning = VBuild.Data.Prefabs.AB_Militia_BishopOfDunley_SummonEyeOfGod_Cast;
+            PrefabGUID lightning = VBuild.Data.Prefabs.AB_Militia_BishopOfDunley_SummonEyeOfGod_AbilityGroup;
             VBuild.Core.Converters.FoundPrefabGuid foundPrefabGuid = new(lightning);
-            VBuild.Core.CoreCommands.CastCommand(ctx, foundPrefabGuid, null);
+            VBuild.Core.CoreCommands.CastCommand(ctx, foundPrefabGuid,null);
             ChatCommands.SavePlayerRanks();
             return;
         }
@@ -166,10 +167,10 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("LightningStornm", VBuild.Data.Prefabs.AB_Monster_LightningStorm_AbilityGroup.GuidHash, 5) },
-                    { 4, new RankSpellConstructor("AngelicAscent", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup.GuidHash, 4) },
+                    { 5, new RankSpellConstructor("DivineRays", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup.GuidHash, 5) },
+                    { 4, new RankSpellConstructor("BatSwarm", VBuild.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup.GuidHash, 4) },
                     { 3, new RankSpellConstructor("HealBomb", VBuild.Data.Prefabs.AB_ChurchOfLight_Priest_HealBomb_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("LightningShield", VBuild.Data.Prefabs.AB_Monster_LightningShield_AbilityGroup.GuidHash, 2) },
+                    { 2, new RankSpellConstructor("NightDash", VBuild.Data.Prefabs.AB_BatVampire_NightDash_Dash_AbilityGroup.GuidHash, 2) },
                     { 1, new RankSpellConstructor("ChaosQuake", VBuild.Data.Prefabs.AB_Purifier_ChaosQuake_AbilityGroup.GuidHash, 1) },
                 };
             }
