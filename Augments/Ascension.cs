@@ -183,13 +183,13 @@ namespace V.Augments
                     }
                 }
             }
-
+            /*
             if (!itemCheck)
             {
                 ctx.Reply("You do not have the required items to ascend.");
                 return false;
             }
-
+            */
             // Since we're ignoring the bloodline check for now, we assume it's always true
             return true;
         }

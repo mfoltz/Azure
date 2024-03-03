@@ -15,6 +15,7 @@ using VBuild.Data;
 using VPlus.Augments.Rank;
 using VPlus.Core.Commands;
 using VPlus.Augments;
+using Bloodstone.API;
 
 namespace VPlus.Hooks
 {
@@ -72,6 +73,7 @@ namespace VPlus.Hooks
                         DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
                         currentPlayerDivineData.OnUserConnected();
                         ChatCommands.SavePlayerDivinity();
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Welcome back! Your VTokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(currentPlayerDivineData.VTokens.ToString())}");
                     }
                 }
 
@@ -96,6 +98,7 @@ namespace VPlus.Hooks
                     DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
                     currentPlayerDivineData.OnUserDisconnected(); // Calculate points and update times
                     ChatCommands.SavePlayerDivinity();
+                    
                 }
 
             }
