@@ -21,6 +21,9 @@ using VBuild.Core.Toolbox;
 using Databases = VPlus.Data.Databases;
 using V.Augments;
 using VBuild.Core.Services;
+using System.Text;
+using System.Linq;
+using static VBuild.Core.Services.PlayerService;
 
 namespace VPlus.Core.Commands
 {
@@ -520,6 +523,67 @@ namespace VPlus.Core.Commands
             }
         }
 
+        [Command(name: "gettopplayers", shortHand: "gtp", adminOnly: false, usage: ".v gtp", description: "Shows the top 10 players by rank.")]
+        public static void GetTopPlayersCommand(ChatCommandContext ctx)
+        {
+            // Assuming there's a way to access all RankData instances, for example, a List<RankData> allRanks
+            // This might be stored in a static class or passed in some way to this method
+            List<RankData> allRanks = Databases.playerRanks.Values.ToList(); // Placeholder method, you'll need to implement based on your data storage
+
+            if (allRanks == null || allRanks.Count == 0)
+            {
+                ctx.Reply("No ranking data available.");
+                return;
+            }
+
+            // Sorting by rank in ascending order and taking the top 10
+            var topRanks = allRanks.OrderBy(rankData => rankData.Rank).Take(10);
+
+            StringBuilder replyMessage = new StringBuilder("Top 10 Players by Rank:\n");
+            foreach (var rankInfo in topRanks)
+            {
+                // Assuming there's a way to get the player's name from RankData or through another system
+                // Since RankData does not include a player name, you might need a method to map rank or player ID to player names
+                string playerName = GetPlayerNameFromRankData(rankInfo); // Placeholder, implement accordingly
+                replyMessage.AppendLine($"Player {playerName} - Rank: {rankInfo.Rank}, Points: {rankInfo.Points}");
+            }
+
+            ctx.Reply(replyMessage.ToString());
+        }
+        public static string GetPlayerNameFromRankData(RankData rankData)
+        {
+            // Since we don't have direct access to player names in RankData, and assuming playerRanks is accessible,
+            // we find the player's unique identifier (ulong) that matches the given RankData
+            var playerID = Databases.playerRanks.FirstOrDefault(x => x.Value == rankData).Key;
+
+            // Assuming a method that can translate playerID to playerName exists
+            string playerName = GetPlayerNameById(playerID); 
+
+            return playerName;
+        }
+
+        public static string GetPlayerNameById(ulong steamID)
+        {
+            // Iterate through all players, looking for the one with the matching SteamID
+            foreach (var playerEntry in Databases.playerRanks)
+            {
+                if (playerEntry.Key == steamID)
+                {
+                    // Once the matching ID is found, use it to get the player's name
+                    // Assuming PlayerService can resolve player names from SteamID
+                    Player player;
+                    if (TryGetPlayerFromString(steamID.ToString(), out player))
+                    {
+                        return player.Name;
+                    }
+                    break;
+                }
+            }
+
+            // Return a default or placeholder name if the player is not found
+            return "Unknown Player";
+        }
+
         [Command(name: "getplayerprestige", shortHand: "gpp", adminOnly: true, usage: ".v gpp <Player>", description: "Retrieves the prestige count and buffs for a specified player.")]
         public static void GetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName)
         {
@@ -612,6 +676,7 @@ namespace VPlus.Core.Commands
                 return;
             }
             var user = ctx.Event.User;
+            
             string name = user.CharacterName.ToString();
             ulong SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
