@@ -487,7 +487,7 @@ namespace VBuild.BuildingSystem
                     this.IsInStasis = isInStasis;
                 }
             }
-
+            /*
             [Command("critterquery", "cq", description: "Queries for critters.", adminOnly: true)]
             public static void CritterQuery(ChatCommandContext ctx)
             {
@@ -529,10 +529,10 @@ namespace VBuild.BuildingSystem
                 }
                 entityArray.Dispose();
                 
-                
+                */
 
-
-            }
         }
+            
+        
     }
 }
