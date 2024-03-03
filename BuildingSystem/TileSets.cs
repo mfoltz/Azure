@@ -4,6 +4,7 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
 using LibCpp2IL.BinaryStructures;
 using ProjectM;
+using ProjectM.Hybrid;
 using ProjectM.Network;
 using ProjectM.Shared.Mathematics;
 using ProjectM.Shared.Systems;
@@ -21,6 +22,7 @@ using VBuild.Core;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Data;
+using VRising.GameData.Utils;
 using static ProjectM.SLSEntityRemapping;
 using static VBuild.BuildingSystem.TileSets.HorseFunctions;
 using static VCF.Core.Basics.RoleCommands;
@@ -390,6 +392,8 @@ namespace VBuild.BuildingSystem
 
         public class HorseFunctions
         {
+            private static readonly PrefabGUID catPrefab = new(-1117422489); //cat group
+            private static readonly PrefabGUID bunnyPrefab = new(474612735); //horse group
             internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
 
             [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
@@ -451,6 +455,7 @@ namespace VBuild.BuildingSystem
                         }
                     }
                 }
+                entityArray.Dispose();
                 ctx.Reply("Placed dead player ghost horses in stasis. They can still be resummoned.");
             }
 
@@ -481,6 +486,52 @@ namespace VBuild.BuildingSystem
                     this.HorseEntity = horseEntity;
                     this.IsInStasis = isInStasis;
                 }
+            }
+
+            [Command("critterquery", "cq", description: "Queries for critters.", adminOnly: true)]
+            public static void CritterQuery(ChatCommandContext ctx)
+            {
+                var position = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
+                var entityManager = VWorld.Server.EntityManager;
+                Entity userEntity = ctx.Event.SenderUserEntity;
+
+                // cat group
+                NativeArray<Entity> entityArray = entityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
+                    {
+            ComponentType.ReadOnly<PrefabGUID>(),
+            ComponentType.ReadOnly<UnitSpawnHandler>(),
+            ComponentType.ReadOnly<Age>(),
+            ComponentType.ReadOnly<LifeTime>()
+                    },
+                    Options = EntityQueryOptions.IncludeDisabled
+                }).ToEntityArray(Allocator.TempJob);
+                
+                foreach (var entity in entityArray)
+                {
+                    UnitSpawnHandler unitSpawnHandler = Utilities.GetComponentData<UnitSpawnHandler>(entity);
+                    Age age = Utilities.GetComponentData<Age>(entity);
+                    LifeTime lifeTime = Utilities.GetComponentData<LifeTime>(entity);
+                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(entity);
+                    if (prefabGUID.LookupName().ToLower().Contains("critter"))
+                    {
+                        Plugin.Logger.LogInfo($"Critter found: {prefabGUID.LookupName()}");
+                        UnitSpawnerService.UnitSpawner.SpawnWithCallback(userEntity, prefabGUID, position.xz, 1f, e =>
+                        {
+                            Utilities.SetComponentData(e, unitSpawnHandler);
+                            Utilities.SetComponentData(e, age);
+                            Utilities.SetComponentData(e, lifeTime);
+
+                            Plugin.Logger.LogInfo($"Critter spawned: {prefabGUID.LookupName()}");
+                        });
+                    }
+                }
+                entityArray.Dispose();
+                
+                
+
+
             }
         }
     }

@@ -238,54 +238,41 @@ namespace VBuild.Core
                 ctx.Reply("Your build data could not be found.");
             }
         }
-        [Command(name: "chooseEntityModel", shortHand: "cem", adminOnly: false, usage: ".vb cem <index>", description: "Chooses an entity model from the last inspected entities for instantiation.")]
-        public static void LoadInspectedEntityCommand(ChatCommandContext ctx, int choice)
+        [Command(name: "chooseMapPrefab", shortHand: "cmp", adminOnly: true, usage: ".vb cmp <PrefabGUID>", description: "Sets map icon to prefab.")]
+
+        public static void SetMapIcon(ChatCommandContext ctx, int choice)
         {
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
+            Entity character = ctx.Event.SenderCharacterEntity;
+            ulong SteamID = ctx.Event.User.PlatformId;
+
+            if (Databases.playerBuildSettings.TryGetValue(SteamID, out BuildSettings data))
             {
-                // Ensure the choice is within the bounds of the LastTilesPlaced stack
-                if (choice >= 0 && choice < data.LastTilesPlaced.Count)
+                // Assuming there's a similar check for map icons as there is for tile models
+                if (Prefabs.FindPrefab.CheckForMatch(choice))
                 {
-                    // Convert Stack to an array to access the choice by index
-                    var lastTilesArray = data.LastTilesPlaced.ToArray();
-                    string entityRef = lastTilesArray[choice];
-
-                    string[] parts = entityRef.Split(", ");
-                    if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
+                    PrefabGUID prefabGUID = new PrefabGUID(choice);
+                    if (prefabGUID.LookupName().ToLower().Contains("map"))
                     {
-                        Entity entityToInstantiate = new Entity { Index = index, Version = version };
-                        if (entityManager.Exists(entityToInstantiate) && entityToInstantiate.Version == version)
-                        {
-                            // Use your existing method to instantiate the model
-                            // Assuming SpawnTileModel is adjusted to accept an Entity parameter directly
-                            
-
-                            ctx.Reply($"Successfully loaded entity from LastTilesPlaced at choice {choice}. It may now be cloned.");
-                            Databases.SaveBuildSettings();
-                        }
-                        else
-                        {
-                            ctx.Reply("The entity could not be found or has already been modified.");
-                        }
+                        ctx.Reply($"Map icon set.");
+                        data.MapIcon = choice;
+                        Databases.SaveBuildSettings();
                     }
                     else
                     {
-                        ctx.Reply("Failed to parse the reference to the entity.");
+                        ctx.Reply("Invalid map icon choice.");
                     }
+                    
                 }
                 else
                 {
-                    ctx.Reply($"Invalid choice. Please choose an index between 0 and {data.LastTilesPlaced.Count - 1}.");
+                    ctx.Reply("Invalid map icon choice.");
                 }
             }
             else
             {
-                ctx.Reply("Your build data could not be found.");
+                ctx.Reply("Your build data could not be found, create some by giving yourself map icon permissions.");
             }
         }
-
 
         [Command(name: "chooseModel", shortHand: "cm", adminOnly: false, usage: ".vb cm <#>", description: "Sets tile model to use, list available tiles with '.vb ls'.")]
         public static void SetTile(ChatCommandContext ctx, int choice)
@@ -502,7 +489,9 @@ namespace VBuild.Core
                 ctx.Reply("Tiles have been destroyed!");
             }
         }
-        [Command(name: "unlockVbloodFeature", shortHand: "uvf", adminOnly: true, usage: ".v uvf <featureType>", description: "Unlocks a specified VBlood featureType for the player.")]
+
+        /*
+        [Command(name: "unlockVbloodFeature", shortHand: "uvf", adminOnly: true, usage: ".uvf <featureType>", description: "Unlocks a specified VBlood featureType for the player.")]
         public static void UnlockVBloodFeaturesCommand(ChatCommandContext ctx, string input)
         {
             VBloodFeatureType type;
@@ -542,6 +531,7 @@ namespace VBuild.Core
             // Provide feedback to the command issuer
             ctx.Reply($"Unlocked VBlood feature: {input}");
         }
+        */
         
 
         [Command(name: "control", shortHand: "ctrl", adminOnly: true, usage: ".v ctrl", description: "Possesses VBloods or other entities, use with care.")]
