@@ -490,7 +490,7 @@ namespace VBuild.Core
             }
         }
 
-        /*
+        
         [Command(name: "unlockVbloodFeature", shortHand: "uvf", adminOnly: true, usage: ".uvf <featureType>", description: "Unlocks a specified VBlood featureType for the player.")]
         public static void UnlockVBloodFeaturesCommand(ChatCommandContext ctx, string input)
         {
@@ -531,7 +531,7 @@ namespace VBuild.Core
             // Provide feedback to the command issuer
             ctx.Reply($"Unlocked VBlood feature: {input}");
         }
-        */
+        
         [Command("reset", "r", "Instantly reset cooldown and hp for the player.", adminOnly: true)]
         public static void ResetCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
