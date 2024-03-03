@@ -25,6 +25,7 @@ using Enum = System.Enum;
 using ProjectM.Terrain;
 using Unity.Collections;
 using StringSplitOptions = System.StringSplitOptions;
+using VRising.GameData.Models.Internals;
 
 namespace VBuild.Core
 {
@@ -517,6 +518,7 @@ namespace VBuild.Core
 
             // BuffSpawnerSystemData is assumed to be required and obtained similarly
             // This might need to be fetched or constructed based on the context or predefined data
+            
             BuffUtility.BuffSpawnerSystemData buffSpawnerData = new BuffUtility.BuffSpawnerSystemData()
             {
                 // Initialization based on required data
@@ -524,7 +526,11 @@ namespace VBuild.Core
             // Obtaining the system that contains the UnlockVBloodFeatures method
             // Adjust the system type according to where UnlockVBloodFeatures is implemented
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            SystemBase systemBase = existingSystem;
+            string playerName = ctx.Event.User.CharacterName.ToString();
+            UserModel userModel = GameData.Users.GetUserByCharacterName(playerName);
+            BaseEntityModel baseEntityModel = userModel.Internals;
+            Unity.Entities.SystemBase systemBase = new Unity.Entities.SystemBase();
+            
             // Execute the UnlockVBloodFeatures function
             DebugEventsSystem.UnlockVBloodFeatures(systemBase, buffSpawnerData, fromCharacter, type);
 
