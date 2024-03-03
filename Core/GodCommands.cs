@@ -10,39 +10,7 @@ using VBuild.Core.Converters;
 
 namespace VBuild.Core
 {
-    public class ReviveCommands
-    {
-        [Command(name: "revive", shortHand: "r", adminOnly: true, usage: ".r <Player>", description: "Revives player.")]
-        public void ReviveCommand(ChatCommandContext ctx, string playerName)
-        {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            PlayerService.Player player1;
-            Entity entity1;
-            if ((object)player == null)
-            {
-                entity1 = ctx.Event.SenderCharacterEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity1 = player1.Character;
-            }
-            Entity Character = entity1;
-            Entity entity2;
-            if ((object)player == null)
-            {
-                entity2 = ctx.Event.SenderUserEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity2 = player1.User;
-            }
-            Entity User = entity2;
-            Helper.ReviveCharacter(Character, User);
-            ctx.Reply("Revived");
-        }
-    }
+    
     internal class GodCommands
     {
         public static Dictionary<Entity, Dictionary<string, bool>> PlayerBuffDictionary = new Dictionary<Entity, Dictionary<string, bool>>();

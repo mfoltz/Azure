@@ -36,7 +36,7 @@ using ProjectM.Shared.Systems;
 namespace WorldBuild.Hooks
 {
 
-    /*
+    
     [HarmonyPatch(typeof(FollowerSystem), nameof(FollowerSystem.OnUpdate))]
     public static class FollowerSystem_Patch
     {
@@ -67,6 +67,7 @@ namespace WorldBuild.Hooks
         }
     }
     
+    /*
     [HarmonyPatch(typeof(CreateGameplayEventsOnDamageTakenSystem), nameof(CreateGameplayEventsOnDamageTakenSystem.OnUpdate))]
     public static class CreateGameplayEventsOnDamageTakenSystem_Patch
     {

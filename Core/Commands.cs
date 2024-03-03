@@ -532,7 +532,17 @@ namespace VBuild.Core
             ctx.Reply($"Unlocked VBlood feature: {input}");
         }
         */
-        
+        [Command("reset", "r", "Instantly reset cooldown and hp for the player.", adminOnly: true)]
+        public static void ResetCommand(ChatCommandContext ctx, FoundPlayer player = null)
+        {
+            Entity User = player?.Value.User ?? ctx.Event.SenderUserEntity;
+            Entity Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
+            string name = player?.Value.Name.ToString() ?? ctx.Name;
+
+            Helper.ResetCharacter(Character);
+
+            ctx.Reply($"Player \"{name}\" reset.");
+        }
 
         [Command(name: "control", shortHand: "ctrl", adminOnly: true, usage: ".v ctrl", description: "Possesses VBloods or other entities, use with care.")]
         public static void ControlCommand(ChatCommandContext ctx)
