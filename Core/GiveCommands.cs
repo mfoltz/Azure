@@ -10,7 +10,7 @@ namespace VBuild.Core.Commands
 
     internal class GiveItemCommands
     {
-        [Command(name: "give", shortHand: "g", adminOnly: true, usage: ".g <ItemName> <Quantity>", description: "Gives the specified item.")]
+        [Command(name: "give", shortHand: "g", adminOnly: true, usage: ".vb g <ItemName> <Quantity>", description: "Gives the specified item.")]
         public static void GiveItem(
           ChatCommandContext ctx,
           GivenItem item,

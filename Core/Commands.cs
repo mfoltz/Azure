@@ -491,7 +491,7 @@ namespace VBuild.Core
             }
         }
 
-        
+        /*
         [Command(name: "unlockVbloodFeature", shortHand: "uvf", adminOnly: true, usage: ".uvf <featureType>", description: "Unlocks a specified VBlood featureType for the player.")]
         public static void UnlockVBloodFeaturesCommand(ChatCommandContext ctx, string input)
         {
@@ -537,6 +537,7 @@ namespace VBuild.Core
             // Provide feedback to the command issuer
             ctx.Reply($"Unlocked VBlood feature: {input}");
         }
+        */
         
         [Command("reset", "r", "Instantly reset cooldown and hp for the player.", adminOnly: true)]
         public static void ResetCommand(ChatCommandContext ctx, FoundPlayer player = null)
@@ -549,7 +550,7 @@ namespace VBuild.Core
 
             ctx.Reply($"Player \"{name}\" reset.");
         }
-
+        /*
         [Command(name: "control", shortHand: "ctrl", adminOnly: true, usage: ".v ctrl", description: "Possesses VBloods or other entities, use with care.")]
         public static void ControlCommand(ChatCommandContext ctx)
         {
@@ -591,6 +592,7 @@ namespace VBuild.Core
                 ctx.Reply("An error ocurred while trying to control your original body");
             }
         }
+        */
 
         [Command(name: "addNoctumSet", shortHand: "ans", adminOnly: true, usage: ".v ans", description: "adds noctum set to inventory if not already present.")]
         public static void addNoctumCommand(ChatCommandContext ctx)
