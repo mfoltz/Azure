@@ -1,20 +1,48 @@
-﻿using VampireCommandFramework;
+﻿using RPGMods;
+using VampireCommandFramework;
+using VPlus;
 
 namespace V.Augments
 {
     public class DivineData
     {
         public int Divinity { get; set; }
-        public int Path { get; set; }
+        public int VPoints { get; set; }
+        public DateTime LastConnectionTime { get; private set; }
+        public DateTime LastAwardTime { get; private set; }
 
-        // 1 for phys 2 for spell, 0 for not there yet
-
-        public DivineData(int divinity, int path)
+        public DivineData(int divinity, int vpoints)
         {
             Divinity = divinity;
-            Path = path;
+            VPoints = vpoints;
+            LastConnectionTime = DateTime.UtcNow;
+            LastAwardTime = DateTime.UtcNow;
+        }
+
+        public void OnUserConnected()
+        {
+            LastConnectionTime = DateTime.UtcNow;
+        }
+
+        public void OnUserDisconnected()
+        {
+            UpdateVPoints();
+            LastConnectionTime = DateTime.UtcNow; // Reset for next session
+        }
+
+        // This method now only calculates points without updating LastAwardTime
+        public void UpdateVPoints()
+        {
+            TimeSpan timeOnline = DateTime.UtcNow - LastConnectionTime;
+            int hoursOnline = (int)timeOnline.TotalHours;
+            if (hoursOnline > 0)
+            {
+                VPoints += hoursOnline * VPlus.Core.Plugin.PointsPerHour;
+                LastAwardTime = DateTime.UtcNow;
+            }
         }
     }
+
 
     internal class Ascension
     {
@@ -33,36 +61,7 @@ namespace V.Augments
             }
         }
 
-        /*
-        public static void AscendPlayer(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
-        {
-            int preHealth = 0;
-            int prePhysicalPower = 0;
-            int preSpellPower = 0;
-            int prePhysicalResistance = 0;
-            int preSpellResistance = 0;
 
-            if (RPGMods.Utils.Database.PowerUpList.ContainsKey(SteamID) != null)
-            {
-                if (RPGMods.Utils.Database.PowerUpList.TryGetValue(SteamID, out RPGMods.Utils.PowerUpData preStats))
-                {
-                    preHealth = (int)preStats.MaxHP;
-                    prePhysicalPower = (int)preStats.PATK;
-                    preSpellPower = (int)preStats.SATK;
-                    prePhysicalResistance = (int)preStats.PDEF;
-                    preSpellResistance = (int)preStats.SDEF;
-                }
-            }
-
-            // set stat bonus values and add pre-existing bonuses for continuity
-            int extraHealth = Plugin.ExtraHealth + preHealth;
-            int extraPhysicalPower = Plugin.ExtraPhysicalPower + prePhysicalPower;
-            int extraSpellPower = Plugin.ExtraSpellPower + preSpellPower;
-            int extraPhysicalResistance = Plugin.ExtraPhysicalResistance + prePhysicalResistance;
-            int extraSpellResistance = Plugin.ExtraSpellResistance + preSpellResistance;
-
-            ChatCommands.SavePlayerDivinity();
-        }
-        */
+        
     }
 }

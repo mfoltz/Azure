@@ -33,15 +33,17 @@ namespace VPlus.Core
         public static readonly string PlayerRanksJson = Path.Combine(Plugin.ConfigPath, "player_ranks.json");
         public static readonly string PlayerDivinityJson = Path.Combine(Plugin.ConfigPath, "player_divinity.json");
 
-        public static bool buildingPlacementRestrictions;
-        public static bool castleHeartConnectionRequirement;
-        public static bool globalCastleTerritory;
+       
         public static int MaxPrestiges;
         public static int MaxRanks;
 
         public static bool PlayerAscension;
         public static bool PlayerPrestige;
         public static bool PlayerRankUp;
+        public static bool VPoints;
+        public static int RewardFactor;
+        public static int PointsPerHour;
+        public static int VPointsItemPrefab;
 
         public static bool ItemReward;
         public static int ItemPrefab;
@@ -58,11 +60,10 @@ namespace VPlus.Core
 
         public static int deathSetBonus;
         public static string extraStatType;
-        public static int extraStatValue;
+        public static double extraStatValue;
 
         public static bool shardDrop;
 
-        public static int rankCommandsCooldown;
         public static bool rankPointsModifier; //true for multiply points gained and false for divide points gained
         public static int rankPointsFactor; // int to divide or muliply by
 
@@ -91,10 +92,7 @@ namespace VPlus.Core
         {
             // Initialize configuration settings
 
-            buildingPlacementRestrictions = Config.Bind("Config", "buildingPlacementRestrictions", true, "True to allow modification, otherwise will not be toggled. Recommended to leave as is.").Value;
-            castleHeartConnectionRequirement = Config.Bind("Config", "castleHeartConnectionRequirement", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
-            globalCastleTerritory = Config.Bind("Config", "globalCastleTerritory", false, "True to allow modification, otherwise will not be toggled. Experimental, recommended to leave as is.").Value;
-            MaxPrestiges = Config.Bind("Config", "MaxPrestiges", -1, "Maximum number of times players can prestige their level. -1 is infinite").Value;
+            MaxPrestiges = Config.Bind("Config", "MaxPrestiges", 10, "Maximum number of times players can prestige their level. -1 is infinite").Value;
             MaxRanks = Config.Bind("Config", "MaxRanks", 5, "Maximum number of times players can rank up.").Value;
 
             ItemReward = Config.Bind("Config", "ItemRewards", true, "Gives specified item/quantity to players when prestiging if enabled.").Value;
@@ -104,22 +102,26 @@ namespace VPlus.Core
 
             BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsReset", true, "Grants permanent buff to players when prestiging if enabled.").Value;
             BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", true, "Grants permanent buff to players when ranking up if enabled.").Value;
-            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsPrestige", "[-1124645803,1163490655,1520432556,-1559874083,1425734039]", "Buff prefabs to give players when prestiging.").Value;
-            BuffPrefabsRankUp = Config.Bind("Config", "BuffPrefabsRank", "[476186894,-1703886455,-238197495,1068709119,-1161197991]", "Buff prefabs to give players when ranking up.").Value;
+            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsPrestige", "[-1124645803,1163490655,1520432556,-1559874083,1425734039]", "Buff prefabs to give players when prestiging, leave as 0 to skip.").Value;
+            BuffPrefabsRankUp = Config.Bind("Config", "BuffPrefabsRank", "[476186894,-1703886455,-238197495,1068709119,-1161197991]", "Buff prefabs to give players when ranking up, leave as 0 to skip.").Value;
 
             modifyDeathSetStats = Config.Bind("Config", "ModifyDeathSetStats", true, "Modify the stats of the death set").Value;
             modifyDeathSetBonus = Config.Bind("Config", "ModifyDeathSetBonus", true, "Modify the set bonus of the death set").Value;
             deathSetBonus = Config.Bind("Config", "DeathSetBonus", 35317589, "Set bonus to apply to the death set, bloodmoon by default if enabled").Value;
-            extraStatType = Config.Bind("Config", "ExtraStatType", "SpellPower", "Stat type to add to the death set").Value;
-            extraStatValue = Config.Bind("Config", "ExtraStatValue", 5, "Stat value to add to the death set").Value;
+            extraStatType = Config.Bind("Config", "ExtraStatType", "SpellResistance", "Stat type to add to the death set. ").Value;
+            extraStatValue = Config.Bind("Config", "ExtraStatValue", 0.025, "Stat value to add to the death set. Be mindful as not all stat increases are equal.").Value;
 
-            PlayerAscension = Config.Bind("Config", "PlayerAscension", false, "Enable player ascension").Value;
+            PlayerAscension = Config.Bind("Config", "PlayerAscension", true, "Enable player ascension").Value;
             PlayerPrestige = Config.Bind("Config", "PlayerPrestige", true, "Enable player prestige").Value;
             PlayerRankUp = Config.Bind("Config", "PlayerRankUp", true, "Enable player rank up").Value;
+            VPoints = Config.Bind("Config", "VPoints", true, "Enable VPoints").Value;
+            VPointsItemPrefab = Config.Bind("Config", "VPoints", -257494203, "Enable VPoints").Value;
+            RewardFactor = Config.Bind("Config", "RewardFactor", 15, "Points to crystal ratio.").Value;
+            PointsPerHour = Config.Bind("Config", "PointsPerHour", 5, "Points gained per hour.").Value;
 
-            rankCommandsCooldown = Config.Bind("Config", "RankCommandsCooldown", 0, "Cooldown for rank commands in hours, needs to be reimplemented").Value;
+            
 
-            shardDrop = Config.Bind("Config", "ShardDrop", true, "Enable shard drop from Solarus").Value;
+            shardDrop = Config.Bind("Config", "ShardDrop", false, "Enable shard drop from Solarus").Value;
 
             rankPointsModifier = Config.Bind("Config", "RankPointsModifier", true, "True for multiply, false for divide").Value;
             rankPointsFactor = Config.Bind("Config", "RankPointsFactor", 1, "Factor to multiply or divide rank points by").Value;
@@ -133,7 +135,7 @@ namespace VPlus.Core
         {
             ChatCommands.SavePlayerRanks();
             ChatCommands.SavePlayerPrestige();
-            //ChatCommands.SavePlayerDivinity();
+            ChatCommands.SavePlayerDivinity();
             Config.Clear();
             _harmony.UnpatchSelf();
             return true;
@@ -141,8 +143,8 @@ namespace VPlus.Core
 
         public void OnGameInitialized()
         {
-            CastleTerritoryCache.Initialize();
-            Plugin.Logger.LogInfo("TerritoryCache loaded");
+            // This method is called after the game has been initialized
+            // or execute any other logic that needs to happen after the game has been initialized
         }
 
         public static void LoadData()
@@ -186,7 +188,7 @@ namespace VPlus.Core
                 Databases.playerRanks = new Dictionary<ulong, RankData>();
                 Plugin.Logger.LogWarning("PlayerRanks Created");
             }
-            /*
+            
             if (!File.Exists(Plugin.PlayerDivinityJson))
             {
                 var stream = File.Create(Plugin.PlayerDivinityJson);
@@ -206,7 +208,7 @@ namespace VPlus.Core
                 Databases.playerDivinity = new Dictionary<ulong, DivineData>();
                 Plugin.Logger.LogWarning("PlayerDivinity Created");
             }
-            */
+            
         }
     }
 }

@@ -4,7 +4,7 @@ using V.Augments;
 using VPlus.Augments.Rank;
 using VPlusV.Augments;
 
-namespace VPlus.Core
+namespace VPlus.Data
 {
     public class Databases
     {

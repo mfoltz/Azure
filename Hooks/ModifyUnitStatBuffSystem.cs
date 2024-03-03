@@ -58,7 +58,7 @@ namespace VPlus.Hooks
                                 //ModifyUnitStatBuff_DOTS newItem = item;
                                 ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatType);
                                 // will be spell power by default if no match from config
-                                newItem.Value = Plugin.extraStatValue;
+                                newItem.Value = (float)Plugin.extraStatValue;
                                 buffer.Add(newItem);
                                 //Plugin.Logger.LogInfo("Addition complete.");
                             }

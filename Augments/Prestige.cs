@@ -9,6 +9,7 @@ using VPlus.Core.Toolbox;
 using VPlus.Augments.Rank;
 using VBuild.Core.Toolbox;
 using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
+using VPlus.Data;
 
 namespace VPlusV.Augments
 {

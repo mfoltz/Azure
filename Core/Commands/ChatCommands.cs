@@ -11,23 +11,71 @@ using VPlus.Augments;
 using VPlus.Augments.Rank;
 using VPlus.Core;
 using VBuild.Data;
+using VPlus.Data;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
 using VPlusV.Augments;
 using VPlus.Core.Toolbox;
 using VBuild.Core.Toolbox;
+using Databases = VPlus.Data.Databases;
+using V.Augments;
 
 namespace VPlus.Core.Commands
 {
     [CommandGroup(name: "VPlus", shortHand: "v")]
     public class ChatCommands
     {
-        
+
+        [Command(name: "redeempoints", shortHand: "redeem", adminOnly: true, usage: ".v redeem", description: "Redeems all VPoints for the crystal equivalent, drops if inventory full.")]
+        public static void RedeemPoints(ChatCommandContext ctx)
+        {
+            if (!Plugin.VPoints)
+            {
+                ctx.Reply("VPoints is disabled.");
+                return;
+            }
+            // Find the user's SteamID based on the playerName
+            User user = ctx.Event.User;
+            string playerName = user.CharacterName.ToString();
+            UserModel userModel = GameData.Users.GetUserByCharacterName(playerName);
+            Entity characterEntity = userModel.FromCharacter.Character;
+            ulong SteamID = user.PlatformId;
+            if (Databases.playerDivinity.TryGetValue(SteamID, out DivineData data))
+            {
+                if (data.VPoints < Plugin.RewardFactor)
+                {
+                    ctx.Reply($"You need at least {VPlus.Core.Toolbox.FontColors.Yellow(Plugin.RewardFactor.ToString())} VPoints to redeem for a crystal. ({VPlus.Core.Toolbox.FontColors.White(data.VPoints.ToString())})");
+                    return;
+                }
+                int reward = data.VPoints / Plugin.RewardFactor;
+
+                // Calculate the exact cost in VPoints for those rewards
+                int cost = reward * Plugin.RewardFactor;
+
+                // Subtract the cost from the player's VPoints
+                PrefabGUID prefabGUID = new PrefabGUID(Plugin.VPointsItemPrefab);
+                bool success = Helper.AddItemToInventory(characterEntity, prefabGUID, reward, out Entity entity);
+                if (!success)
+                {
+                    //inventory full probably
+                    InventoryUtilitiesServer.CreateDropItem(VWorld.Server.EntityManager, characterEntity, prefabGUID, reward, entity);
+                }
+
+                data.VPoints -= cost;
+                int remainder = data.VPoints;
+                ctx.Reply($"VPoints redeemed for {VPlus.Core.Toolbox.FontColors.White(reward.ToString())} {VPlus.Core.Toolbox.FontColors.Pink("crystals")}.");
+            }
+            else
+            {
+                ctx.Reply("You don't have any VPoints to redeem yet.");
+            }
+        }
+
         [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <Player>", description: "Resets a player's rank count.")]
         public static void WipeRanksCommand(ChatCommandContext ctx, string playerName)
         {
-            if (Plugin.PlayerRankUp == false)
+            if (!Plugin.PlayerRankUp)
             {
                 ctx.Reply("PvE Rank is disabled.");
                 return;
@@ -71,7 +119,7 @@ namespace VPlus.Core.Commands
         [Command(name: "setrankpoints", shortHand: "srp", adminOnly: true, usage: ".v srp <Player> <Points>", description: "Sets the rank points for a specified player.")]
         public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
         {
-            if (Plugin.PlayerRankUp == false)
+            if (!Plugin.PlayerRankUp)
             {
                 ctx.Reply("PvE Rank is disabled.");
                 return;
@@ -186,8 +234,6 @@ namespace VPlus.Core.Commands
                             {
                                 break;
                             }
-
-                            //WillisCore.Helper.BuffPlayerByName(playerName, buffguid, 0, true);
                         }
                         data.Buffs = playerBuffs;
 
@@ -215,8 +261,6 @@ namespace VPlus.Core.Commands
                             {
                                 break;
                             }
-
-                            //WillisCore.Helper.BuffPlayerByName(playerName, buffguid, 0, true);
                         }
                         data.Buffs = playerBuffs;
                         Databases.playerRanks.Add(SteamID, rankData);
@@ -658,10 +702,6 @@ namespace VPlus.Core.Commands
         }
         */
 
-        
-
-        
-
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
         public unsafe void TestCommand(ChatCommandContext ctx)
@@ -699,105 +739,3 @@ namespace VPlus.Core.Commands
         }
     }
 }
-
-/*
-//[Command(name: "disablenodes", shortHand: "dn", adminOnly: true, usage: ".v dn", description: "Finds and disables all resource nodes in player territories.")]
-public static void DestroyResourcesCommand(ChatCommandContext ctx)
-{
-    // maybe if I set their health to 0 instead of destroying them? hmm
-    User user = ctx.Event.User;
-    Entity killer = ctx.Event.SenderUserEntity;
-    EntityManager entityManager = VWorld.Server.EntityManager;
-    //ResourceFunctions.SearchAndDestroy();
-
-    ctx.Reply("All found resource nodes in player territories have been disabled.");
-}
-//[Command(name: "resetnodes", shortHand: "rn", adminOnly: true, usage: ".v rn", description: "Atempts to reset resource nodes if they've been disabled.")]
-public static void ResetResourcesCommand(ChatCommandContext ctx)
-{
-    // maybe if I set their health to 0 instead of destroying them? hmm
-    User user = ctx.Event.User;
-    Entity killer = ctx.Event.SenderUserEntity;
-    EntityManager entityManager = VWorld.Server.EntityManager;
-    //ResourceFunctions.FindAndEnable();
-
-    //ctx.Reply("Resource nodes reset in player territories.");
-}
-public class ResourceFunctions
-{
-    // this actually disables but destroy is much catchier
-    public static unsafe int SearchAndDestroy()
-    {
-        EntityManager entityManager = VWorld.Server.EntityManager;
-        int counter = 0;
-        bool includeDisabled = true;
-        var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
-        {
-            All = new ComponentType[] {
-            ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-            ComponentType.ReadOnly<TilePosition>(),
-        },
-            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-        });
-
-        var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-        foreach (var node in resourceNodeEntities)
-        {
-            if (ShouldRemoveNodeBasedOnTerritory(node))
-            {
-                // if node is in a player territory, which is updated for castle heart placement/destruction already, disable it
-                // might need to filter for trees and rocks here
-                counter += 1;
-                SystemPatchUtil.Disable(node);
-                //node.LogComponentTypes();
-            }
-        }
-        resourceNodeEntities.Dispose();
-        return counter;
-    }
-    private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
-    {
-        Entity territoryEntity;
-        if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
-        {
-            return true;
-        }
-        return false;
-    }
-
-    public static unsafe void FindAndEnable()
-    {
-        EntityManager entityManager = VWorld.Server.EntityManager;
-        int counter = 0;
-        bool includeDisabled = true;
-        var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
-        {
-            All = new ComponentType[] {
-            ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
-            ComponentType.ReadOnly<TilePosition>(),
-        },
-            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-        });
-
-        var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-        foreach (var node in resourceNodeEntities)
-        {
-            if (Utilities.HasComponent<Disabled>(node))
-            {
-                Entity territoryEntity;
-                if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
-                {
-                    EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
-                    EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
-                    entityCommandBuffer.RemoveComponent<Disabled>(node);
-                    counter += 1;
-                }
-            }
-        }
-        resourceNodeEntities.Dispose();
-        Plugin.Logger.LogInfo($"{counter} resource nodes restored.");
-    }
-}
-}
-}
-*/

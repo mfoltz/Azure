@@ -15,7 +15,7 @@ using static ProjectM.Tiles.TileConstants;
 using VPlus.Core.Toolbox;
 using Il2CppSystem.Security.Cryptography;
 using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
-using Databases = VPlus.Core.Databases;
+using Databases = VPlus.Data.Databases;
 
 namespace VPlus.Augments.Rank
 {

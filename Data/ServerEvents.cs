@@ -3,7 +3,6 @@ using ProjectM;
 using Unity.Entities;
 using VPlus.Core;
 using VPlus.Core.Commands;
-using VPlus.Core.Commands;
 
 namespace VPlus.Data
 {
@@ -37,6 +36,7 @@ namespace VPlus.Data
             {
                 ChatCommands.SavePlayerPrestige();
                 ChatCommands.SavePlayerRanks();
+                ChatCommands.SavePlayerDivinity();
             }
         }
 
@@ -47,6 +47,7 @@ namespace VPlus.Data
             {
                 ChatCommands.SavePlayerPrestige();
                 ChatCommands.SavePlayerRanks();
+                ChatCommands.SavePlayerDivinity();
             }
         }
     }
