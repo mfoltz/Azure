@@ -39,7 +39,7 @@ namespace VPlus.Augments
                     {
                         if (data.Prestiges >= Plugin.MaxPrestiges && Plugin.MaxPrestiges != -1)
                         {
-                            ctx.Reply("You have reached the maximum number of resets.");
+                            ctx.Reply("You have reached the maximum number of prestiges.");
                             return;
                         }
                         PrestigeFunctions.PlayerPrestige(ctx, playerName, SteamID, data);
