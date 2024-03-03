@@ -6,6 +6,7 @@ using LibCpp2IL.BinaryStructures;
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.Shared.Mathematics;
+using ProjectM.Shared.Systems;
 using ProjectM.Tiles;
 using ProjectM.UI;
 using System.Runtime.CompilerServices;
@@ -22,7 +23,9 @@ using VBuild.Core.Toolbox;
 using VBuild.Data;
 using static ProjectM.SLSEntityRemapping;
 using static VBuild.BuildingSystem.TileSets.HorseFunctions;
+using static VCF.Core.Basics.RoleCommands;
 using StringComparer = System.StringComparer;
+using User = ProjectM.Network.User;
 
 namespace VBuild.BuildingSystem
 {
@@ -30,6 +33,61 @@ namespace VBuild.BuildingSystem
     {
         // can activate this by monitoring for ability player gets to use with shift key to place a tile at mouse location
         // use charm/siege interact T02 or something, monitor for abilitycast finishes that match the prefab and run this method
+
+
+        public unsafe static void InspectHoveredEntity(Entity character)
+        {
+            Plugin.Logger.LogInfo("InspectHoveredEntity Triggered");
+            if (Utilities.HasComponent<PlayerCharacter>(character))
+            {
+                PlayerCharacter player = Utilities.GetComponentData<PlayerCharacter>(character);
+                string playerName = player.Name.ToString();
+                if (PlayerService.TryGetUserFromName(playerName, out Entity userEntity))
+                {
+                    User user = Utilities.GetComponentData<User>(userEntity);
+
+                    // Obtain the hovered entity from the player's input
+                    Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+
+                    // Check if the hovered entity is valid
+                    if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
+                    {
+                        // Log the component types of the hovered entity
+                        hoveredEntity.LogComponentTypes();
+                        string entityString = hoveredEntity.Index.ToString() + ", " + hoveredEntity.Version.ToString();
+                        ulong steamId = user.PlatformId;
+                        if (Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings settings))
+                        {
+                            // Create a unique string reference for the entity or prefab or whatever
+                            PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
+                            settings.TileModel = prefabGUID.GuidHash;
+                            // Add this reference to the LastTilesPlaced stack
+                            Databases.SaveBuildSettings();
+                            string copySuccess = $"Copied hovered entity for pasting: {entityString}, {prefabGUID.LookupName()}";
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, copySuccess);
+                        }
+                        else
+                        {
+                            Plugin.Logger.LogInfo("Couldn't find player build settings for eye-dropper.");
+                        }
+                        // Send a confirmation message to the player
+                        string message = "Inspected hovered entity. Check the log for details.";
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+                    }
+                    else
+                    {
+                        // Send an error message if no valid entity is hovered
+                        string message = "No valid entity is being hovered. Please hover over an entity to inspect.";
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+                    }
+                }
+                else
+                {
+                    Plugin.Logger.LogInfo("User entity not found.");
+                }
+            }
+        }
+
         public unsafe static void SpawnTileModel(Entity character)
         {
             Plugin.Logger.LogInfo("SpawnTileModel Triggered");
@@ -92,6 +150,8 @@ namespace VBuild.BuildingSystem
 
                         }
                     }
+                    
+                    
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
                     string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
                     //data.LastTilesPlaced = entityString;

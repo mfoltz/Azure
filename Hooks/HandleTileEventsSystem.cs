@@ -29,11 +29,44 @@ using VBuild.Data;
 using ProjectM.Gameplay.Scripting;
 using ProjectM.Tiles;
 using ProjectM.Gameplay;
+using ProjectM.Shared.Systems;
 
 //WIP
 
 namespace WorldBuild.Hooks
 {
+
+    /*
+    [HarmonyPatch(typeof(FollowerSystem), nameof(FollowerSystem.OnUpdate))]
+    public static class FollowerSystem_Patch
+    {
+        public static void Prefix(FollowerSystem __instance)
+        {
+            NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
+            foreach (Entity entity in entities)
+            {
+                Plugin.Logger.LogInfo("FollowerSystem Prefix called, processing follower entity00...");
+                entity.LogComponentTypes();
+                Follower follower = Utilities.GetComponentData<Follower>(entity);
+                Entity followerEntity = follower.Followed;
+               
+                
+            }
+            entities.Dispose();
+
+            entities = __instance.__OnUpdate_LambdaJob1_entityQuery.ToEntityArray(Allocator.Temp);
+            foreach (Entity entity in entities)
+            {
+                Plugin.Logger.LogInfo("FollowerSystem Prefix called, processing follower entity01...");
+                entity.LogComponentTypes();
+
+
+
+            }
+            entities.Dispose();
+        }
+    }
+    
     [HarmonyPatch(typeof(CreateGameplayEventsOnDamageTakenSystem), nameof(CreateGameplayEventsOnDamageTakenSystem.OnUpdate))]
     public static class CreateGameplayEventsOnDamageTakenSystem_Patch
     {
@@ -63,7 +96,7 @@ namespace WorldBuild.Hooks
                     User user = Utilities.GetComponentData<User>(controller);
                     if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
                     {
-                        /*
+                        
                         if (settings.DismantleMode)
                         {
                             Plugin.Logger.LogInfo("Player is in dismantle mode, destroying tile...");
@@ -75,14 +108,14 @@ namespace WorldBuild.Hooks
                                 SystemPatchUtil.Destroy(damageTakenEventEntity);
                             }
                         }
-                        */
+                        
                     }
                 }
             }
             entities.Dispose();
         }
     }
-
+    */
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
     public static class CastleHeartPlacementPatch
     {
@@ -131,8 +164,14 @@ namespace WorldBuild.Hooks
                     {
                         if (prefabGUID.Equals(VBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
                         {
-                            // run spawn tile method here
-                            Plugin.Logger.LogInfo("Charm T02 cast detected, spawning tile at mouse...");
+                            // run spawn tile method here unless inspector mode is enabled
+                            Plugin.Logger.LogInfo("Charm T02 cast detected, spawning or inspecting at mouse...");
+                            if (settings.InspectToggle)
+                            {
+                                Plugin.Logger.LogInfo("Inspect mode enabled, skipping tile spawn...");
+                                TileSets.InspectHoveredEntity(character);
+                                continue;
+                            }
                             TileSets.SpawnTileModel(character);
                         }
                     }
