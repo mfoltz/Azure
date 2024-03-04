@@ -110,7 +110,7 @@ namespace VBuild.BuildingSystem
                     string prefabName = prefabGUID.LookupName();
 
                     // Check if 'char' is present in the prefab name
-                    if (prefabName.Contains("char"))
+                    if (prefabName.ToLower().Contains("char"))
                     {
                         // Use SpawnWithCallback when 'char' is detected in the prefab name
                         UnitSpawnerService.UnitSpawner.SpawnWithCallback(userEntity, prefabGUID, new float2(0, 0), 0, e =>
