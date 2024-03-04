@@ -117,19 +117,19 @@ namespace VBuild.BuildingSystem
                         // give lifetime component
                         if (!Utilities.HasComponent<LifeTime>(prefabEntity))
                         {
-                            Utilities.SetComponentData(prefabEntity, new LifeTime { Duration = 300f });
+                            Utilities.AddComponentData(prefabEntity, new LifeTime { Duration = 300f });
                         }
                         else
                         {
-                            Utilities.AddComponentData(prefabEntity, new LifeTime { Duration = 300f });
+                            Utilities.SetComponentData(prefabEntity, new LifeTime { Duration = 300f });
                         }
                         if(!Utilities.HasComponent<Immortal>(prefabEntity))
                         {
-                            Utilities.SetComponentData(prefabEntity, new Immortal { IsImmortal = true });
+                            Utilities.AddComponentData(prefabEntity, new Immortal { IsImmortal = true });
                         }
                         else
                         {
-                            Utilities.AddComponentData(prefabEntity, new Immortal { IsImmortal = true });
+                            Utilities.SetComponentData(prefabEntity, new Immortal { IsImmortal = true });
                         }
                         Utilities.SetComponentData(prefabEntity, new Translation { Value = aimPosition.Value });
 
@@ -265,6 +265,11 @@ namespace VBuild.BuildingSystem
               
               
             }
+        }
+        public static void MoveClosestToMouseToggle(Entity character)
+        {
+            DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            
         }
 
         /*
