@@ -239,12 +239,12 @@ namespace VBuild.BuildingSystem
                     {
                         if (!Utilities.HasComponent<Dead>(hoveredEntity))
                         {
-                            Utilities.AddComponentData(hoveredEntity, new Dead { DoNotDestroy = true });
+                            Utilities.AddComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer, "Target destroyed");
                         }
                         else
                         {
-                            Utilities.SetComponentData(hoveredEntity, new Dead { DoNotDestroy = true });
+                            Utilities.SetComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer, "Target destroyed");
                         }
                         
