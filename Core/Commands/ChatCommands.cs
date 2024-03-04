@@ -30,6 +30,7 @@ namespace VPlus.Core.Commands
     [CommandGroup(name: "VPlus", shortHand: "v")]
     public class ChatCommands
     {
+        private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
 
         [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".v redeem", description: "Redeems all VTokens for the crystal equivalent, drops if inventory full.")]
         public static void RedeemPoints(ChatCommandContext ctx)
@@ -68,11 +69,11 @@ namespace VPlus.Core.Commands
 
                 data.VTokens -= cost;
                 int remainder = data.VTokens;
-                ctx.Reply($"VTokens redeemed for {VPlus.Core.Toolbox.FontColors.White(reward.ToString())} {VPlus.Core.Toolbox.FontColors.Pink("crystals")}.");
+                ctx.Reply($"{redV}Tokens redeemed for {VPlus.Core.Toolbox.FontColors.White(reward.ToString())} {VPlus.Core.Toolbox.FontColors.Pink("crystal(s)")}.");
             }
             else
             {
-                ctx.Reply("You don't have any VTokens to redeem yet.");
+                ctx.Reply($"You don't have any {redV}Tokens to redeem yet.");
             }
         }
 

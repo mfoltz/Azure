@@ -25,6 +25,7 @@ namespace VPlus.Hooks
     [HarmonyPatch]
     public class ServerBootstrapPatches
     {
+        private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
         [HarmonyPrefix]
 
@@ -64,7 +65,7 @@ namespace VPlus.Hooks
                     DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
                     currentPlayerDivineData.OnUserConnected();
                     ChatCommands.SavePlayerDivinity();
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Welcome back! Your VTokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(currentPlayerDivineData.VTokens.ToString())}");
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Welcome back! Your {redV}Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(currentPlayerDivineData.VTokens.ToString())}");
                 }
             }
 
