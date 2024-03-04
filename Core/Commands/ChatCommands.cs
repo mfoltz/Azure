@@ -31,7 +31,7 @@ namespace VPlus.Core.Commands
     public class ChatCommands
     {
 
-        [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".v redeem", description: "Redeems all VPoints for the crystal equivalent, drops if inventory full.")]
+        [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".v redeem", description: "Redeems all VTokens for the crystal equivalent, drops if inventory full.")]
         public static void RedeemPoints(ChatCommandContext ctx)
         {
             if (!Plugin.VTokens)
@@ -49,7 +49,7 @@ namespace VPlus.Core.Commands
             {
                 if (data.VTokens < Plugin.RewardFactor)
                 {
-                    ctx.Reply($"You need at least {VPlus.Core.Toolbox.FontColors.Yellow(Plugin.RewardFactor.ToString())} VPoints to redeem for a crystal. ({VPlus.Core.Toolbox.FontColors.White(data.VTokens.ToString())})");
+                    ctx.Reply($"You need at least {VPlus.Core.Toolbox.FontColors.Yellow(Plugin.RewardFactor.ToString())} VTokens to redeem for a crystal. ({VPlus.Core.Toolbox.FontColors.White(data.VTokens.ToString())})");
                     return;
                 }
                 int reward = data.VTokens / Plugin.RewardFactor;
@@ -68,11 +68,11 @@ namespace VPlus.Core.Commands
 
                 data.VTokens -= cost;
                 int remainder = data.VTokens;
-                ctx.Reply($"VPoints redeemed for {VPlus.Core.Toolbox.FontColors.White(reward.ToString())} {VPlus.Core.Toolbox.FontColors.Pink("crystals")}.");
+                ctx.Reply($"VTokens redeemed for {VPlus.Core.Toolbox.FontColors.White(reward.ToString())} {VPlus.Core.Toolbox.FontColors.Pink("crystals")}.");
             }
             else
             {
-                ctx.Reply("You don't have any VPoints to redeem yet.");
+                ctx.Reply("You don't have any VTokens to redeem yet.");
             }
         }
 
