@@ -102,7 +102,8 @@ namespace VBuild.BuildingSystem
                 PlayerService.TryGetUserFromName(playerName, out Entity userEntity);
                 User user = Utilities.GetComponentData<User>(userEntity);
                 ulong SteamId = user.PlatformId;
-                if (Databases.playerBuildSettings.TryGetValue(SteamId, out BuildSettings data))
+                Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
+                if (Databases.playerBuildSettings.TryGetValue(SteamId, out BuildSettings data) && !data.KillToggle)
                 {
                     PrefabGUID prefabGUID = new(data.TileModel);
                     Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
@@ -113,16 +114,42 @@ namespace VBuild.BuildingSystem
                     if (prefabName.ToLower().Contains("char"))
                     {
                         // Use SpawnWithCallback when 'char' is detected in the prefab name
-                        UnitSpawnerService.UnitSpawner.SpawnWithCallback(userEntity, prefabGUID, new float2(0, 0), 0, e =>
+                        // give lifetime component
+                        if (!Utilities.HasComponent<LifeTime>(prefabEntity))
                         {
-                            // Additional logic here if needed
-                        });
+                            Utilities.SetComponentData(prefabEntity, new LifeTime { Duration = 300f });
+                        }
+                        else
+                        {
+                            Utilities.AddComponentData(prefabEntity, new LifeTime { Duration = 300f });
+                        }
+                        if(!Utilities.HasComponent<Immortal>(prefabEntity))
+                        {
+                            Utilities.SetComponentData(prefabEntity, new Immortal { IsImmortal = true });
+                        }
+                        else
+                        {
+                            Utilities.AddComponentData(prefabEntity, new Immortal { IsImmortal = true });
+                        }
+                        Utilities.SetComponentData(prefabEntity, new Translation { Value = aimPosition.Value });
 
+                        int rotation = data.TileRotation;
+                        float radians = math.radians(rotation);
+                        quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
+                        Utilities.SetComponentData(prefabEntity, new Rotation { Value = rotationQuaternion });
+                        if (!Utilities.HasComponent<Health>(prefabEntity))
+                        {
+                            Utilities.SetComponentData(prefabEntity, new Health { Value = 1000 });
+                        }
+                        else
+                        {
+                            Utilities.AddComponentData(prefabEntity, new Health { Value = 1000 });
+                        }
                     }
                     else
                     {
                         // Fallback to using EntityManager.Instantiate if 'char' is not in the name
-                        Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
+                        
 
                         Entity tileEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
                         Utilities.SetComponentData(tileEntity, new Translation { Value = aimPosition.Value });
@@ -201,11 +228,42 @@ namespace VBuild.BuildingSystem
 
                     
                 }
+                else if (data.KillToggle)
+                {
+                    User killer = Utilities.GetComponentData<User>(userEntity);
+
+                    // Obtain the hovered entity from the player's input
+                    Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+                    
+                    if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
+                    {
+                        if (!Utilities.HasComponent<Dead>(hoveredEntity))
+                        {
+                            Utilities.AddComponentData(hoveredEntity, new Dead { DoNotDestroy = true });
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer, "Target destroyed");
+                        }
+                        else
+                        {
+                            Utilities.SetComponentData(hoveredEntity, new Dead { DoNotDestroy = true });
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer, "Target destroyed");
+                        }
+                        
+                    }
+                    else
+                    {
+                        // Send an error message if no valid entity is hovered
+                        string message = "No valid entity is being hovered. Please hover over an entity to kill.";
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+                    }
+
+                }
                 else
                 {
                     string message = "Couldn't find your build preferences, try again after setting them.";
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
                 }
+              
+              
             }
         }
 
