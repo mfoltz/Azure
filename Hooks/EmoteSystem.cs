@@ -34,7 +34,7 @@ internal class EmoteSystemPatch
             { -578764388, UndoLastTilePlacement }, // Shrug
             //{ 808904257, ToggleSitSetting }, // Sit
             //{ -1064533554, ToggleSurrenderSetting }, // Surrender
-            //{ -158502505, ToggleTauntSetting }, // Taunt
+            //{ -158502505, ToggleFollower }, // Taunt
             //{ 1177797340, ToggleWaveSetting }, // Wave
             { -1525577000, ToggleBuildMode } // Yes
         };

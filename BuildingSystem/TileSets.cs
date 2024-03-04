@@ -4,10 +4,12 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
 using LibCpp2IL.BinaryStructures;
 using ProjectM;
+using ProjectM.CastleBuilding;
 using ProjectM.Hybrid;
 using ProjectM.Network;
 using ProjectM.Shared.Mathematics;
 using ProjectM.Shared.Systems;
+using ProjectM.Terrain;
 using ProjectM.Tiles;
 using ProjectM.UI;
 using System.Runtime.CompilerServices;
@@ -104,93 +106,100 @@ namespace VBuild.BuildingSystem
                 {
                     PrefabGUID prefabGUID = new(data.TileModel);
                     Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
-                    Entity tileEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
 
-                    Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
-                    Utilities.SetComponentData(tileEntity, new Translation { Value = aimPosition.Value });
+                    string prefabName = prefabGUID.LookupName();
 
-                    int rotation = data.TileRotation;
-                    float radians = math.radians(rotation);
-                    quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
-                    Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
-
-                    //instantiate entity to steal its collider component, sure why not
-                    //prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[WorldBuild.Data.Prefabs.TM_Fortressoflight_Brazier01];
-                    //Entity colliderEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
-                    //PhysicsCollider physicsCollider = Utilities.GetComponentData<PhysicsCollider>(colliderEntity);
-                    //Health health = Utilities.GetComponentData<Health>(colliderEntity);
-                    //Utilities.SetComponentData(tileEntity, physicsCollider);
-                    //Utilities.SetComponentData(tileEntity, health);
-                    //SystemPatchUtil.Destroy(colliderEntity);
-                    //that mostly worked but the chest became unlootable unless destroyed with nukeall, moving on for now since that sounds like quite the rabbit hole
-                    if (data.ImmortalTiles)
+                    // Check if 'char' is present in the prefab name
+                    if (prefabName.Contains("char"))
                     {
-                        Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
-                        // this doesnt work for the altars and a few other things, not sure hwy yet
+                        // Use SpawnWithCallback when 'char' is detected in the prefab name
+                        UnitSpawnerService.UnitSpawner.SpawnWithCallback(userEntity, prefabGUID, new float2(0, 0), 0, e =>
+                        {
+                            // Additional logic here if needed
+                        });
+
                     }
-                    if (data.MapIconToggle)
+                    else
                     {
-                        PrefabGUID prefab = new(data.MapIcon);
-                        if (data.MapIcon == 0)
-                        {
-                            string noIcon = "No map icon selected.";
-                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, noIcon);
-                            return;
-                        }
-                        if (!Utilities.HasComponent<AttachMapIconsToEntity>(tileEntity))
-                        {
-                            VWorld.Server.EntityManager.AddBuffer<AttachMapIconsToEntity>(tileEntity);
-                            
-                            VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
+                        // Fallback to using EntityManager.Instantiate if 'char' is not in the name
+                        Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
 
-                            // if you really need to just borrow one from the weird waygate
+                        Entity tileEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
+                        Utilities.SetComponentData(tileEntity, new Translation { Value = aimPosition.Value });
 
-                        }
-                        else
+                        int rotation = data.TileRotation;
+                        float radians = math.radians(rotation);
+                        quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
+                        Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
+
+                        //instantiate entity to steal its collider component, sure why not
+                        //prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[WorldBuild.Data.Prefabs.TM_Fortressoflight_Brazier01];
+                        //Entity colliderEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
+                        //PhysicsCollider physicsCollider = Utilities.GetComponentData<PhysicsCollider>(colliderEntity);
+                        //Health health = Utilities.GetComponentData<Health>(colliderEntity);
+                        //Utilities.SetComponentData(tileEntity, physicsCollider);
+                        //Utilities.SetComponentData(tileEntity, health);
+                        //SystemPatchUtil.Destroy(colliderEntity);
+                        //that mostly worked but the chest became unlootable unless destroyed with nukeall, moving on for now since that sounds like quite the rabbit hole
+                        if (data.ImmortalTiles)
                         {
-                            VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
+                            Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
+                            // this doesnt work for the altars and a few other things, not sure hwy yet
+                        }
+                        if (data.MapIconToggle)
+                        {
+                            PrefabGUID prefab = new(data.MapIcon);
+                            if (data.MapIcon == 0)
+                            {
+                                string noIcon = "No map icon selected.";
+                                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, noIcon);
+                                return;
+                            }
+                            if (!Utilities.HasComponent<AttachMapIconsToEntity>(tileEntity))
+                            {
+                                VWorld.Server.EntityManager.AddBuffer<AttachMapIconsToEntity>(tileEntity);
+
+                                VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
+
+                                // if you really need to just borrow one from the weird waygate
+
+                            }
+                            else
+                            {
+                                VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
+
+                            }
+                        }
+
+                        if (data.SnappingToggle)
+                        {
+
+                            float3 position = tileEntity.Read<Translation>().Value;
+                            float gridSize = 5f; // Define your desired grid size
+                            position = new float3(
+                                math.round(position.x / gridSize) * gridSize,
+                                position.y,
+                                math.round(position.z / gridSize) * gridSize);
+                            Utilities.SetComponentData(tileEntity, new Translation { Value = position });
+
+
 
                         }
+
+
+                        string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
+                        string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
+                        //data.LastTilesPlaced = entityString;
+                        data.AddTilePlaced(entityString);
+                        Plugin.Logger.LogInfo($"Tile placed: {entityString}");
+                        //tileEntity.LogComponentTypes();
+
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
                     }
 
-                    if (data.SnappingToggle)
-                    {
-                        /*
-                        float3 position = tileEntity.Read<Translation>().Value;
-                        position = new float3(math.round(position.x), position.y, math.round(position.z));
-                        Utilities.SetComponentData(tileEntity, new Translation { Value = position });
-                        */
-                        prefabGUID = VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01_DLCVariant01;
-                        prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
-                        Entity snappingEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
-                        SnappingPoint snapPoint = Utilities.GetComponentData<SnappingPoint>(snappingEntity);
-                        if (!Utilities.HasComponent<SnappingPoint>(tileEntity))
-                        {
-                            
-                            
-                            
-                            Utilities.AddComponentData(tileEntity, snapPoint);
 
-                            // if you really need to just borrow one from the weird waygate
-                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Snapping point set. {snapPoint.LocalTranslation.Value.xy}");
 
-                        }
-                        else
-                        {
-
-                            Utilities.SetComponentData(tileEntity, snapPoint);
-                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Snapping point added to tile. {snapPoint.LocalTranslation.Value.xy}");
-                        }
-                    }
                     
-                    
-                    string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
-                    string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
-                    //data.LastTilesPlaced = entityString;
-                    data.AddTilePlaced(entityString);
-                    Plugin.Logger.LogInfo($"Tile placed: {entityString}");
-                    //tileEntity.LogComponentTypes();
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
                 }
                 else
                 {
