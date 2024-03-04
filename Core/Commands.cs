@@ -26,6 +26,7 @@ using ProjectM.Terrain;
 using Unity.Collections;
 using StringSplitOptions = System.StringSplitOptions;
 using VRising.GameData.Models.Internals;
+using static VBuild.Core.Services.PlayerService;
 
 namespace VBuild.Core
 {
@@ -151,7 +152,7 @@ namespace VBuild.Core
             {
                 // create new settings for user
                 Stack<string> stack = new Stack<string>();
-                BuildSettings newSettings = new BuildSettings(false, false,false, 0, 0,0, "", stack , false, false);
+                BuildSettings newSettings = new BuildSettings(false, false,false, 0, 0,false,0, "", stack , false, false);
                 newSettings.CanEditTiles = true;
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
@@ -328,7 +329,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".vb undo", description: "Destroys the last tile placed (works on last 10 tiles placed).")]
+        //[Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".vb undo", description: "Destroys the last tile placed (works on last 10 tiles placed).")]
         public static void UndoLastTilePlacedCommand(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -387,6 +388,7 @@ namespace VBuild.Core
                 ctx.Reply("Your build data could not be found.");
             }
         }
+        
 
         [Command(name: "chooseMapIcon", shortHand: "cmi", adminOnly: true, usage: ".vb cmi <#>", description: "Choose map icon to add to tiles placed.")]
         public static void ChooseMapIcon(ChatCommandContext ctx, int choice)

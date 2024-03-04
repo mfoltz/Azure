@@ -152,6 +152,36 @@ namespace VBuild.BuildingSystem
 
                         }
                     }
+
+                    if (data.SnappingToggle)
+                    {
+                        /*
+                        float3 position = tileEntity.Read<Translation>().Value;
+                        position = new float3(math.round(position.x), position.y, math.round(position.z));
+                        Utilities.SetComponentData(tileEntity, new Translation { Value = position });
+                        */
+                        prefabGUID = VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01_DLCVariant01;
+                        prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
+                        Entity snappingEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
+                        SnappingPoint snapPoint = Utilities.GetComponentData<SnappingPoint>(snappingEntity);
+                        if (!Utilities.HasComponent<SnappingPoint>(tileEntity))
+                        {
+                            
+                            
+                            
+                            Utilities.AddComponentData(tileEntity, snapPoint);
+
+                            // if you really need to just borrow one from the weird waygate
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Snapping point set. {snapPoint.LocalTranslation.Value.xy}");
+
+                        }
+                        else
+                        {
+
+                            Utilities.SetComponentData(tileEntity, snapPoint);
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Snapping point added to tile. {snapPoint.LocalTranslation.Value.xy}");
+                        }
+                    }
                     
                     
                     string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
@@ -360,6 +390,7 @@ namespace VBuild.BuildingSystem
                 var cleanUpEntities = cleanUp.ToEntityArray(Allocator.Temp);
                 foreach (var node in cleanUpEntities)
                 {
+                    
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(node);
                     string name = prefabGUID.LookupName();
                     if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber"))
@@ -392,8 +423,7 @@ namespace VBuild.BuildingSystem
 
         public class HorseFunctions
         {
-            private static readonly PrefabGUID catPrefab = new(-1117422489); //cat group
-            private static readonly PrefabGUID bunnyPrefab = new(474612735); //horse group
+            
             internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
 
             [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
