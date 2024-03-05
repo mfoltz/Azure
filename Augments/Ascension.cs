@@ -17,6 +17,7 @@ namespace V.Augments
 {
     public class DivineData
     {
+        private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
         public int Divinity { get; set; }
         public int VTokens { get; set; }
         public DateTime LastConnectionTime { get; private set; }
@@ -35,10 +36,12 @@ namespace V.Augments
             LastConnectionTime = DateTime.UtcNow;
         }
 
-        public void OnUserDisconnected()
+        public void OnUserDisconnected(User user, DivineData divineData)
         {
             UpdateVPoints();
             LastConnectionTime = DateTime.UtcNow; // Reset for next session
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            ServerChatUtils.SendSystemMessageToClient(entityManager,user, $"Your {redV} Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(divineData.VTokens.ToString())}");
         }
 
         public void UpdateVPoints()

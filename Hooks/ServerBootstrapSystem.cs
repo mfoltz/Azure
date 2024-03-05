@@ -87,8 +87,10 @@ namespace VPlus.Hooks
 
             if (VPlus.Data.Databases.playerDivinity.ContainsKey(steamId))
             {
+                DivineData divineData = VPlus.Data.Databases.playerDivinity[steamId];
+
                 DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
-                currentPlayerDivineData.OnUserDisconnected(); // Calculate points and update times
+                currentPlayerDivineData.OnUserDisconnected(user, divineData); // Calculate points and update times
                 ChatCommands.SavePlayerDivinity();
 
             }
