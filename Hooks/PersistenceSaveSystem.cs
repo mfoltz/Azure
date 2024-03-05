@@ -24,8 +24,11 @@ namespace VPlus.Hooks
 
     public class Tokens
     {
+        public static int counter = 0;
         public static void UpdateTokens()
         {
+            counter += 1;
+            if (counter < 10) return;
             Plugin.Logger.LogInfo("Updating tokens");
             var playerDivinities = Databases.playerDivinity;
             foreach (var entry in playerDivinities)
@@ -41,8 +44,9 @@ namespace VPlus.Hooks
                 currentPlayerDivineData.OnUserDisconnected(user, currentPlayerDivineData); // Simulate user disconnection
                 currentPlayerDivineData.OnUserConnected();    // Simulate user reconnection
                 ChatCommands.SavePlayerDivinity();            // Save changes if necessary
-                Plugin.Logger.LogInfo($"Updated token data for player {steamId}");
+                //Plugin.Logger.LogInfo($"Updated token data for player {steamId}");
             }
+            counter = 0;
         }
     }
     
