@@ -168,10 +168,10 @@ namespace VPlus.Augments.Rank
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
                     { 5, new RankSpellConstructor("DivineRays", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup.GuidHash, 5) },
-                    { 4, new RankSpellConstructor("BatSwarm", VBuild.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup.GuidHash, 4) },
+                    { 4, new RankSpellConstructor("NightDash", VBuild.Data.Prefabs.AB_BatVampire_NightDash_Dash_AbilityGroup.GuidHash, 4) },
                     { 3, new RankSpellConstructor("HealBomb", VBuild.Data.Prefabs.AB_ChurchOfLight_Priest_HealBomb_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("NightDash", VBuild.Data.Prefabs.AB_BatVampire_NightDash_Dash_AbilityGroup.GuidHash, 2) },
-                    { 1, new RankSpellConstructor("ChaosQuake", VBuild.Data.Prefabs.AB_Purifier_ChaosQuake_AbilityGroup.GuidHash, 1) },
+                    { 2, new RankSpellConstructor("MeleeAlt", VBuild.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("BatWhirlwind", VBuild.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup.GuidHash, 1) },
                 };
             }
 
