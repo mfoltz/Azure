@@ -211,14 +211,7 @@ namespace WorldBuild.Hooks
                 };
             }
                 
-            else if (settings.GetToggle("CopyToggle"))
-            {
-                return (userEntity, _) =>
-                {
-
-                    TileSets.CopyHoveredEntity(userEntity);
-                };
-            }
+            
             else
             {
                 return (userEntity, _) =>

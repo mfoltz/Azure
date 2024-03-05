@@ -15,6 +15,7 @@ using VBuild.Data;
 using VRising.GameData;
 using VRising.GameData.Models;
 using static VBuild.Core.Services.PlayerService;
+using static VBuild.Core.Services.UnitSpawnerService;
 using static VCF.Core.Basics.RoleCommands;
 using User = ProjectM.Network.User;
 
@@ -29,17 +30,16 @@ internal class EmoteSystemPatch
     private static readonly Dictionary<int, Action<Player, ulong>> emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
             { -658066984, ToggleSnapping }, // Beckon
-            { -1462274656, ToggleCopyMode }, // Bow
+            { -1462274656, SetTileRotationTo0 }, // Bow
             { -26826346, ToggleMapIconPlacement }, // Clap
-            //{ 1048364815,  }, // Dance
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleImmortalTiles }, // Salute
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, CycleGridSize }, // Sit
-            //{ -1064533554, ToggleSurrenderSetting }, // Surrender
-            //{ -158502505, MoveClosestToMouseToggle }, // Taunt
-            { 1177797340, ToggleTileRotation }, // Wave
+            { -1064533554, SetTileRotationTo90 }, // Surrender
+            { -158502505, SetTileRotationTo180 }, // Taunt
+            { 1177797340, SetTileRotationTo270 }, // Wave
             { -1525577000, ToggleBuildMode } // Yes
         };
 
@@ -48,17 +48,16 @@ internal class EmoteSystemPatch
         emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
             { -658066984, ToggleSnapping }, // Beckon
-            { -1462274656, ToggleCopyMode }, // Bow
+            { -1462274656, SetTileRotationTo0 }, // Bow
             { -26826346, ToggleMapIconPlacement }, // Clap
-            //{ 1048364815, TBD }, // Dance
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleImmortalTiles }, // Salute
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, CycleGridSize }, // Sit
-            //{ -1064533554, TBD }, // Surrender
-            //{ -158502505, TBD }, // Taunt
-            { 1177797340, ToggleTileRotation }, // Wave
+            { -1064533554, SetTileRotationTo90 }, // Surrender
+            { -158502505, SetTileRotationTo180 }, // Taunt
+            { 1177797340, SetTileRotationTo270 }, // Wave
             { -1525577000, ToggleBuildMode } // Yes
     };
     }
@@ -94,7 +93,6 @@ internal class EmoteSystemPatch
             // Toggle the CopyModeToggle value
             bool currentValue = settings.GetToggle("CopyToggle");
             settings.SetToggle("CopyToggle", !currentValue);
-
             // Update the player's build settings in the database
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
@@ -229,6 +227,40 @@ internal class EmoteSystemPatch
             Databases.SaveBuildSettings();
             // Assuming you have a similar utility method for sending messages as in your base example
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Tile Rotation is now set to {settings.TileRotation} degrees");
+        }
+    }
+    private static void SetTileRotationTo0(Player player, ulong playerId)
+    {
+        SetTileRotation(player, playerId, 0);
+    }
+
+    // Set tile rotation to 90 degrees
+    private static void SetTileRotationTo90(Player player, ulong playerId)
+    {
+        SetTileRotation(player, playerId, 90);
+    }
+
+    // Set tile rotation to 180 degrees
+    private static void SetTileRotationTo180(Player player, ulong playerId)
+    {
+        SetTileRotation(player, playerId, 180);
+    }
+
+    // Set tile rotation to 270 degrees
+    private static void SetTileRotationTo270(Player player, ulong playerId)
+    {
+        SetTileRotation(player, playerId, 270);
+    }
+
+    // General method to set tile rotation
+    private static void SetTileRotation(Player player, ulong playerId, int rotation)
+    {
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            settings.TileRotation = rotation;
+            Databases.playerBuildSettings[playerId] = settings;
+            Databases.SaveBuildSettings();
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Tile Rotation is now set to {rotation} degrees");
         }
     }
 

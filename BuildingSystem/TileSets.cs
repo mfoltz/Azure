@@ -1,46 +1,29 @@
 ﻿using Bloodstone.API;
-using Gee.External.Capstone.X86;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
-using LibCpp2IL.BinaryStructures;
-using MS.Internal.Xml.XPath;
 using ProjectM;
-using ProjectM.CastleBuilding;
-using ProjectM.Gameplay.Systems;
-using ProjectM.Hybrid;
-using ProjectM.Network;
-using ProjectM.Shared.Mathematics;
-using ProjectM.Shared.Systems;
-using ProjectM.Terrain;
-using ProjectM.Tiles;
-using ProjectM.UI;
-using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 using Unity.Transforms;
-using UnityEngine;
-using VampireCommandFramework;
 using VBuild.Core;
-using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Data;
-using VRising.GameData.Utils;
-using static ProjectM.SLSEntityRemapping;
-using static VBuild.BuildingSystem.TileSets.HorseFunctions;
-using static VCF.Core.Basics.RoleCommands;
-using Activator = System.Activator;
+using static VBuild.BuildingSystem.TileSets;
+using static VBuild.Core.Services.UnitSpawnerService;
 using StringComparer = System.StringComparer;
 using User = ProjectM.Network.User;
 
 namespace VBuild.BuildingSystem
 {
-    internal class TileSets
+   
+   
+   
+    public class TileSets
     {
-        public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 10f }; // Example grid sizes to cycle through
-        // can activate this by monitoring for ability player gets to use with shift key to place a tile at mouse location
-        // use charm/siege interact T02 or something, monitor for abilitycast finishes that match the prefab and run this method
+        
+        
+        public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 10f }; // grid sizes to cycle through
+
 
         public static unsafe void InspectHoveredEntity(Entity userEntity)
         {
@@ -84,7 +67,6 @@ namespace VBuild.BuildingSystem
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
             }
         }
-
         public static unsafe void KillHoveredEntity(Entity userEntity)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -121,51 +103,51 @@ namespace VBuild.BuildingSystem
             
         }
 
+
+
+
+
         public static unsafe void CopyHoveredEntity(Entity userEntity)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
             Plugin.Logger.LogInfo("Cloning Triggered");
-            
-                    User user = Utilities.GetComponentData<User>(userEntity);
 
-                    // Obtain the hovered entity from the player's input
-                    Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
-                    // Check if the hovered entity is valid
-                    if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
-                    {
-                        Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
-                        //hopefully this counts as a modifiable prefab
-                        // time for cloning
-                        entityManager.Instantiate(prefabEntity);
-                        CopyComponentData<IComponentData>(hoveredEntity, prefabEntity, entityManager, true);
+            User user = Utilities.GetComponentData<User>(userEntity);
 
-                        
-                        string message = "Cloned hovered entity.";
-                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
-                    }
-                
-            
-        }
-
-        public static void CopyComponentData<T>(Entity source, Entity destination, EntityManager entityManager, bool isReadOnly = false) where T : IComponentData
-        {
-            ComponentDataFromEntity<IComponentData> componentDataFromEntity = VWorld.Server.EntityManager.GetComponentDataFromEntity<IComponentData>(isReadOnly);
-
-            if (componentDataFromEntity.HasComponent(source))
+            // Obtain the hovered entity from the player's input
+            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
+            // Check if the hovered entity is valid
+            if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
             {
-                T componentData = (T)componentDataFromEntity[source];
+                Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
+                //hopefully this counts as a modifiable prefab
+                // time for cloning
+                Entity clonedEntity = entityManager.Instantiate(prefabEntity);
 
-                if (entityManager.HasComponent<T>(destination))
+                // Get all component types attached to the hovered entity
+                List<ComponentType> componentTypes = hoveredEntity.GetComponentTypes().ToList();
+
+                // Iterate over each component type and copy its data to the cloned entity
+                foreach (ComponentType componentType in componentTypes)
                 {
-                    entityManager.SetComponentData(destination, componentData);
+                    // Use GetComponentData to retrieve component data from the hovered entity
+                    if (entityManager.HasComponent(hoveredEntity, componentType))
+                    {
+                        object componentData = entityManager.GetComponentDataAOT<ComponentType>(hoveredEntity);
+
+                        // Use SetComponentData to set the component data on the cloned entity
+                        entityManager.SetComponentData(clonedEntity, componentData);
+                    }
                 }
-                else
-                {
-                    entityManager.AddComponentData(destination, componentData);
-                }
+
+                string message = "Cloned hovered entity.";
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
             }
         }
+
+       
+        
 
         public static unsafe void SpawnTileModel(Entity userEntity)
         {
@@ -200,7 +182,7 @@ namespace VBuild.BuildingSystem
             }
 
             Entity tileEntity = InstantiateTilePrefab(prefabEntity, aimPosition, data, userEntity, user);
-
+            
             if (tileEntity == Entity.Null)
             {
                 Plugin.Logger.LogInfo("Tile entity is null in handle build settings, returning...");
@@ -540,101 +522,6 @@ namespace VBuild.BuildingSystem
             }
         }
 
-        public class HorseFunctions
-        {
-            internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
-
-            [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
-            public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
-            {
-                var position = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
-                var prefabGuid = spectral ? Prefabs.CHAR_Mount_Horse_Spectral : Prefabs.CHAR_Mount_Horse;
-
-                for (int i = 0; i < num; i++)
-                {
-                    UnitSpawnerService.UnitSpawner.SpawnWithCallback(ctx.Event.SenderUserEntity, prefabGuid, position.xz, -1f, horse =>
-                    {
-                        var mountable = horse.Read<Mountable>() with
-                        {
-                            MaxSpeed = speed,
-                            Acceleration = acceleration,
-                            RotationSpeed = rotation * 10f
-                        };
-                        horse.Write(mountable);
-                    });
-                }
-
-                var horseType = spectral ? "spectral" : "";
-                ctx.Reply($"Spawned {num} {horseType} horse{(num > 1 ? "s" : "")} (with speed: {speed}, accel: {acceleration}, and rotate: {rotation}) near you.");
-            }
-
-            [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
-            public static void DisableGhosts(ChatCommandContext ctx)
-            {
-                var entityManager = VWorld.Server.EntityManager;
-                NativeArray<Entity> entityArray = (entityManager).CreateEntityQuery(new EntityQueryDesc()
-                {
-                    All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
-                    {
-            ComponentType.ReadWrite<Immortal>(),
-            ComponentType.ReadWrite<Mountable>(),
-            ComponentType.ReadWrite<BuffBuffer>(),
-            ComponentType.ReadWrite<PrefabGUID>()
-                    }
-                }).ToEntityArray(Allocator.TempJob);
-
-                foreach (var entity in entityArray)
-                {
-                    DynamicBuffer<BuffBuffer> buffer;
-                    VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out buffer);
-                    for (int index = 0; index < buffer.Length; ++index)
-                    {
-                        if (buffer[index].PrefabGuid.GuidHash == Prefabs.Buff_General_VampireMount_Dead.GuidHash && Utilities.HasComponent<EntityOwner>(entity))
-                        {
-                            Entity owner = Utilities.GetComponentData<EntityOwner>(entity).Owner;
-                            if (Utilities.HasComponent<PlayerCharacter>(owner))
-                            {
-                                User componentData = Utilities.GetComponentData<User>(Utilities.GetComponentData<PlayerCharacter>(owner).UserEntity);
-                                ctx.Reply("Found dead horse owner, disabling...");
-                                ulong platformId = componentData.PlatformId;
-                                TileSets.HorseFunctions.PlayerHorseStasisMap[platformId] = new TileSets.HorseFunctions.HorseStasisState(entity, true);
-                                SystemPatchUtil.Disable(entity);
-                            }
-                        }
-                    }
-                }
-                entityArray.Dispose();
-                ctx.Reply("Placed dead player ghost horses in stasis. They can still be resummoned.");
-            }
-
-            [Command("enablehorse", "eh", description: "Reactivates the player's horse.", adminOnly: false)]
-            public static void ReactivateHorse(ChatCommandContext ctx)
-            {
-                ulong platformId = ctx.User.PlatformId;
-                if (TileSets.HorseFunctions.PlayerHorseStasisMap.TryGetValue(platformId, out HorseStasisState horseStasisState) && horseStasisState.IsInStasis)
-                {
-                    SystemPatchUtil.Enable(horseStasisState.HorseEntity);
-                    horseStasisState.IsInStasis = false;
-                    TileSets.HorseFunctions.PlayerHorseStasisMap[platformId] = horseStasisState;
-                    ctx.Reply("Your horse has been reactivated.");
-                }
-                else
-                {
-                    ctx.Reply("No horse in stasis found to reactivate.");
-                }
-            }
-
-            internal struct HorseStasisState
-            {
-                public Entity HorseEntity;
-                public bool IsInStasis;
-
-                public HorseStasisState(Entity horseEntity, bool isInStasis)
-                {
-                    this.HorseEntity = horseEntity;
-                    this.IsInStasis = isInStasis;
-                }
-            }
-        }
+        
     }
 }

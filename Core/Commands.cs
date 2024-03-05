@@ -27,6 +27,8 @@ using Unity.Collections;
 using StringSplitOptions = System.StringSplitOptions;
 using VRising.GameData.Models.Internals;
 using static VBuild.Core.Services.PlayerService;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Unity.Transforms;
 
 namespace VBuild.Core
 {
@@ -620,6 +622,102 @@ namespace VBuild.Core
                         AddItemToInventory(prefabGUID, 1, userModel);
                         //InventoryUtilities_Events.SendTryEquipItem(entityManager, prefabGUID, 0, true);
                     }
+                }
+            }
+        }
+        public class HorseFunctions
+        {
+            internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
+
+            [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
+            public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
+            {
+                var position = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
+                var prefabGuid = spectral ? Prefabs.CHAR_Mount_Horse_Spectral : Prefabs.CHAR_Mount_Horse;
+
+                for (int i = 0; i < num; i++)
+                {
+                    UnitSpawnerService.UnitSpawner.SpawnWithCallback(ctx.Event.SenderUserEntity, prefabGuid, position.xz, -1f, horse =>
+                    {
+                        var mountable = horse.Read<Mountable>() with
+                        {
+                            MaxSpeed = speed,
+                            Acceleration = acceleration,
+                            RotationSpeed = rotation * 10f
+                        };
+                        horse.Write(mountable);
+                    });
+                }
+
+                var horseType = spectral ? "spectral" : "";
+                ctx.Reply($"Spawned {num} {horseType} horse{(num > 1 ? "s" : "")} (with speed: {speed}, accel: {acceleration}, and rotate: {rotation}) near you.");
+            }
+
+            [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
+            public static void DisableGhosts(ChatCommandContext ctx)
+            {
+                var entityManager = VWorld.Server.EntityManager;
+                NativeArray<Entity> entityArray = (entityManager).CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
+                    {
+            ComponentType.ReadWrite<Immortal>(),
+            ComponentType.ReadWrite<Mountable>(),
+            ComponentType.ReadWrite<BuffBuffer>(),
+            ComponentType.ReadWrite<PrefabGUID>()
+                    }
+                }).ToEntityArray(Allocator.TempJob);
+
+                foreach (var entity in entityArray)
+                {
+                    DynamicBuffer<BuffBuffer> buffer;
+                    VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out buffer);
+                    for (int index = 0; index < buffer.Length; ++index)
+                    {
+                        if (buffer[index].PrefabGuid.GuidHash == Prefabs.Buff_General_VampireMount_Dead.GuidHash && Utilities.HasComponent<EntityOwner>(entity))
+                        {
+                            Entity owner = Utilities.GetComponentData<EntityOwner>(entity).Owner;
+                            if (Utilities.HasComponent<PlayerCharacter>(owner))
+                            {
+                                User componentData = Utilities.GetComponentData<User>(Utilities.GetComponentData<PlayerCharacter>(owner).UserEntity);
+                                ctx.Reply("Found dead horse owner, disabling...");
+                                ulong platformId = componentData.PlatformId;
+                                HorseFunctions.PlayerHorseStasisMap[platformId] = new HorseFunctions.HorseStasisState(entity, true);
+                                SystemPatchUtil.Disable(entity);
+                            }
+                        }
+                    }
+                }
+                entityArray.Dispose();
+                ctx.Reply("Placed dead player ghost horses in stasis. They can still be resummoned.");
+            }
+
+            [Command("enablehorse", "eh", description: "Reactivates the player's horse.", adminOnly: false)]
+            public static void ReactivateHorse(ChatCommandContext ctx)
+            {
+                ulong platformId = ctx.User.PlatformId;
+                if (HorseFunctions.PlayerHorseStasisMap.TryGetValue(platformId, out HorseStasisState horseStasisState) && horseStasisState.IsInStasis)
+                {
+                    SystemPatchUtil.Enable(horseStasisState.HorseEntity);
+                    horseStasisState.IsInStasis = false;
+                    HorseFunctions.PlayerHorseStasisMap[platformId] = horseStasisState;
+                    ctx.Reply("Your horse has been reactivated.");
+                }
+                else
+                {
+                    ctx.Reply("No horse in stasis found to reactivate.");
+                }
+            }
+
+            internal struct HorseStasisState
+            {
+                public Entity HorseEntity;
+                public bool IsInStasis;
+
+                public HorseStasisState(Entity horseEntity, bool isInStasis)
+                {
+                    this.HorseEntity = horseEntity;
+                    this.IsInStasis = isInStasis;
                 }
             }
         }
