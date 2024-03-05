@@ -18,7 +18,7 @@ using Random = System.Random;
 namespace VPlus.Hooks
 {
     [HarmonyPatch]
-    internal class VBloodSystem
+    internal class VBloodSystemPatch
     {
         private static int counter = 0;
 

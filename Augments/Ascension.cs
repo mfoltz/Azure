@@ -12,6 +12,9 @@ using Unity.Entities;
 using ProjectM.Network;
 using ProjectM;
 using Bloodstone.API;
+using VPlus.Hooks;
+using VBuild.Core.Toolbox;
+using Unity.Entities.UniversalDelegates;
 
 namespace V.Augments
 {
@@ -41,7 +44,7 @@ namespace V.Augments
             UpdateVPoints();
             LastConnectionTime = DateTime.UtcNow; // Reset for next session
             EntityManager entityManager = VWorld.Server.EntityManager;
-            ServerChatUtils.SendSystemMessageToClient(entityManager,user, $"Your {redV} Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(divineData.VTokens.ToString())}");
+            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Your {redV} Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(divineData.VTokens.ToString())}");
         }
 
         public void UpdateVPoints()
@@ -52,11 +55,9 @@ namespace V.Augments
             {
                 VTokens += minutesOnline * VPlus.Core.Plugin.PointsPerMinute;
                 LastAwardTime = DateTime.UtcNow;
-
             }
         }
     }
-
 
     internal class Ascension
     {
@@ -75,8 +76,8 @@ namespace V.Augments
                     ChatCommands.SavePlayerDivinity();
                 }
             }
-            
         }
+
         public static bool ApplyAscensionBonuses(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
         {
             // Initial stats before ascension bonuses are applied
@@ -98,7 +99,6 @@ namespace V.Augments
 
             // Set stat bonus values and add pre-existing bonuses for continuity
 
-           
             int extraHealth = preHealth + Plugin.AscensionHealthBonus;
             int extraPhysicalPower = prePhysicalPower + Plugin.AscensionPhysicalPowerBonus * Plugin.divineMultiplier;
             int extraSpellPower = preSpellPower + Plugin.AscensionSpellPowerBonus * Plugin.divineMultiplier;
@@ -124,14 +124,13 @@ namespace V.Augments
             Level3,
             Level4
         }
+
         private static List<int> ParsePrefabIdentifiers(string prefabIds)
         {
             // Removing the brackets at the start and end, then splitting by commas
             var ids = prefabIds.Trim('[', ']').Split(',');
             return ids.Select(int.Parse).ToList();
         }
-
-
 
         public static bool CheckRequirements(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
         {
@@ -144,15 +143,19 @@ namespace V.Augments
                 case AscensionLevel.Level1:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFirstAscension);
                     break;
+
                 case AscensionLevel.Level2:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsSecondAscension);
                     break;
+
                 case AscensionLevel.Level3:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsThirdAscension);
                     break;
+
                 case AscensionLevel.Level4:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFourthAscension);
                     break;
+
                 default:
                     throw new InvalidOperationException("Unknown Ascension Level");
             }
@@ -171,33 +174,48 @@ namespace V.Augments
 
             for (int i = 0; i < prefabGUIDs.Count; i++)
             {
+                
+                int prefabQuantity = i + 1; // cost multiplier per prefab based on position in the list
                 if (prefabGUIDs[i].GuidHash == 0)
                 {
                     continue;
                 }
-                int prefabQuantity = i + 1; // cost multiplier per prefab based on position in the list
 
                 if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
                 {
                     if (!InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, prefabGUIDs[i], prefabQuantity))
                     {
                         itemCheck = false;
+                        // give back
+                        // go through list in reverse
                         break; // Exit the loop if any required item is missing
                     }
                 }
             }
-            
+
             if (!itemCheck)
             {
                 ctx.Reply("You do not have the required items to ascend.");
+                // give back here
+                if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
+                {
+                    for (int i = 0; i < prefabGUIDs.Count; i++)
+                    {
+                        
+                        int prefabQuantity = i + 1; // cost multiplier per prefab based on position in the list
+                        if (prefabGUIDs[i].GuidHash == 0)
+                        {
+                            continue;
+                        }
+                        VBloodSystemPatch.AddItemToInventory(prefabGUIDs[i], prefabQuantity, userModel);
+                    }
+                }
+
                 return false;
             }
-            
+
             // Since we're ignoring the bloodline check for now, we assume it's always true
             return true;
         }
-
-
-
     }
 }
