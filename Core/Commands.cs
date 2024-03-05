@@ -89,35 +89,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "toggleBuildSkills", shortHand: "bs", adminOnly: true, usage: ".vb bs", description: "Toggles build skills on unarmed, change weapons to activate (tiles will be placed when activating ability at mouse hover).")]
-        public static void BuildModeCommand(ChatCommandContext ctx)
-        {
-            User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
-            {
-                settings.BuildMode = !settings.BuildMode;
-
-                string enabledColor = FontColors.Green("enabled");
-                string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Build mode: {(settings.BuildMode ? enabledColor : disabledColor)}");
-                Databases.SaveBuildSettings();
-            }
-        }
-
-        [Command(name: "toggleInspect", shortHand: "ti", adminOnly: true, usage: ".vb ti", description: "Toggles inspecting entities on mouse hover, components will be in the log.")]
-        public static void ToggleInspect(ChatCommandContext ctx)
-        {
-            User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
-            {
-                settings.InspectToggle = !settings.InspectToggle;
-
-                string enabledColor = FontColors.Green("enabled");
-                string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Inspect mode: {(settings.InspectToggle ? enabledColor : disabledColor)}");
-                Databases.SaveBuildSettings();
-            }
-        }
+       
         /*
         [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".vb dm", description: "Toggles dismantle mode (destroys any tile that takes damage from you, including immortal tiles).")]
         public static void DismantleModeCommand(ChatCommandContext ctx)
@@ -142,23 +114,28 @@ namespace VBuild.Core
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
             if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
             {
-                settings.CanEditTiles = !settings.CanEditTiles;
+                // Toggle the CanEditTiles value
+                bool currentCanEditTiles = settings.GetToggle("CanEditTiles");
+                settings.SetToggle("CanEditTiles", !currentCanEditTiles);
+
                 Databases.SaveBuildSettings();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Edit tiles outside of territories: {(settings.CanEditTiles ? enabledColor : disabledColor)}");
+                ctx.Reply($"Edit tiles outside of territories: {(currentCanEditTiles ? disabledColor : enabledColor)}");
             }
             else
             {
-                // create new settings for user
-                Stack<string> stack = new Stack<string>();
-                BuildSettings newSettings = new BuildSettings(false, false,false, 0, 0,false,0, "", stack , false, false);
-                newSettings.CanEditTiles = true;
+                // Create new settings for user
+                BuildSettings newSettings = new BuildSettings();
+                newSettings.SetToggle("CanEditTiles", true);
+
+                // Assuming you have a method to add or update settings in your Databases object
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
                 ctx.Reply($"Created new build settings and set tile permissions to true.");
             }
         }
+
 
         [Command(name: "tileRotation", shortHand: "tr", adminOnly: false, usage: ".vb tr [0/90/180/270]", description: "Sets rotation of tiles placed.")]
         public static void SetTileRotationCommand(ChatCommandContext ctx, int rotation)
@@ -370,24 +347,7 @@ namespace VBuild.Core
             }
         }
 
-        [Command(name: "mapicontoggle", shortHand: "mit", adminOnly: true, usage: ".vb mit", description: "Toggles adding selected map component to tiles you place.")]
-
-        public static void MapIconToggle(ChatCommandContext ctx)
-        {
-            User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
-            {
-                settings.MapIconToggle = !settings.MapIconToggle;
-                Databases.SaveBuildSettings();
-                string enabledColor = FontColors.Green("enabled");
-                string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Map icon toggle: {(settings.MapIconToggle ? enabledColor : disabledColor)}");
-            }
-            else
-            {
-                ctx.Reply("Your build data could not be found.");
-            }
-        }
+      
         
 
         [Command(name: "chooseMapIcon", shortHand: "cmi", adminOnly: true, usage: ".vb cmi <#>", description: "Choose map icon to add to tiles placed.")]
@@ -435,25 +395,7 @@ namespace VBuild.Core
 
         
 
-        [Command(name: "toggleImmortalTiles", shortHand: "immortal", adminOnly: true, usage: ".wb immortal", description: "Tiles placed will be immortal if toggled. Does not work for everything equally and not sure why yet.")]
-        public static void MakeTilesImmortal(ChatCommandContext ctx)
-        {
-            User setter = ctx.Event.User;
-            PlayerService.TryGetUserFromName(setter.CharacterName.ToString(), out Entity userEntity);
-            User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
-            {
-                settings.ImmortalTiles = !settings.ImmortalTiles;
-                Databases.SaveBuildSettings();
-                string enabledColor = FontColors.Green("enabled");
-                string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Tile immortality: {(settings.ImmortalTiles ? enabledColor : disabledColor)}");
-            }
-            else
-            {
-                ctx.Reply("Your build data could not be found.");
-            }
-        }
+       
 
         [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".vb dr", description: "Destroys resources in player territories. Only use this after disabling worldbuild.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)

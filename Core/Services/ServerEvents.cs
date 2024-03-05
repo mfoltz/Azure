@@ -52,7 +52,7 @@ namespace VBuild.Core.Services
                 }).ToEntityArray(Allocator.TempJob);
                 foreach (Entity entity in entityArray)
                 {
-                    if (Utilities.HasComponent<Disabled>(entity))
+                    if (VBuild.Core.Toolbox.Utilities.HasComponent<Disabled>(entity))
                         SystemPatchUtil.Enable(entity);
                 }
                 entityArray.Dispose();

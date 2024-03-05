@@ -3,8 +3,10 @@ using Gee.External.Capstone.X86;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
 using LibCpp2IL.BinaryStructures;
+using MS.Internal.Xml.XPath;
 using ProjectM;
 using ProjectM.CastleBuilding;
+using ProjectM.Gameplay.Systems;
 using ProjectM.Hybrid;
 using ProjectM.Network;
 using ProjectM.Shared.Mathematics;
@@ -28,6 +30,7 @@ using VRising.GameData.Utils;
 using static ProjectM.SLSEntityRemapping;
 using static VBuild.BuildingSystem.TileSets.HorseFunctions;
 using static VCF.Core.Basics.RoleCommands;
+using Activator = System.Activator;
 using StringComparer = System.StringComparer;
 using User = ProjectM.Network.User;
 
@@ -35,241 +38,298 @@ namespace VBuild.BuildingSystem
 {
     internal class TileSets
     {
+        public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 10f }; // Example grid sizes to cycle through
         // can activate this by monitoring for ability player gets to use with shift key to place a tile at mouse location
         // use charm/siege interact T02 or something, monitor for abilitycast finishes that match the prefab and run this method
 
-
-        public unsafe static void InspectHoveredEntity(Entity character)
+        public static unsafe void InspectHoveredEntity(Entity userEntity)
         {
-            Plugin.Logger.LogInfo("InspectHoveredEntity Triggered");
-            if (Utilities.HasComponent<PlayerCharacter>(character))
+
+            User user = Utilities.GetComponentData<User>(userEntity);
+
+            // Obtain the hovered entity from the player's input
+            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+
+            // Check if the hovered entity is valid
+            if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
             {
-                PlayerCharacter player = Utilities.GetComponentData<PlayerCharacter>(character);
-                string playerName = player.Name.ToString();
-                if (PlayerService.TryGetUserFromName(playerName, out Entity userEntity))
+                // Log the component types of the hovered entity
+                hoveredEntity.LogComponentTypes();
+                string entityString = hoveredEntity.Index.ToString() + ", " + hoveredEntity.Version.ToString();
+
+                ulong steamId = user.PlatformId;
+                if (Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings settings))
                 {
+                    // Create a unique string reference for the entity or prefab or whatever
+                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
+                    settings.TileModel = prefabGUID.GuidHash;
+                    
+                    // Add this reference to the LastTilesPlaced stack
+                    Databases.SaveBuildSettings();
+                    string copySuccess = $"Inspected hovered entity for components, check log: {entityString}, {prefabGUID.LookupName()}";
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, copySuccess);
+                }
+                else
+                {
+                    Plugin.Logger.LogInfo("Couldn't find player build settings for eye-dropper.");
+                }
+                // Send a confirmation message to the player
+                string message = "Inspected hovered entity. Check the log for details.";
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+            }
+            else
+            {
+                // Send an error message if no valid entity is hovered
+                string message = "No valid entity is being hovered. Please hover over an entity to inspect.";
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+            }
+        }
+
+        public static unsafe void KillHoveredEntity(Entity userEntity)
+        {
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            
+            User user = Utilities.GetComponentData<User>(userEntity);
+
+            // Obtain the hovered entity from the player's input
+            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
+            // Check if the hovered entity is valid
+            if (Utilities.HasComponent<VampireTag>(hoveredEntity))
+            {
+
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Using this on vampires is not allowed.");
+                return;
+            }
+            if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
+            {
+                if (!Utilities.HasComponent<Dead>(hoveredEntity))
+                {
+                    Utilities.AddComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Target destroyed.");
+                }
+                else
+                {
+                    Utilities.SetComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Target destroyed.");
+                }
+                    
+                    
+                
+            }
+                
+            
+        }
+
+        public static unsafe void CopyHoveredEntity(Entity userEntity)
+        {
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            Plugin.Logger.LogInfo("Cloning Triggered");
+            
                     User user = Utilities.GetComponentData<User>(userEntity);
 
                     // Obtain the hovered entity from the player's input
                     Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-
+                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
                     // Check if the hovered entity is valid
                     if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
                     {
-                        // Log the component types of the hovered entity
-                        hoveredEntity.LogComponentTypes();
-                        string entityString = hoveredEntity.Index.ToString() + ", " + hoveredEntity.Version.ToString();
-                        ulong steamId = user.PlatformId;
-                        if (Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings settings))
-                        {
-                            // Create a unique string reference for the entity or prefab or whatever
-                            PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
-                            settings.TileModel = prefabGUID.GuidHash;
-                            // Add this reference to the LastTilesPlaced stack
-                            Databases.SaveBuildSettings();
-                            string copySuccess = $"Copied hovered entity for pasting: {entityString}, {prefabGUID.LookupName()}";
-                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, copySuccess);
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo("Couldn't find player build settings for eye-dropper.");
-                        }
-                        // Send a confirmation message to the player
-                        string message = "Inspected hovered entity. Check the log for details.";
-                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
-                    }
-                    else
-                    {
-                        // Send an error message if no valid entity is hovered
-                        string message = "No valid entity is being hovered. Please hover over an entity to inspect.";
-                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
-                    }
-                }
-                else
-                {
-                    Plugin.Logger.LogInfo("User entity not found.");
-                }
-            }
-        }
+                        Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
+                        //hopefully this counts as a modifiable prefab
+                        // time for cloning
+                        entityManager.Instantiate(prefabEntity);
+                        CopyComponentData<IComponentData>(hoveredEntity, prefabEntity, entityManager, true);
 
-        public unsafe static void SpawnTileModel(Entity character)
-        {
-            Plugin.Logger.LogInfo("SpawnTileModel Triggered");
-            if (Utilities.HasComponent<PlayerCharacter>(character))
-            {
-                PlayerCharacter player = Utilities.GetComponentData<PlayerCharacter>(character);
-                string playerName = player.Name.ToString();
-                PlayerService.TryGetUserFromName(playerName, out Entity userEntity);
-                User user = Utilities.GetComponentData<User>(userEntity);
-                ulong SteamId = user.PlatformId;
-                Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
-                if (Databases.playerBuildSettings.TryGetValue(SteamId, out BuildSettings data) && !data.KillToggle)
-                {
-                    PrefabGUID prefabGUID = new(data.TileModel);
-                    Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
-
-                    string prefabName = prefabGUID.LookupName();
-
-                    // Check if 'char' is present in the prefab name
-                    if (prefabName.ToLower().Contains("char"))
-                    {
-                        // Use SpawnWithCallback when 'char' is detected in the prefab name
-                        // give lifetime component
-                        if (!Utilities.HasComponent<LifeTime>(prefabEntity))
-                        {
-                            Utilities.AddComponentData(prefabEntity, new LifeTime { Duration = 300f });
-                        }
-                        else
-                        {
-                            Utilities.SetComponentData(prefabEntity, new LifeTime { Duration = 300f });
-                        }
-                        if(!Utilities.HasComponent<Immortal>(prefabEntity))
-                        {
-                            Utilities.AddComponentData(prefabEntity, new Immortal { IsImmortal = true });
-                        }
-                        else
-                        {
-                            Utilities.SetComponentData(prefabEntity, new Immortal { IsImmortal = true });
-                        }
-                        Utilities.SetComponentData(prefabEntity, new Translation { Value = aimPosition.Value });
-
-                        int rotation = data.TileRotation;
-                        float radians = math.radians(rotation);
-                        quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
-                        Utilities.SetComponentData(prefabEntity, new Rotation { Value = rotationQuaternion });
-                        if (!Utilities.HasComponent<Health>(prefabEntity))
-                        {
-                            Utilities.SetComponentData(prefabEntity, new Health { Value = 1000 });
-                        }
-                        else
-                        {
-                            Utilities.AddComponentData(prefabEntity, new Health { Value = 1000 });
-                        }
-                    }
-                    else
-                    {
-                        // Fallback to using EntityManager.Instantiate if 'char' is not in the name
                         
-
-                        Entity tileEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
-                        Utilities.SetComponentData(tileEntity, new Translation { Value = aimPosition.Value });
-
-                        int rotation = data.TileRotation;
-                        float radians = math.radians(rotation);
-                        quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
-                        Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
-
-                        //instantiate entity to steal its collider component, sure why not
-                        //prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[WorldBuild.Data.Prefabs.TM_Fortressoflight_Brazier01];
-                        //Entity colliderEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
-                        //PhysicsCollider physicsCollider = Utilities.GetComponentData<PhysicsCollider>(colliderEntity);
-                        //Health health = Utilities.GetComponentData<Health>(colliderEntity);
-                        //Utilities.SetComponentData(tileEntity, physicsCollider);
-                        //Utilities.SetComponentData(tileEntity, health);
-                        //SystemPatchUtil.Destroy(colliderEntity);
-                        //that mostly worked but the chest became unlootable unless destroyed with nukeall, moving on for now since that sounds like quite the rabbit hole
-                        if (data.ImmortalTiles)
-                        {
-                            Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
-                            // this doesnt work for the altars and a few other things, not sure hwy yet
-                        }
-                        if (data.MapIconToggle)
-                        {
-                            PrefabGUID prefab = new(data.MapIcon);
-                            if (data.MapIcon == 0)
-                            {
-                                string noIcon = "No map icon selected.";
-                                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, noIcon);
-                                return;
-                            }
-                            if (!Utilities.HasComponent<AttachMapIconsToEntity>(tileEntity))
-                            {
-                                VWorld.Server.EntityManager.AddBuffer<AttachMapIconsToEntity>(tileEntity);
-
-                                VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
-
-                                // if you really need to just borrow one from the weird waygate
-
-                            }
-                            else
-                            {
-                                VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefab });
-
-                            }
-                        }
-
-                        if (data.SnappingToggle)
-                        {
-
-                            float3 position = tileEntity.Read<Translation>().Value;
-                            float gridSize = 5f; // Define your desired grid size
-                            position = new float3(
-                                math.round(position.x / gridSize) * gridSize,
-                                position.y,
-                                math.round(position.z / gridSize) * gridSize);
-                            Utilities.SetComponentData(tileEntity, new Translation { Value = position });
-
-
-
-                        }
-
-
-                        string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
-                        string entityString = tileEntity.Index.ToString() + ", " + tileEntity.Version.ToString();
-                        //data.LastTilesPlaced = entityString;
-                        data.AddTilePlaced(entityString);
-                        Plugin.Logger.LogInfo($"Tile placed: {entityString}");
-                        //tileEntity.LogComponentTypes();
-
+                        string message = "Cloned hovered entity.";
                         ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
                     }
-
-
-
-                    
-                }
-                else if (data.KillToggle)
-                {
-                    User killer = Utilities.GetComponentData<User>(userEntity);
-
-                    // Obtain the hovered entity from the player's input
-                    Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-                    
-                    if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
-                    {
-                        if (!Utilities.HasComponent<Dead>(hoveredEntity))
-                        {
-                            Utilities.AddComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
-                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer, "Target destroyed");
-                        }
-                        else
-                        {
-                            Utilities.SetComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
-                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer, "Target destroyed");
-                        }
-                        
-                    }
-                    else
-                    {
-                        // Send an error message if no valid entity is hovered
-                        string message = "No valid entity is being hovered. Please hover over an entity to kill.";
-                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
-                    }
-
-                }
-                else
-                {
-                    string message = "Couldn't find your build preferences, try again after setting them.";
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
-                }
-              
-              
-            }
-        }
-        public static void MoveClosestToMouseToggle(Entity character)
-        {
-            DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                
             
+        }
+
+        public static void CopyComponentData<T>(Entity source, Entity destination, EntityManager entityManager, bool isReadOnly = false) where T : IComponentData
+        {
+            ComponentDataFromEntity<IComponentData> componentDataFromEntity = VWorld.Server.EntityManager.GetComponentDataFromEntity<IComponentData>(isReadOnly);
+
+            if (componentDataFromEntity.HasComponent(source))
+            {
+                T componentData = (T)componentDataFromEntity[source];
+
+                if (entityManager.HasComponent<T>(destination))
+                {
+                    entityManager.SetComponentData(destination, componentData);
+                }
+                else
+                {
+                    entityManager.AddComponentData(destination, componentData);
+                }
+            }
+        }
+
+        public static unsafe void SpawnTileModel(Entity userEntity)
+        {
+            Plugin.Logger.LogInfo("SpawnPrefabModel Triggered");
+
+            if (!Utilities.HasComponent<User>(userEntity))
+            {
+                return;
+            }
+
+            
+
+            var user = Utilities.GetComponentData<User>(userEntity);
+            var steamId = user.PlatformId;
+            var aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
+
+            if (!Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings data))
+            {
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Unable to locate build settings.");
+                return;
+            }
+
+            HandleBuildSettings(data, aimPosition, userEntity, user);
+        }
+
+        private static void HandleBuildSettings(BuildSettings data, Nullable_Unboxed<float3> aimPosition, Entity userEntity, User user)
+        {
+            var prefabEntity = GetPrefabEntity(data);
+            if (prefabEntity == Entity.Null)
+            {
+                return;
+            }
+
+            Entity tileEntity = InstantiateTilePrefab(prefabEntity, aimPosition, data, userEntity, user);
+
+            if (tileEntity == Entity.Null)
+            {
+                Plugin.Logger.LogInfo("Tile entity is null in handle build settings, returning...");
+                return;
+            }
+            string entityString = $"{tileEntity.Index}, {tileEntity.Version}";
+
+            data.LastTilesPlaced.Push(entityString);
+            ApplyTileSettings(tileEntity, aimPosition, data, userEntity, user);
+        }
+
+        private static Entity GetPrefabEntity(BuildSettings data)
+        {
+            PrefabGUID prefabGUID = new(data.TileModel);
+            return VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap.TryGetValue(prefabGUID, out Entity entity) ? entity : Entity.Null;
+        }
+
+        private static readonly Dictionary<string, System.Func<Entity, Entity>> specialWordHandlers = new Dictionary<string, System.Func<Entity, Entity>>()
+            {
+                {"char", (entity) => HandleCharPrefab(entity)},
+                // Other special words and their handlers can be added here
+            };
+
+        private static Entity InstantiateTilePrefab(Entity prefabEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data, Entity userEntity, User user)
+        {
+            PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(prefabEntity);
+            string prefabName = prefabGUID.LookupName().ToLower();
+
+            foreach (var handler in specialWordHandlers)
+            {
+                if (prefabName.Contains(handler.Key))
+                {
+                    Plugin.Logger.LogInfo("Character spawn attempted...");
+                    //return handler.Value(prefabEntity);
+                }
+            }
+
+            // Default behavior if no special words are found
+            return DefaultInstantiateBehavior(prefabEntity, aimPosition, data);
+        }
+
+        // Example handler method
+        private static Entity HandleCharPrefab(Entity prefabEntity)
+        {
+            // Specific handling for character prefabs
+            return prefabEntity;
+        }
+
+        private static void ApplyTileSettings(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data, Entity userEntity, User user)
+        {
+            // Apply settings like ImmortalTiles, MapIconToggle, etc.
+            ApplyImmortalTilesSetting(tileEntity, data);
+            ApplyMapIconSetting(tileEntity, data, user);
+            ApplySnappingSetting(tileEntity, aimPosition, data);
+
+            FinalizeTileSpawn(tileEntity, aimPosition, data, user);
+        }
+
+        private static Entity DefaultInstantiateBehavior(Entity prefabEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data)
+        {
+            Entity tileEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
+            Utilities.SetComponentData(tileEntity, new Translation { Value = aimPosition.Value });
+
+            SetTileRotation(tileEntity, data.TileRotation);
+            return tileEntity;
+        }
+
+        private static void SetTileRotation(Entity tileEntity, int rotationDegrees)
+        {
+            float radians = math.radians(rotationDegrees);
+            quaternion rotationQuaternion = quaternion.EulerXYZ(new float3(0, radians, 0));
+            Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
+        }
+
+        private static void ApplyImmortalTilesSetting(Entity tileEntity, BuildSettings data)
+        {
+            if (data.GetToggle("ImmortalTiles"))
+            {
+                Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
+            }
+        }
+
+        private static void ApplyMapIconSetting(Entity tileEntity, BuildSettings data, User user)
+        {
+            if (data.GetToggle("MapIconToggle"))
+            {
+                if (data.MapIcon == 0)
+                {
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "No map icon selected.");
+                    return;
+                }
+
+                var prefabGUID = new PrefabGUID(data.MapIcon);
+                if (!VWorld.Server.EntityManager.HasComponent<AttachMapIconsToEntity>(tileEntity))
+                {
+                    VWorld.Server.EntityManager.AddBuffer<AttachMapIconsToEntity>(tileEntity);
+                }
+
+                VWorld.Server.EntityManager.GetBuffer<AttachMapIconsToEntity>(tileEntity).Add(new AttachMapIconsToEntity { Prefab = prefabGUID });
+            }
+        }
+
+        private static void ApplySnappingSetting(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data)
+        {
+            if (data.GetToggle("SnappingToggle"))
+            {
+                float3 mousePosition = aimPosition.Value;
+                // Assuming TileSnap is an int representing the grid size index
+                // If TileSnap now refers directly to the size, adjust accordingly
+                float gridSize = TileSets.gridSizes[data.TileSnap]; // Adjust this line if the way you access grid sizes has changed
+                mousePosition = new float3(
+                    math.round(mousePosition.x / gridSize) * gridSize,
+                    mousePosition.y,
+                    math.round(mousePosition.z / gridSize) * gridSize);
+                Utilities.SetComponentData(tileEntity, new Translation { Value = mousePosition });
+            }
+        }
+
+        private static void FinalizeTileSpawn(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data, User user)
+        {
+            string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+            LogTilePlacement(tileEntity);
+        }
+
+        private static void LogTilePlacement(Entity tileEntity)
+        {
+            string entityString = $"{tileEntity.Index}, {tileEntity.Version}";
+            Plugin.Logger.LogInfo($"Tile placed: {entityString}");
         }
 
         /*
@@ -285,10 +345,9 @@ namespace VBuild.BuildingSystem
                     EntityInput entityInput = Utilities.GetComponentData<EntityInput>(character);
                     if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
                     {
-
                         //Entity hoveredEntity = entityInput.HoveredEntity;
                         // apparently hovered entity is only for hovered non-tiles or something
-                        
+
                         Nullable_Unboxed<float3> aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().ProjectileAimPosition);
                         Nullable_Unboxed<float3> aimDirection = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimDirection);
                         Ray aimRay = new Ray(aimPosition.Value, aimDirection.Value);
@@ -312,17 +371,11 @@ namespace VBuild.BuildingSystem
                             {
                                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "The hovered entity was not placed via VBuild and cannot be destroyed this way. For now...");
                             }
-                            
                         }
                         else
                         {
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "No tile found at the aim position.");
                         }
-
-                        
-
-
-
                     }
                     else
                     {
@@ -332,6 +385,7 @@ namespace VBuild.BuildingSystem
             }
         }
         */
+
         public class TileConstructor(string name, int tilePrefabHash)
         {
             public string Name { get; set; } = name;
@@ -347,12 +401,12 @@ namespace VBuild.BuildingSystem
                 StaticTiles = new Dictionary<int, TileConstructor>
                 {
                     { 10, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
-                    { 9, new TileConstructor("TM_Brazier_Elris01", VBuild.Data.Prefabs.TM_Brazier_Elris01.GuidHash) },
-                    { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", VBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
-                    { 7, new TileConstructor("TM_CastleRuins_Pillar_Broken01", VBuild.Data.Prefabs.TM_CastleRuins_Pillar_Broken01.GuidHash) },
-                    { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", VBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
-                    { 5, new TileConstructor("TM_SpecialStation_StablePen", VBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
-                    { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
+                    { 9, new TileConstructor("TM_Castle_Floor_Royal01", VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01_DLCVariant01.GuidHash) },
+                    { 8, new TileConstructor("TM_GloomRot_LightningRod_Refinement_01", VBuild.Data.Prefabs.TM_GloomRot_LightningRod_Refinement_01.GuidHash) },
+                    { 7, new TileConstructor("TM_Castle_Fortification_Stone_Wall01", VBuild.Data.Prefabs.TM_Castle_Fortification_Stone_Wall01.GuidHash) },
+                    { 6, new TileConstructor("TM_Castle_Fortification_Pillar_Base", VBuild.Data.Prefabs.TM_Castle_Fortification_Pillar_Base.GuidHash) },
+                    { 5, new TileConstructor("TM_Castle_Fortification_Stone_Entrance01", VBuild.Data.Prefabs.TM_Castle_Fortification_Stone_Entrance01.GuidHash) },
+                    { 4, new TileConstructor("Test_TM_Castle_Floor_Entryway_Stairs_Long_Repaired", VBuild.Data.Prefabs.Test_TM_Castle_Floor_Entryway_Stairs_Long_Repaired.GuidHash) },
                     { 3, new TileConstructor("TM_CraftingStation_Altar_Unholy", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Unholy.GuidHash) },
                     { 2, new TileConstructor("TM_CraftingStation_Altar_Spectral", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Spectral.GuidHash) },
                     { 1, new TileConstructor("TM_Workstation_Waypoint_World_UnlockedFromStart", VBuild.Data.Prefabs.TM_Workstation_Waypoint_World_UnlockedFromStart.GuidHash) }
@@ -389,14 +443,13 @@ namespace VBuild.BuildingSystem
             {
                 RegisterTiles("Building", new Dictionary<int, TileConstructor>
                 {
-                    
                     { 10, new TileConstructor("TM_Fortressoflight_Brazier01", VBuild.Data.Prefabs.TM_Fortressoflight_Brazier01.GuidHash) },
-                    { 9, new TileConstructor("TM_Brazier_Elris01", VBuild.Data.Prefabs.TM_Brazier_Elris01.GuidHash) },
-                    { 8, new TileConstructor("TM_CraftingStation_MetalworkStation", VBuild.Data.Prefabs.TM_CraftingStation_MetalworkStation.GuidHash) },
-                    { 7, new TileConstructor("TM_CastleRuins_Pillar_Broken01", VBuild.Data.Prefabs.TM_CastleRuins_Pillar_Broken01.GuidHash) },
-                    { 6, new TileConstructor("TM_CraftingStation_ArtisansCorner", VBuild.Data.Prefabs.TM_CraftingStation_ArtisansCorner.GuidHash) },
-                    { 5, new TileConstructor("TM_SpecialStation_StablePen", VBuild.Data.Prefabs.TM_SpecialStation_StablePen.GuidHash) },
-                    { 4, new TileConstructor("TM_CraftingStation_Altar_Frost", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Frost.GuidHash) },
+                    { 9, new TileConstructor("TM_Castle_Floor_Royal01", VBuild.Data.Prefabs.TM_Castle_Floor_Foundation_Stone01_DLCVariant01.GuidHash) },
+                    { 8, new TileConstructor("TM_GloomRot_LightningRod_Refinement_01", VBuild.Data.Prefabs.TM_GloomRot_LightningRod_Refinement_01.GuidHash) },
+                    { 7, new TileConstructor("TM_Castle_Fortification_Stone_Wall01", VBuild.Data.Prefabs.TM_Castle_Fortification_Stone_Wall01.GuidHash) },
+                    { 6, new TileConstructor("TM_Castle_Fortification_Pillar_Base", VBuild.Data.Prefabs.TM_Castle_Fortification_Pillar_Base.GuidHash) },
+                    { 5, new TileConstructor("TM_Castle_Fortification_Stone_Entrance01", VBuild.Data.Prefabs.TM_Castle_Fortification_Stone_Entrance01.GuidHash) },
+                    { 4, new TileConstructor("Test_TM_Castle_Floor_Entryway_Stairs_Long_Repaired", VBuild.Data.Prefabs.Test_TM_Castle_Floor_Entryway_Stairs_Long_Repaired.GuidHash) },
                     { 3, new TileConstructor("TM_CraftingStation_Altar_Unholy", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Unholy.GuidHash) },
                     { 2, new TileConstructor("TM_CraftingStation_Altar_Spectral", VBuild.Data.Prefabs.TM_CraftingStation_Altar_Spectral.GuidHash) },
                     { 1, new TileConstructor("TM_Workstation_Waypoint_World_UnlockedFromStart", VBuild.Data.Prefabs.TM_Workstation_Waypoint_World_UnlockedFromStart.GuidHash) }
@@ -422,7 +475,6 @@ namespace VBuild.BuildingSystem
 
         public class ResourceFunctions
         {
-            
             public static unsafe void SearchAndDestroy()
             {
                 Plugin.Logger.LogInfo("Entering SearchAndDestroy...");
@@ -442,10 +494,9 @@ namespace VBuild.BuildingSystem
                 {
                     if (ShouldRemoveNodeBasedOnTerritory(node))
                     {
-
                         counter += 1;
                         SystemPatchUtil.Destroy(node);
-                        
+
                         //node.LogComponentTypes();
                     }
                 }
@@ -462,10 +513,9 @@ namespace VBuild.BuildingSystem
                 var cleanUpEntities = cleanUp.ToEntityArray(Allocator.Temp);
                 foreach (var node in cleanUpEntities)
                 {
-                    
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(node);
                     string name = prefabGUID.LookupName();
-                    if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber"))
+                    if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber") || name.Contains("bush") || name.Contains("tree)"))
                     {
                         if (ShouldRemoveNodeBasedOnTerritory(node))
                         {
@@ -475,7 +525,6 @@ namespace VBuild.BuildingSystem
                     }
                 }
                 cleanUpEntities.Dispose();
-
 
                 Plugin.Logger.LogInfo($"{counter} resource nodes destroyed.");
             }
@@ -489,13 +538,10 @@ namespace VBuild.BuildingSystem
                 }
                 return false;
             }
-
-            
         }
 
         public class HorseFunctions
         {
-            
             internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
 
             [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
@@ -589,52 +635,6 @@ namespace VBuild.BuildingSystem
                     this.IsInStasis = isInStasis;
                 }
             }
-            /*
-            [Command("critterquery", "cq", description: "Queries for critters.", adminOnly: true)]
-            public static void CritterQuery(ChatCommandContext ctx)
-            {
-                var position = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
-                var entityManager = VWorld.Server.EntityManager;
-                Entity userEntity = ctx.Event.SenderUserEntity;
-
-                // cat group
-                NativeArray<Entity> entityArray = entityManager.CreateEntityQuery(new EntityQueryDesc()
-                {
-                    All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
-                    {
-            ComponentType.ReadOnly<PrefabGUID>(),
-            ComponentType.ReadOnly<UnitSpawnHandler>(),
-            ComponentType.ReadOnly<Age>(),
-            ComponentType.ReadOnly<LifeTime>()
-                    },
-                    Options = EntityQueryOptions.IncludeDisabled
-                }).ToEntityArray(Allocator.TempJob);
-                
-                foreach (var entity in entityArray)
-                {
-                    UnitSpawnHandler unitSpawnHandler = Utilities.GetComponentData<UnitSpawnHandler>(entity);
-                    Age age = Utilities.GetComponentData<Age>(entity);
-                    LifeTime lifeTime = Utilities.GetComponentData<LifeTime>(entity);
-                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(entity);
-                    if (prefabGUID.LookupName().ToLower().Contains("critter"))
-                    {
-                        Plugin.Logger.LogInfo($"Critter found: {prefabGUID.LookupName()}");
-                        UnitSpawnerService.UnitSpawner.SpawnWithCallback(userEntity, prefabGUID, position.xz, 1f, e =>
-                        {
-                            Utilities.SetComponentData(e, unitSpawnHandler);
-                            Utilities.SetComponentData(e, age);
-                            Utilities.SetComponentData(e, lifeTime);
-
-                            Plugin.Logger.LogInfo($"Critter spawned: {prefabGUID.LookupName()}");
-                        });
-                    }
-                }
-                entityArray.Dispose();
-                
-                */
-
         }
-            
-        
     }
 }

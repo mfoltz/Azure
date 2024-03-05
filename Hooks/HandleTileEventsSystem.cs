@@ -30,6 +30,7 @@ using ProjectM.Gameplay.Scripting;
 using ProjectM.Tiles;
 using ProjectM.Gameplay;
 using ProjectM.Shared.Systems;
+using VBuild.Core.Services;
 
 //WIP
 
@@ -165,20 +166,70 @@ namespace WorldBuild.Hooks
                     {
                         if (prefabGUID.Equals(VBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
                         {
-                            // run spawn tile method here unless inspector mode is enabled
-                            Plugin.Logger.LogInfo("Charm T02 cast detected, spawning or inspecting at mouse...");
-                            if (settings.InspectToggle)
-                            {
-                                Plugin.Logger.LogInfo("Inspect mode enabled, skipping tile spawn...");
-                                TileSets.InspectHoveredEntity(character);
-                                continue;
-                            }
-                            TileSets.SpawnTileModel(character);
+                            Plugin.Logger.LogInfo("Charm ability cast detected...");
+                            HandleAbilityCast(userEntity);
                         }
                     }
                 }
             }
             castJobs.Dispose();
+        }
+        public static void HandleAbilityCast(Entity userEntity)
+        {
+            var user = Utilities.GetComponentData<User>(userEntity);
+
+            if (!Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            {
+                return; // or handle the case of missing settings
+            }
+
+            // Assuming a method that decides the action based on the ability and settings
+            var action = DecideAction(settings);
+
+            // Execute the decided action
+            action?.Invoke(userEntity, settings);
+        }
+
+        private static System.Action<Entity, BuildSettings> DecideAction(BuildSettings settings)
+        {
+            // Example: Checking for a specific prefabGUID and toggle
+            Plugin.Logger.LogInfo("Deciding action based on settings...");
+            
+            if (settings.GetToggle("InspectToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    //Plugin.Logger.LogInfo("Inspect mode enabled, skipping tile spawn...");
+                    TileSets.InspectHoveredEntity(userEntity);
+                };
+            }
+            else if (settings.GetToggle("KillToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    TileSets.KillHoveredEntity(userEntity);
+                };
+            }
+                
+            else if (settings.GetToggle("CopyToggle"))
+            {
+                return (userEntity, _) =>
+                {
+
+                    TileSets.CopyHoveredEntity(userEntity);
+                };
+            }
+            else
+            {
+                return (userEntity, _) =>
+                {
+                    Plugin.Logger.LogInfo("No specific action decided, proceeding with default...");
+                    TileSets.SpawnTileModel(userEntity);
+                };
+            }
+            
+
+            
         }
 
         private static bool IsCastleHeart(Entity job)
@@ -267,7 +318,7 @@ public static class TileOperationUtility
     {
         if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
         {
-            return data.CanEditTiles;
+            return data.GetToggle("CanEditTiles");
         }
         return false;
     }

@@ -71,10 +71,28 @@ public static class ECSExtensions
         {
             ComponentType current = enumerator.Current;
             Debug.Log($"{current}");
+
         }
 
         Debug.Log("===");
+   
     }
+    public static List<ComponentType> GetComponentTypes(this Entity entity)
+    {
+        List<ComponentType> componentTypes = new List<ComponentType>();
+        NativeArray<ComponentType> types = VWorld.Server.EntityManager.GetComponentTypes(entity);
+
+        foreach (var current in types)
+        {
+            Debug.Log($"{current}");
+            componentTypes.Add(current);
+        }
+
+        Debug.Log("===");
+        types.Dispose(); // Don't forget to dispose of the NativeArray when you're done with it
+        return componentTypes;
+    }
+
 
     public static void LogComponentTypes(this EntityQuery entityQuery)
     {
