@@ -190,7 +190,7 @@ namespace VBuild.BuildingSystem
             }
             string entityString = $"{tileEntity.Index}, {tileEntity.Version}";
 
-            data.LastTilesPlaced.Push(entityString);
+            data.AddTilePlaced(entityString);
             ApplyTileSettings(tileEntity, aimPosition, data, userEntity, user);
         }
 
