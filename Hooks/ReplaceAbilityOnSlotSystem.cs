@@ -43,16 +43,18 @@ namespace WorldBuild.Hooks
                             // Assuming you want to modify abilities when in build mode without checking the initial ability
                             PrefabGUID spell1 = VBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup; // Assigning build ability
                             PrefabGUID spell2 = VBuild.Data.Prefabs.AB_Debug_NukeAll_Group; // Assigning nuke ability
+                            /*
                             if (Utilities.HasComponent<AbilityBar_Shared>(entity))
                             {
                                 AbilityBar_Shared abilityBar_Shared = Utilities.GetComponentData<AbilityBar_Shared>(entity);
                                 if (abilityBar_Shared.CastGroupPrefabGuid.Equals(spell1))
                                 {
                                     ModifiableFloat modifiableFloat = new ModifiableFloat{ Value=10f };
-                                    abilityBar_Shared.SpellCooldownModifier = modifiableFloat;
+                                    abilityBar_Shared. = modifiableFloat;
                                     Utilities.SetComponentData(userEntity, abilityBar_Shared);
                                 }
                             }
+                            */
                             // Replacing or adding abilities directly without checking buffer length
                             ReplaceAbilityOnSlotBuff buildAbility = new ReplaceAbilityOnSlotBuff { Slot = 1, NewGroupId = spell1, };
                             ReplaceAbilityOnSlotBuff nukeAbility = new ReplaceAbilityOnSlotBuff { Slot = 4, NewGroupId = spell2 };
