@@ -7,7 +7,7 @@ using VBuild.Core.Toolbox;
 
 namespace VBuild.Core.Commands
 {
-
+    [CommandGroup(name: "VBuild", shortHand: "vb")]
     internal class GiveItemCommands
     {
         [Command(name: "give", shortHand: "g", adminOnly: true, usage: ".vb g <ItemName> <Quantity>", description: "Gives the specified item.")]
