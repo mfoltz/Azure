@@ -709,9 +709,50 @@ namespace VPlus.Core.Commands
                 ctx.Reply($"Player {playerName} not found or no divinity data to wipe.");
             }
         }
+        [Command(name: "control", shortHand: "ctrl", adminOnly: true, usage: ".v ctrl", description: "Possesses VBloods or other entities, use with care.")]
+        public static void ControlCommand(ChatCommandContext ctx)
+        {
+            Entity senderUserEntity = ctx.Event.SenderUserEntity;
+            Entity Character = ctx.Event.SenderCharacterEntity;
+            FromCharacter fromCharacter = new FromCharacter()
+            {
+                User = senderUserEntity,
+                Character = Character
+            };
+            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            if (Character.Read<EntityInput>().HoveredEntity.Index > 0)
+            {
+                Entity hoveredEntity = senderUserEntity.Read<EntityInput>().HoveredEntity;
+                if (!hoveredEntity.Has<PlayerCharacter>())
+                {
+                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                    {
+                        EntityTarget = hoveredEntity,
+                        Target = senderUserEntity.Read<EntityInput>().HoveredEntityNetworkId
+                    };
+                    existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
+                    ctx.Reply("Controlling hovered unit");
+                    return;
+                }
+            }
+            if (PlayerService.TryGetCharacterFromName(senderUserEntity.Read<User>().CharacterName.ToString(), out Character))
+            {
+                ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                {
+                    EntityTarget = Character,
+                    Target = Character.Read<NetworkId>()
+                };
+                existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
+                ctx.Reply("Controlling self");
+            }
+            else
+            {
+                ctx.Reply("An error ocurred while trying to control your original body");
+            }
+        }
 
-       
-        
+
+
 
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
