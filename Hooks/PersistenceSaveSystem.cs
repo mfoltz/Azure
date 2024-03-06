@@ -31,6 +31,7 @@ namespace VPlus.Hooks
             if (counter < 10) return;
             Plugin.Logger.LogInfo("Updating tokens");
             var playerDivinities = Databases.playerDivinity;
+            if (playerDivinities == null) return;
             foreach (var entry in playerDivinities)
             {
                 ulong steamId = entry.Key;

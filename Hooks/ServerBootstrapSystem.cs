@@ -24,6 +24,10 @@ using VBuild.Core.Toolbox;
 using static ProjectM.CustomWorldSpawning;
 using ProjectM.UI;
 using VRising.GameData.Utils;
+using Il2CppSystem.ComponentModel;
+using Il2CppSystem;
+using WeakReference = Il2CppSystem.WeakReference;
+using IntPtr = Il2CppSystem.IntPtr;
 
 namespace VPlus.Hooks
 {
@@ -37,21 +41,13 @@ namespace VPlus.Hooks
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
         [HarmonyPrefix]
 
-        private static void OnUserConnectedPrefix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
+        private unsafe static void OnUserConnectedPrefix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
-            //PrefabGUID prefabGUID =  __instance.GameBootstrap.AbilityGroupSlotPrefab.GetPrefabGUID();
-            //Entity entity = __instance._PrefabCollectionSystem.AbilityGroupSlotPrefab;
-            //PrefabCollectionSystem prefabCollectionSystem = __instance._PrefabCollectionSystem;
-            //prefabCollectionSystem.ConvertOnDemandContext.AddPrefabToConvert(prefabGUID);
-            //EntityManager entityManager = __instance.EntityManager;
-            //Entity abilityEntity = entityManager.Instantiate(entity);
-            //AbilityGroupSlot abilityGroupSlot = Utilities.GetComponentData<AbilityGroupSlot>(abilityEntity);
-            //Entity abilityBar = abilityGroupSlot.AbilityBar._Entity;
-            //abilityBar.LogComponentTypes();
+            
+         
             int userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
             ServerBootstrapSystem.ServerClient serverClient = __instance._ApprovedUsersLookup[userIndex];
             Entity userEntity = serverClient.UserEntity;
-            //Utilities.SetComponentData(abilityEntity, new Attach { Parent = userEntity });
             User user = __instance.EntityManager.GetComponentData<User>(userEntity);
             Entity playerEntity = user.LocalCharacter.GetEntityOnServer();
             ulong steamId = user.PlatformId;

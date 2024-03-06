@@ -14,7 +14,6 @@ using DateTime = System.DateTime;
 using static ProjectM.Tiles.TileConstants;
 using VPlus.Core.Toolbox;
 using Il2CppSystem.Security.Cryptography;
-using ECSExtensions = VPlus.Core.Toolbox.ECSExtensions;
 using Databases = VPlus.Data.Databases;
 using VBuild.Core.Converters;
 
