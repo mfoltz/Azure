@@ -140,11 +140,11 @@ namespace VBuild.BuildingSystem
                 };
                 DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected.");
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected as charmed.");
             }
             else
             {
-                Plugin.Logger.LogInfo("Couldn't find player build settings for spawn.");
+                Plugin.Logger.LogInfo("Couldn't find settings for spawn.");
             }
 
             /*
