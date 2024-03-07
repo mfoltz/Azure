@@ -1,13 +1,18 @@
 ﻿using Bloodstone.API;
 using Il2CppSystem;
 using ProjectM;
+using ProjectM.Behaviours;
+using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using VBuild.Core;
+using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Data;
+using static RootMotion.FinalIK.InteractionObject;
 using static VBuild.BuildingSystem.TileSets;
 using static VBuild.Core.Services.UnitSpawnerService;
 using StringComparer = System.StringComparer;
@@ -15,19 +20,12 @@ using User = ProjectM.Network.User;
 
 namespace VBuild.BuildingSystem
 {
-   
-   
-   
     public class TileSets
     {
-        
-        
         public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 10f }; // grid sizes to cycle through
-
 
         public static unsafe void InspectHoveredEntity(Entity userEntity)
         {
-
             User user = Utilities.GetComponentData<User>(userEntity);
 
             // Obtain the hovered entity from the player's input
@@ -39,14 +37,28 @@ namespace VBuild.BuildingSystem
                 // Log the component types of the hovered entity
                 hoveredEntity.LogComponentTypes();
                 string entityString = hoveredEntity.Index.ToString() + ", " + hoveredEntity.Version.ToString();
+                if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(hoveredEntity, out DynamicBuffer<BuffBuffer> buffer))
+                {
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        //SystemPatchUtil.Destroy(buffer[i].Entity);
+                        string otherMessage = buffer[i].PrefabGuid.LookupName();
+                        string colorMessage = VBuild.Core.Toolbox.FontColors.Cyan(otherMessage);
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"{colorMessage}");
+                    }
+                    
 
+                }
+                // so I want it to follow me and be on my team, could also remove the charm debuff when being possessed and add back when done
+                // need to figure out how to make everything able to attack by default to and if the combat buffs are universal or apply to them specifically
+                
                 ulong steamId = user.PlatformId;
                 if (Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings settings))
                 {
                     // Create a unique string reference for the entity or prefab or whatever
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
                     settings.TileModel = prefabGUID.GuidHash;
-                    
+
                     // Add this reference to the LastTilesPlaced stack
                     Databases.SaveBuildSettings();
                     string copySuccess = $"Inspected hovered entity for components, check log: {entityString}, {prefabGUID.LookupName()}";
@@ -67,10 +79,11 @@ namespace VBuild.BuildingSystem
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
             }
         }
+
         public static unsafe void KillHoveredEntity(Entity userEntity)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
-            
+
             User user = Utilities.GetComponentData<User>(userEntity);
 
             // Obtain the hovered entity from the player's input
@@ -79,7 +92,6 @@ namespace VBuild.BuildingSystem
             // Check if the hovered entity is valid
             if (Utilities.HasComponent<VampireTag>(hoveredEntity))
             {
-
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Using this on vampires is not allowed.");
                 return;
             }
@@ -95,59 +107,70 @@ namespace VBuild.BuildingSystem
                     Utilities.SetComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Target destroyed.");
                 }
-                    
-                    
-                
             }
-                
-            
         }
 
-
-
-
-
-        public static unsafe void CopyHoveredEntity(Entity userEntity)
+        public static unsafe void SpawnCopy(Entity userEntity)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
             Plugin.Logger.LogInfo("Cloning Triggered");
 
             User user = Utilities.GetComponentData<User>(userEntity);
-
+            int index = user.Index;
+            PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
+            FromCharacter fromCharacter = new() { Character = character, User = userEntity };
             // Obtain the hovered entity from the player's input
-            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-            PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
+            //Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+
+            //PrefabCollectionSystem prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
+
+            //PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
             // Check if the hovered entity is valid
-            if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
+
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
             {
-                Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
-                //hopefully this counts as a modifiable prefab
-                // time for cloning
-                Entity clonedEntity = entityManager.Instantiate(prefabEntity);
+                EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+                EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
 
-                // Get all component types attached to the hovered entity
-                List<ComponentType> componentTypes = hoveredEntity.GetComponentTypes().ToList();
-
-                // Iterate over each component type and copy its data to the cloned entity
-                foreach (ComponentType componentType in componentTypes)
+                PrefabGUID prefab = new(settings.TileModel);
+                var debugEvent = new SpawnCharmeableDebugEvent
                 {
-                    // Use GetComponentData to retrieve component data from the hovered entity
-                    if (entityManager.HasComponent(hoveredEntity, componentType))
-                    {
-                        object componentData = entityManager.GetComponentDataAOT<ComponentType>(hoveredEntity);
-
-                        // Use SetComponentData to set the component data on the cloned entity
-                        entityManager.SetComponentData(clonedEntity, componentData);
-                    }
-                }
-
-                string message = "Cloned hovered entity.";
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
+                    PrefabGuid = prefab,
+                    Position = userEntity.Read<EntityInput>().AimPosition
+                };
+                DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected.");
             }
-        }
+            else
+            {
+                Plugin.Logger.LogInfo("Couldn't find player build settings for spawn.");
+            }
 
-       
-        
+            /*
+            Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
+            //hopefully this counts as a modifiable prefab
+            // time for cloning
+            Entity clonedEntity = entityManager.Instantiate(prefabEntity);
+
+            // Get all component types attached to the hovered entity
+            List<ComponentType> componentTypes = hoveredEntity.GetComponentTypes().ToList();
+
+            // Iterate over each component type and copy its data to the cloned entity
+            foreach (ComponentType componentType in componentTypes)
+            {
+                // Use GetComponentData to retrieve component data from the hovered entity
+                if (entityManager.HasComponent(hoveredEntity, componentType))
+                {
+                    object componentData = entityManager.GetComponentDataAOT<ComponentType>(hoveredEntity);
+
+                    // Use SetComponentData to set the component data on the cloned entity
+                    entityManager.SetComponentData(clonedEntity, componentData);
+                }
+            }
+
+            */
+        }
 
         public static unsafe void SpawnTileModel(Entity userEntity)
         {
@@ -157,8 +180,6 @@ namespace VBuild.BuildingSystem
             {
                 return;
             }
-
-            
 
             var user = Utilities.GetComponentData<User>(userEntity);
             var steamId = user.PlatformId;
@@ -182,7 +203,7 @@ namespace VBuild.BuildingSystem
             }
 
             Entity tileEntity = InstantiateTilePrefab(prefabEntity, aimPosition, data, userEntity, user);
-            
+
             if (tileEntity == Entity.Null)
             {
                 Plugin.Logger.LogInfo("Tile entity is null in handle build settings, returning...");
@@ -521,7 +542,5 @@ namespace VBuild.BuildingSystem
                 return false;
             }
         }
-
-        
     }
 }

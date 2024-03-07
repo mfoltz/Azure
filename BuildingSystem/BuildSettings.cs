@@ -16,6 +16,7 @@ namespace VBuild.BuildingSystem
         public string TileSet { get; set; }
         public Stack<string> LastTilesPlaced { get; set; } = new Stack<string>();
         public int MapIcon { get; set; }
+        public string OriginalBody { get; set; }
 
         // Constructor
         public BuildSettings()
@@ -29,6 +30,8 @@ namespace VBuild.BuildingSystem
             SetToggle("MapIconToggle", false);
             SetToggle("KillToggle", false);
             SetToggle("CopyToggle", false);
+            SetToggle("ControlToggle", false);
+            
         }
 
         // Method to set a toggle value

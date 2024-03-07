@@ -90,8 +90,33 @@ namespace VBuild.Core
                 }
             }
         }
+        public class BuildingCostsToggle
+        {
+            public static bool buildingCostsFlag = false;
 
-       
+            public static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
+            {
+                SettingType = (DebugSettingType)5, // Assuming this is the correct DebugSettingType for building costs
+                Value = false
+            };
+
+            [Command(name: "toggleBuildingCosts", shortHand: "tbc", adminOnly: true, usage: ".tbc", description: "Toggles building costs for no-cost building.")]
+            public static void ToggleBuildingCostsCommand(ChatCommandContext ctx)
+            {
+                User user = ctx.Event.User;
+
+                DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                buildingCostsFlag = !buildingCostsFlag; // Toggle the flag
+
+                BuildingCostsDebugSetting.Value = buildingCostsFlag;
+                existingSystem.SetDebugSetting(user.Index, ref BuildingCostsDebugSetting);
+
+                string toggleColor = buildingCostsFlag ? FontColors.Green("enabled") : FontColors.Red("disabled");
+                ctx.Reply($"Building costs {toggleColor}");
+                ctx.Reply($"BuildingCostsDisabled: {BuildingCostsDebugSetting.Value}");
+            }
+        }
+
         /*
         [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".vb dm", description: "Toggles dismantle mode (destroys any tile that takes damage from you, including immortal tiles).")]
         public static void DismantleModeCommand(ChatCommandContext ctx)
@@ -128,7 +153,7 @@ namespace VBuild.Core
             else
             {
                 // Create new settings for user
-                BuildSettings newSettings = new BuildSettings();
+                BuildSettings newSettings = new();
                 newSettings.SetToggle("CanEditTiles", true);
 
                 // Assuming you have a method to add or update settings in your Databases object

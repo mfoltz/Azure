@@ -8,7 +8,10 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
+using VampireCommandFramework;
 using VBuild.BuildingSystem;
+using VBuild.Core.Converters;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Data;
@@ -27,20 +30,24 @@ internal class EmoteSystemPatch
     private static readonly string enabledColor = VBuild.Core.Toolbox.FontColors.Green("enabled");
     private static readonly string disabledColor = VBuild.Core.Toolbox.FontColors.Red("disabled");
 
+    
+
+   
+
     private static readonly Dictionary<int, Action<Player, ulong>> emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
             { -658066984, ToggleSnapping }, // Beckon
-            { -1462274656, SetTileRotationTo0 }, // Bow
+            { -1462274656, ToggleBuildMode }, // Bow
             { -26826346, ToggleMapIconPlacement }, // Clap
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
-            { -370061286, ToggleImmortalTiles }, // Salute
+            { -370061286, ToggleCopyMode }, // Salute
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, CycleGridSize }, // Sit
             { -1064533554, SetTileRotationTo90 }, // Surrender
             { -158502505, SetTileRotationTo180 }, // Taunt
             { 1177797340, SetTileRotationTo270 }, // Wave
-            { -1525577000, ToggleBuildMode } // Yes
+            { -1525577000, ToggleControlMode } // Yes
         };
 
     static EmoteSystemPatch()
@@ -48,17 +55,17 @@ internal class EmoteSystemPatch
         emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
             { -658066984, ToggleSnapping }, // Beckon
-            { -1462274656, SetTileRotationTo0 }, // Bow
+            { -1462274656, ToggleBuildMode }, // Bow
             { -26826346, ToggleMapIconPlacement }, // Clap
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
-            { -370061286, ToggleImmortalTiles }, // Salute
+            { -370061286, ToggleCopyMode }, // Salute so for multiple wheels it'd be something like use copy mode, replace with toggles for mode with option to exit mode
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, CycleGridSize }, // Sit
             { -1064533554, SetTileRotationTo90 }, // Surrender
             { -158502505, SetTileRotationTo180 }, // Taunt
             { 1177797340, SetTileRotationTo270 }, // Wave
-            { -1525577000, ToggleBuildMode } // Yes
+            { -1525577000, ToggleControlMode } // Yes
     };
     }
 
@@ -67,7 +74,7 @@ internal class EmoteSystemPatch
     public static void OnUpdate_Emote(ProjectM.EmoteSystem __instance)
     {
         var _entities = __instance.__UseEmoteJob_entityQuery.ToEntityArray(Allocator.Temp);
-
+        
         foreach (var _entity in _entities)
         {
             var _event = _entity.Read<UseEmoteEvent>();
@@ -90,30 +97,28 @@ internal class EmoteSystemPatch
     {
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
+            ResetAllToggles(playerId, "CopyToggle");
             // Toggle the CopyModeToggle value
-            bool currentValue = settings.GetToggle("CopyToggle");
-            settings.SetToggle("CopyToggle", !currentValue);
+            //bool currentValue = settings.GetToggle("CopyToggle");
+            //settings.SetToggle("CopyToggle", !currentValue);
             // Update the player's build settings in the database
-            Databases.playerBuildSettings[playerId] = settings;
-            Databases.SaveBuildSettings();
-            string stateMessage = !currentValue ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Copy Mode is now {stateMessage}");
+        
+            string stateMessage = settings.GetToggle("CopyToggle") ? enabledColor : disabledColor;
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"CopyMode: |{stateMessage}|");
         }
     }
 
     private static void ToggleKillMode(Player player, ulong playerId)
     {
+        ResetAllToggles(playerId, "KillToggle");
+
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
-            // Toggle the CopyModeToggle value
+            // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
             bool currentValue = settings.GetToggle("KillToggle");
-            settings.SetToggle("KillToggle", !currentValue);
-
-            // Update the player's build settings in the database
-            Databases.playerBuildSettings[playerId] = settings;
+            string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
             Databases.SaveBuildSettings();
-            string stateMessage = !currentValue ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Kill Mode is now {stateMessage}");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"KillMode: |{stateMessage}|");
         }
     }
 
@@ -126,20 +131,21 @@ internal class EmoteSystemPatch
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Build Mode is now {stateMessage}");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"InteractSkills: |{stateMessage}|");
         }
     }
 
     private static void ToggleInspectMode(Player player, ulong playerId)
     {
+        ResetAllToggles(playerId, "InspectToggle");
+
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
+            // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
             bool currentValue = settings.GetToggle("InspectToggle");
-            settings.SetToggle("InspectToggle", !currentValue);
-            Databases.playerBuildSettings[playerId] = settings;
+            string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
             Databases.SaveBuildSettings();
-            string stateMessage = !currentValue ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Inspect Mode is now {stateMessage}");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"InspectMode: |{stateMessage}|");
         }
     }
 
@@ -152,7 +158,7 @@ internal class EmoteSystemPatch
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Immortal Tiles are now {stateMessage}");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ImmortalTiles: |{stateMessage}|");
         }
     }
 
@@ -164,8 +170,9 @@ internal class EmoteSystemPatch
             settings.TileSnap = (settings.TileSnap + 1) % TileSets.gridSizes.Length;
             Databases.playerBuildSettings[playerId] = settings;
             float currentGridSize = TileSets.gridSizes[settings.TileSnap];
+            string colorFloat = VBuild.Core.Toolbox.FontColors.Cyan(currentGridSize.ToString());
             Databases.SaveBuildSettings();
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Grid size is now set to {currentGridSize} units.");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"GridSize: {colorFloat}u");
         }
     }
 
@@ -178,7 +185,7 @@ internal class EmoteSystemPatch
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Map Icon Placement is now {stateMessage}");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"MapIcons: |{stateMessage}|");
         }
     }
 
@@ -191,10 +198,9 @@ internal class EmoteSystemPatch
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Grid snapping is now {stateMessage}.");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"GridSnap: |{stateMessage}|");
         }
     }
-
 
     private static void ToggleTileRotation(Player player, ulong playerId)
     {
@@ -225,28 +231,26 @@ internal class EmoteSystemPatch
 
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
+            string colorString = VBuild.Core.Toolbox.FontColors.Cyan(settings.TileRotation.ToString());
             // Assuming you have a similar utility method for sending messages as in your base example
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Tile Rotation is now set to {settings.TileRotation} degrees");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"TileRotatiom: {colorString}°");
         }
     }
+
     private static void SetTileRotationTo0(Player player, ulong playerId)
     {
         SetTileRotation(player, playerId, 0);
     }
 
-    // Set tile rotation to 90 degrees
     private static void SetTileRotationTo90(Player player, ulong playerId)
     {
         SetTileRotation(player, playerId, 90);
     }
 
-    // Set tile rotation to 180 degrees
     private static void SetTileRotationTo180(Player player, ulong playerId)
     {
         SetTileRotation(player, playerId, 180);
     }
-
-    // Set tile rotation to 270 degrees
     private static void SetTileRotationTo270(Player player, ulong playerId)
     {
         SetTileRotation(player, playerId, 270);
@@ -260,8 +264,126 @@ internal class EmoteSystemPatch
             settings.TileRotation = rotation;
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"Tile Rotation is now set to {rotation} degrees");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"TileRotation: {rotation}°");
         }
+    }
+
+    public static void ControlCommand(Entity senderUserEntity)
+    {
+        PlayerService.TryGetCharacterFromName(senderUserEntity.Read<User>().CharacterName.ToString(), out Entity Character);
+        FromCharacter fromCharacter = new FromCharacter()
+        {
+            User = senderUserEntity,
+            Character = Character
+        };
+        DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+        if (Databases.playerBuildSettings.TryGetValue(senderUserEntity.Read<User>().PlatformId, out var settings))
+        {
+            if (Character.Read<EntityInput>().HoveredEntity.Index > 0)
+            {
+                Entity hoveredEntity = senderUserEntity.Read<EntityInput>().HoveredEntity;
+                if (!hoveredEntity.Has<PlayerCharacter>())
+                {
+                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                    {
+                        EntityTarget = hoveredEntity,
+                        Target = senderUserEntity.Read<EntityInput>().HoveredEntityNetworkId
+                    };
+                    existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
+                    PrefabGUID prefabGUID = hoveredEntity.Read<PrefabGUID>();
+                    string colorString = VBuild.Core.Toolbox.FontColors.Cyan(prefabGUID.LookupName());
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), $"Controlling: {colorString})");
+                    settings.OriginalBody = Character.Index + ", " + Character.Version;
+                    Databases.SaveBuildSettings();
+                    return;
+                }
+            }
+        }
+        else
+        {
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), "Couldn't find create settings.");
+        }
+            
+    
+        
+        
+        
+        
+        
+        
+    }
+
+    private static void ResetAllToggles(ulong playerId, string exceptToggle)
+    {
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            // Default all toggles to false
+            settings.SetToggle("ControlToggle", false);
+            settings.SetToggle("KillToggle", false);
+            settings.SetToggle("BuildMode", false);
+            settings.SetToggle("InspectToggle", false);
+            settings.SetToggle("SnappingToggle", false);
+            settings.SetToggle("ImmortalTiles", false);
+            settings.SetToggle("MapIconToggle", false);
+            settings.SetToggle("CopyToggle", false);
+        
+            
+
+
+            // Enable the exceptToggle, if specified
+            if (!string.IsNullOrEmpty(exceptToggle))
+            {
+                settings.SetToggle(exceptToggle, true);
+            }
+
+            // Update the player's build settings in the database
+            Databases.playerBuildSettings[playerId] = settings;
+            Databases.SaveBuildSettings();
+        }
+    }
+
+    // Example of modifying the ToggleControlMode to use the new method
+    private static void ToggleControlMode(Player player, ulong playerId)
+    {
+
+        // First, reset all toggles except the one being toggled
+        ResetAllToggles(playerId, "ControlToggle");
+
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            if (settings.OriginalBody.Length > 0)
+            {
+                string[] parts = settings.OriginalBody.Split(", ");
+                if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
+                {
+                    Entity originalBody = new Entity { Index = index, Version = version };
+                    if (VWorld.Server.EntityManager.Exists(originalBody))
+                    {
+                        ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                        {
+                            EntityTarget = originalBody,
+                            Target = originalBody.Read<NetworkId>()
+                        };
+                        DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                        existingSystem.ControlUnit(new FromCharacter() { User = player.User, Character = player.Character }, controlDebugEvent);
+                        settings.OriginalBody = "";
+                        Databases.SaveBuildSettings();
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "Returned to original body.");
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                bool currentValue = settings.GetToggle("ControlToggle");
+                string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
+                Databases.SaveBuildSettings();
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ControlMode: |{stateMessage}|");
+            }
+            // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
+            
+        }
+
     }
 
     private static void UndoLastTilePlacement(Player player, ulong playerId)
@@ -304,4 +426,6 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "You have not placed any tiles yet.");
         }
     }
+
+    
 }

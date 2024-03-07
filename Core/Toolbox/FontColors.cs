@@ -12,6 +12,11 @@
             return Color("#E90000", text);
         }
 
+        public static string Cyan(string text)
+        {
+            return Color("##00FFFF", text);
+        }
+
         public static string Blue(string text)
         {
             return Color("#0000ff", text);

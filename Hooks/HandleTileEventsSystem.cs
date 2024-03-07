@@ -210,8 +210,23 @@ namespace WorldBuild.Hooks
                     TileSets.KillHoveredEntity(userEntity);
                 };
             }
-                
-            
+            else if (settings.GetToggle("ControlToggle"))
+            {
+                return (userEntity, _) =>
+                {
+
+                    VBuild.Hooks.EmoteSystemPatch.ControlCommand(userEntity);
+                };
+            }
+            else if (settings.GetToggle("CopyToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    TileSets.SpawnCopy(userEntity);
+                };
+            }
+
+
             else
             {
                 return (userEntity, _) =>
