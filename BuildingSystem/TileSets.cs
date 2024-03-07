@@ -61,7 +61,7 @@ namespace VBuild.BuildingSystem
 
                     // Add this reference to the LastTilesPlaced stack
                     Databases.SaveBuildSettings();
-                    string copySuccess = $"Inspected hovered entity for components, check log: {entityString}, {prefabGUID.LookupName()}";
+                    string copySuccess = $"Inspected hovered entity for components, check log: '{entityString}', {prefabGUID.LookupName()}";
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, copySuccess);
                 }
                 else
