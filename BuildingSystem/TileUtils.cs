@@ -70,6 +70,7 @@ internal static class TileUtils
                     results.Add(tile);
                 }
             }
+            tiles.Dispose();
 
             return results;
         }

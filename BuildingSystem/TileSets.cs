@@ -3,19 +3,26 @@ using Il2CppSystem;
 using ProjectM;
 using ProjectM.Behaviours;
 using ProjectM.Network;
+using ProjectM.Tiles;
+using System.Reflection;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using VBuild.Core;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Data;
+using static ProjectM.Behaviours.CastOptionCandidateSorters;
 using static RootMotion.FinalIK.InteractionObject;
+using static UnityEngine.UI.Image;
 using static VBuild.BuildingSystem.TileSets;
 using static VBuild.Core.Services.UnitSpawnerService;
+using Buff = VBuild.Data.Buff;
 using StringComparer = System.StringComparer;
+using StringComparison = System.StringComparison;
 using User = ProjectM.Network.User;
 
 namespace VBuild.BuildingSystem
@@ -43,15 +50,13 @@ namespace VBuild.BuildingSystem
                     {
                         //SystemPatchUtil.Destroy(buffer[i].Entity);
                         string otherMessage = buffer[i].PrefabGuid.LookupName();
-                        string colorMessage = VBuild.Core.Toolbox.FontColors.Cyan(otherMessage);
-                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"{colorMessage}");
+                        //string colorMessage = VBuild.Core.Toolbox.FontColors.Cyan(otherMessage);
+                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, otherMessage);
                     }
-                    
-
                 }
                 // so I want it to follow me and be on my team, could also remove the charm debuff when being possessed and add back when done
                 // need to figure out how to make everything able to attack by default to and if the combat buffs are universal or apply to them specifically
-                
+
                 ulong steamId = user.PlatformId;
                 if (Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings settings))
                 {
@@ -68,9 +73,6 @@ namespace VBuild.BuildingSystem
                 {
                     Plugin.Logger.LogInfo("Couldn't find player build settings for eye-dropper.");
                 }
-                // Send a confirmation message to the player
-                string message = "Inspected hovered entity. Check the log for details.";
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
             }
             else
             {
@@ -119,13 +121,7 @@ namespace VBuild.BuildingSystem
             int index = user.Index;
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
-            // Obtain the hovered entity from the player's input
-            //Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-
-            //PrefabCollectionSystem prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
-
-            //PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
-            // Check if the hovered entity is valid
+            
 
             if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
             {
@@ -141,35 +137,14 @@ namespace VBuild.BuildingSystem
                 DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected as charmed.");
+                
             }
             else
             {
                 Plugin.Logger.LogInfo("Couldn't find settings for spawn.");
             }
 
-            /*
-            Entity prefabEntity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID];
-            //hopefully this counts as a modifiable prefab
-            // time for cloning
-            Entity clonedEntity = entityManager.Instantiate(prefabEntity);
-
-            // Get all component types attached to the hovered entity
-            List<ComponentType> componentTypes = hoveredEntity.GetComponentTypes().ToList();
-
-            // Iterate over each component type and copy its data to the cloned entity
-            foreach (ComponentType componentType in componentTypes)
-            {
-                // Use GetComponentData to retrieve component data from the hovered entity
-                if (entityManager.HasComponent(hoveredEntity, componentType))
-                {
-                    object componentData = entityManager.GetComponentDataAOT<ComponentType>(hoveredEntity);
-
-                    // Use SetComponentData to set the component data on the cloned entity
-                    entityManager.SetComponentData(clonedEntity, componentData);
-                }
-            }
-
-            */
+            
         }
 
         public static unsafe void SpawnTileModel(Entity userEntity)
@@ -389,6 +364,41 @@ namespace VBuild.BuildingSystem
         }
         */
 
+        public static void DebuffTileModel(Entity userEntity)
+        {
+            //var Position = userEntity.Read<EntityInput>().AimPosition;
+            Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
+            if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out DynamicBuffer<BuffBuffer> buffer))
+            {
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    SystemPatchUtil.Destroy(buffer[i].Entity);
+                }
+            }
+        }
+
+        public static PrefabGUID FindInCombatBuff(string characterPrefabName)
+        {
+            // Strip the specified literals from the character prefab name
+            string strippedName = characterPrefabName.Replace("CHAR", "").Replace("VBlood", "");
+
+            // Use reflection to get all static fields of the Buff class that might match the modified prefab name
+            var fields = typeof(Buff).GetFields(BindingFlags.Public | BindingFlags.Static)
+                                      .Where(field => field.FieldType == typeof(PrefabGUID));
+
+            foreach (var field in fields)
+            {
+                if (field.Name.Replace("VBlood", "").IndexOf(strippedName, StringComparison.OrdinalIgnoreCase) >= 0
+                    && field.Name.IndexOf("InCombat", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    // Returns the first matching PrefabGUID if an InCombat buff is found.
+                    return (PrefabGUID)field.GetValue(null);
+                }
+            }
+
+            return new PrefabGUID { GuidHash = 0 }; // If no matching InCombat buff is found.
+        }
+
         public class TileConstructor(string name, int tilePrefabHash)
         {
             public string Name { get; set; } = name;
@@ -518,7 +528,7 @@ namespace VBuild.BuildingSystem
                 {
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(node);
                     string name = prefabGUID.LookupName();
-                    if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber") || name.Contains("bush") || name.Contains("tree)"))
+                    if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber") || name.Contains("bush") || name.Contains("grass)"))
                     {
                         if (ShouldRemoveNodeBasedOnTerritory(node))
                         {

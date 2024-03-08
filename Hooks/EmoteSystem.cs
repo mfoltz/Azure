@@ -11,6 +11,7 @@ using Unity.Transforms;
 using UnityEngine;
 using VampireCommandFramework;
 using VBuild.BuildingSystem;
+using VBuild.Core;
 using VBuild.Core.Converters;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
@@ -44,9 +45,9 @@ internal class EmoteSystemPatch
             { -370061286, ToggleCopyMode }, // Salute
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, CycleGridSize }, // Sit
-            { -1064533554, SetTileRotationTo90 }, // Surrender
-            { -158502505, SetTileRotationTo180 }, // Taunt
-            { 1177797340, SetTileRotationTo270 }, // Wave
+            { -1064533554, ToggleTileRotation}, // Surrender
+            { -158502505, ToggleDebuffMode }, // Taunt
+            { 1177797340, ResetToggles }, // Wave
             { -1525577000, ToggleControlMode } // Yes
         };
 
@@ -62,9 +63,9 @@ internal class EmoteSystemPatch
             { -370061286, ToggleCopyMode }, // Salute so for multiple wheels it'd be something like use copy mode, replace with toggles for mode with option to exit mode
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, CycleGridSize }, // Sit
-            { -1064533554, SetTileRotationTo90 }, // Surrender
-            { -158502505, SetTileRotationTo180 }, // Taunt
-            { 1177797340, SetTileRotationTo270 }, // Wave
+            { -1064533554, ToggleTileRotation }, // Surrender
+            { -158502505, ToggleDebuffMode }, // Taunt
+            { 1177797340, ResetToggles }, // Wave
             { -1525577000, ToggleControlMode } // Yes
     };
     }
@@ -149,6 +150,33 @@ internal class EmoteSystemPatch
         }
     }
 
+    private static void ToggleDebuffMode(Player player, ulong playerId)
+    {
+        ResetAllToggles(playerId, "DebuffToggle");
+
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
+            bool currentValue = settings.GetToggle("DebuffToggle");
+            string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
+            Databases.SaveBuildSettings();
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"DebuffMode: |{stateMessage}|");
+        }
+    }
+    private static void ToggleConvert(Player player, ulong playerId)
+    {
+        ResetAllToggles(playerId, "DebuffToggle");
+
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
+            bool currentValue = settings.GetToggle("DebuffToggle");
+            string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
+            Databases.SaveBuildSettings();
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"DebuffMode: |{stateMessage}|");
+        }
+    }
+
     private static void ToggleImmortalTiles(Player player, ulong playerId)
     {
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
@@ -201,6 +229,7 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"GridSnap: |{stateMessage}|");
         }
     }
+
 
     private static void ToggleTileRotation(Player player, ulong playerId)
     {
@@ -312,6 +341,32 @@ internal class EmoteSystemPatch
         
         
     }
+    private static void ResetToggles(Player player, ulong playerId)
+    {
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            // Default all toggles to false
+            settings.SetToggle("ControlToggle", false);
+            settings.SetToggle("KillToggle", false);
+            settings.SetToggle("BuildMode", false);
+            settings.SetToggle("InspectToggle", false);
+            settings.SetToggle("SnappingToggle", false);
+            settings.SetToggle("ImmortalTiles", false);
+            settings.SetToggle("MapIconToggle", false);
+            settings.SetToggle("CopyToggle", false);
+            settings.SetToggle("DebuffToggle", false);
+
+
+
+            // Enable the exceptToggle, if specified
+
+
+            // Update the player's build settings in the database
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "All toggles reset.");
+            Databases.playerBuildSettings[playerId] = settings;
+            Databases.SaveBuildSettings();
+        }
+    }
 
     private static void ResetAllToggles(ulong playerId, string exceptToggle)
     {
@@ -326,8 +381,8 @@ internal class EmoteSystemPatch
             settings.SetToggle("ImmortalTiles", false);
             settings.SetToggle("MapIconToggle", false);
             settings.SetToggle("CopyToggle", false);
-        
-            
+            settings.SetToggle("DebuffToggle", false);
+
 
 
             // Enable the exceptToggle, if specified
@@ -369,6 +424,7 @@ internal class EmoteSystemPatch
                         settings.OriginalBody = "";
                         Databases.SaveBuildSettings();
                         ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "Returned to original body.");
+                        
                         return;
                     }
                 }
@@ -408,7 +464,34 @@ internal class EmoteSystemPatch
                     }
                     else
                     {
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "The tile could not be found or has already been modified.");
+                        try
+                        {
+                            Entity tile = new Entity { Index = index, Version = version+1 };
+                            if (entityManager.Exists(tileEntity))
+                            {
+                                SystemPatchUtil.Destroy(tileEntity);
+                                ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Successfully destroyed last tile placed.");
+                                Databases.SaveBuildSettings();
+                            }
+                        }
+                        catch 
+                        {
+                            try
+                            {
+                                Entity tile = new Entity { Index = index, Version = version + 2 };
+                                if (entityManager.Exists(tileEntity))
+                                {
+                                    SystemPatchUtil.Destroy(tileEntity);
+                                    ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Successfully destroyed last tile placed.");
+                                    Databases.SaveBuildSettings();
+                                }
+                            }
+                            catch (Exception d)
+                            {
+                                Plugin.Logger.LogInfo(d);
+                            }
+                        }
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "The tile could not be found or has already been modified more than twice.");
                     }
                 }
                 else

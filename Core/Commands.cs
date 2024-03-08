@@ -51,6 +51,11 @@ namespace VBuild.Core
                 SettingType = (DebugSettingType)16,
                 Value = false
             };
+            public static SetDebugSettingEvent CastleHeartConnectionRequirementDisabled = new SetDebugSettingEvent()
+            {
+                SettingType = (DebugSettingType)27,
+                Value = false
+            };
 
             [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".twb", description: "Toggles worldbuild debug settings for no-cost building anywhere.")]
             public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
@@ -71,9 +76,12 @@ namespace VBuild.Core
                     BuildingPlacementRestrictionsDisabledSetting.Value = wbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
 
+                    CastleHeartConnectionRequirementDisabled.Value = wbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionRequirementDisabled);
+
                     string enabledColor = FontColors.Green("enabled");
                     ctx.Reply($"freebuild: {enabledColor}");
-                    ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value}");
+                    ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {WorldBuildToggle.CastleHeartConnectionRequirementDisabled}");
                 }
                 else
                 {
@@ -84,9 +92,12 @@ namespace VBuild.Core
                     BuildingPlacementRestrictionsDisabledSetting.Value = wbFlag;
                     existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
 
+                    CastleHeartConnectionRequirementDisabled.Value = wbFlag;
+                    existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionRequirementDisabled);
+
                     string disabledColor = FontColors.Red("disabled");
                     ctx.Reply($"freebuild: {disabledColor}");
-                    ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value}");
+                    ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {WorldBuildToggle.CastleHeartConnectionRequirementDisabled}");
                 }
             }
         }

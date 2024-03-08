@@ -225,6 +225,13 @@ namespace WorldBuild.Hooks
                     TileSets.SpawnCopy(userEntity);
                 };
             }
+            else if (settings.GetToggle("DebuffToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    TileSets.DebuffTileModel(userEntity);
+                };
+            }
 
 
             else
