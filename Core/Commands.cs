@@ -127,6 +127,32 @@ namespace VBuild.Core
                 ctx.Reply($"BuildingCostsDisabled: {BuildingCostsDebugSetting.Value}");
             }
         }
+        public class CastleHeartConnectionToggle
+        {
+            public static bool castleHeartConnectionRequirementFlag = false;
+
+            public static SetDebugSettingEvent CastleHeartConnectionDebugSetting = new SetDebugSettingEvent()
+            {
+                SettingType = (DebugSettingType)27, // Replace X with the correct DebugSettingType for Castle Heart connection requirement
+                Value = false
+            };
+
+            [Command(name: "toggleCastleHeartConnection", shortHand: "tchc", adminOnly: true, usage: ".tchc", description: "Toggles the Castle Heart connection requirement for no-requirement building.")]
+            public static void ToggleCastleHeartConnectionCommand(ChatCommandContext ctx)
+            {
+                User user = ctx.Event.User;
+
+                DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                castleHeartConnectionRequirementFlag = !castleHeartConnectionRequirementFlag; // Toggle the flag
+
+                CastleHeartConnectionDebugSetting.Value = castleHeartConnectionRequirementFlag;
+                existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionDebugSetting);
+
+                string toggleColor = castleHeartConnectionRequirementFlag ? FontColors.Green("enabled") : FontColors.Red("disabled");
+                ctx.Reply($"Castle Heart connection requirement {toggleColor}");
+                ctx.Reply($"CastleHeartConnectionRequirementDisabled: {CastleHeartConnectionDebugSetting.Value}");
+            }
+        }
 
         /*
         [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".vb dm", description: "Toggles dismantle mode (destroys any tile that takes damage from you, including immortal tiles).")]

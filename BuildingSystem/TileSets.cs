@@ -11,6 +11,7 @@ using System.Reflection;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
@@ -133,11 +134,26 @@ namespace VBuild.BuildingSystem
                 ServantEquipment servantEquipment = entity.Read<ServantEquipment>();
                 Interactable interactable = entity.Read<Interactable>();
                 //DynamicBuffer<InventoryBuffer> inventoryBuffer = entity.ReadBuffer<InventoryBuffer>();
-                InventoryOwner inventoryOwner = entity.Read<InventoryOwner>();
+                //InventoryOwner inventoryOwner = entity.Read<InventoryOwner>();
                 ServantPower servantPower = entity.Read<ServantPower>();
                 ServantPowerConstants servantPowerConstants = entity.Read<ServantPowerConstants>();
                 ServantData servantData = entity.Read<ServantData>();
-
+                //servantData.ConvertDuration = 0;
+                //servantData.ReviveCostModifier = 0;
+                //servantData.ReviveDuration = 0;
+                //servantData.IsOnMission = false;
+                //PrefabGUID prefab = new(1557174542);
+                //ServantBloodTypePerkElement servantBloodTypePerkElement = new ServantBloodTypePerkElement { BloodType = prefab, Perk = VBuild.Data.Prefabs.ServantPerk_BloodType_Warrior };
+                //ServantFactionPerkElement servantFactionPerkElement = new ServantFactionPerkElement { Faction = FactionEnum.ChurchOfLum, Perk = VBuild.Data.Prefabs.ServantPerk_Faction_SilverExpert };
+                ServantConvertable servantConvertable = entity.Read<ServantConvertable>();
+                servantConvertable.ConvertToUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood;
+                PhysicsCollider physicsCollider = entity.Read<PhysicsCollider>();
+                DynamicCollision dynamicCollision = entity.Read<DynamicCollision>();
+                CollisionRadius collisionRadius = entity.Read<CollisionRadius>();
+                ServantTypeData servantTypeData = entity.Read<ServantTypeData>();
+                InteractedUpon interactedUpon = entity.Read<InteractedUpon>();
+                EntityCategory entityCategory = entity.Read<EntityCategory>();
+                
                 Plugin.Logger.LogInfo("Components read...");
                 //ServantCoffinstation servantCoffinstation = entity.Read<ServantCoffinstation>();
                 //servantCoffinstation.ConvertFromUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood;
@@ -152,20 +168,41 @@ namespace VBuild.BuildingSystem
                 entity.Remove<ServantPower>();
                 entity.Remove<ServantPowerConstants>();
                 entity.Remove<ServantData>();
+                entity.Remove<PhysicsCollider>();
+                entity.Remove<DynamicCollision>();
+                entity.Remove<CollisionRadius>();
+                entity.Remove<ServantTypeData>();
+                entity.Remove<InteractedUpon>();
+                entity.Remove<EntityCategory>();
+                
+                //ConditionBlob conditionBlob = Utilities.GetComponentData<ConditionBlob>(entity);
+                //var blobs = conditionBlob.Conditionals;
+                //Utilities.RemoveComponent<ConditionBlob>(entity);
+                //Utilities.SetComponentData(hoveredEntity, blobs);
                 Plugin.Logger.LogInfo("Cleared references...");
                 //Utilities.AddComponentData(hoveredEntity, inventoryOwner);
-                ServantConvertable servantConvertable = new ServantConvertable { ConvertToUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood };
                 Utilities.AddComponentData(hoveredEntity, servantConvertable);
                 
+                //Utilities.SetComponentData(hoveredEntity, physicsCollider);
+                //Utilities.SetComponentData(hoveredEntity, dynamicCollision);
+                //Utilities.SetComponentData(hoveredEntity, collisionRadius);
                 Utilities.SetComponentData(hoveredEntity, interactable);
+                //Utilities.AddComponentData(hoveredEntity, servantTypeData);
+                Utilities.SetComponentData(hoveredEntity, interactedUpon);
+                Utilities.SetComponentData(hoveredEntity, entityCategory);
                 Plugin.Logger.LogInfo("Components added2...");
                 Utilities.AddComponentData(hoveredEntity, servantEquipment);
                 Plugin.Logger.LogInfo("Components added3...");
                 //Utilities.AddComponentData(hoveredEntity, servantCoffinstation);
-                Utilities.AddComponentData(hoveredEntity, servantPower);
+                //Utilities.AddComponentData(hoveredEntity, servantPower);
                 Plugin.Logger.LogInfo("Components added4...");
-                Utilities.AddComponentData(hoveredEntity, servantPowerConstants);
+                //Utilities.AddComponentData(hoveredEntity, servantPowerConstants);
                 Utilities.AddComponentData(hoveredEntity, servantData);
+                //NetworkedEntity networkedEntity = new NetworkedEntity { _Entity = hoveredEntity,_WaitingForSync = false };
+                //ServantCoffinstation servantCoffinstation = new ServantCoffinstation { ConnectedServant = networkedEntity, ConvertFromUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood, ConvertToUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood, ConnectedServantState = GenericEnemyState.Initialize, State = ServantCoffinState.ServantAlive };
+                //Utilities.AddComponentData(hoveredEntity, servantCoffinstation);
+                //Utilities.AddComponentData(hoveredEntity, servantBloodTypePerkElement);
+                //Utilities.AddComponentData(hoveredEntity, servantFactionPerkElement);
                 Plugin.Logger.LogInfo("Components added5...");
             }
             catch (Exception e)
@@ -206,7 +243,10 @@ namespace VBuild.BuildingSystem
                 item.Importance = 1;
                 otherBuffer[i] = item;
             }
-
+            var lastBuffer = VWorld.Server.EntityManager.AddBuffer<InventoryBuffer>(hoveredEntity);
+            var nextBuffer = VWorld.Server.EntityManager.AddBuffer<Snapshot_InventoryBuffer>(hoveredEntity);
+            var lastLastBuffer = VWorld.Server.EntityManager.AddBuffer<InventoryInstanceElement>(hoveredEntity);
+            
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
         }
 
