@@ -32,6 +32,7 @@ namespace VBuild.BuildingSystem
             SetToggle("CopyToggle", false);
             SetToggle("ControlToggle", false);
             SetToggle("DebuffToggle", false);
+            SetToggle("ConvertToggle", false);
         }
 
         // Method to set a toggle value

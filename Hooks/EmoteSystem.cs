@@ -39,7 +39,7 @@ internal class EmoteSystemPatch
         {
             { -658066984, ToggleSnapping }, // Beckon
             { -1462274656, ToggleBuildMode }, // Bow
-            { -26826346, ToggleMapIconPlacement }, // Clap
+            { -26826346, ToggleConvert }, // Clap
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleCopyMode }, // Salute
@@ -57,7 +57,7 @@ internal class EmoteSystemPatch
         {
             { -658066984, ToggleSnapping }, // Beckon
             { -1462274656, ToggleBuildMode }, // Bow
-            { -26826346, ToggleMapIconPlacement }, // Clap
+            { -26826346, ToggleConvert }, // Clap
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleCopyMode }, // Salute so for multiple wheels it'd be something like use copy mode, replace with toggles for mode with option to exit mode
@@ -165,15 +165,15 @@ internal class EmoteSystemPatch
     }
     private static void ToggleConvert(Player player, ulong playerId)
     {
-        ResetAllToggles(playerId, "DebuffToggle");
+        ResetAllToggles(playerId, "ConvertToggle");
 
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
-            bool currentValue = settings.GetToggle("DebuffToggle");
+            bool currentValue = settings.GetToggle("ConvertToggle");
             string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
             Databases.SaveBuildSettings();
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"DebuffMode: |{stateMessage}|");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ConvertMode: |{stateMessage}|");
         }
     }
 

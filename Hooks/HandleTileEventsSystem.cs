@@ -232,6 +232,13 @@ namespace WorldBuild.Hooks
                     TileSets.DebuffTileModel(userEntity);
                 };
             }
+            else if (settings.GetToggle("ConvertToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    TileSets.ConvertCharacter(userEntity);
+                };
+            }
 
 
             else

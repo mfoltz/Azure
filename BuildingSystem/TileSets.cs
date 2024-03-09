@@ -3,11 +3,15 @@ using Il2CppSystem;
 using ProjectM;
 using ProjectM.Behaviours;
 using ProjectM.Network;
+using ProjectM.Pathfinding;
+using ProjectM.Shared;
+using ProjectM.Shared.Systems;
 using ProjectM.Tiles;
 using System.Reflection;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -21,6 +25,8 @@ using static UnityEngine.UI.Image;
 using static VBuild.BuildingSystem.TileSets;
 using static VBuild.Core.Services.UnitSpawnerService;
 using Buff = VBuild.Data.Buff;
+using Exception = System.Exception;
+using ServantData = ProjectM.ServantData;
 using StringComparer = System.StringComparer;
 using StringComparison = System.StringComparison;
 using User = ProjectM.Network.User;
@@ -43,6 +49,9 @@ namespace VBuild.BuildingSystem
             {
                 // Log the component types of the hovered entity
                 hoveredEntity.LogComponentTypes();
+                // component details here
+                //List<ComponentType> componentTypes = hoveredEntity.GetComponentTypes();
+
                 string entityString = hoveredEntity.Index.ToString() + ", " + hoveredEntity.Version.ToString();
                 if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(hoveredEntity, out DynamicBuffer<BuffBuffer> buffer))
                 {
@@ -112,6 +121,95 @@ namespace VBuild.BuildingSystem
             }
         }
 
+        public static Entity Transplant(Entity hoveredEntity)
+        {
+            //begin transplant
+            PrefabGUID prefabGUID = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_Servant;
+            Entity entity = VWorld.Server.EntityManager.Instantiate(VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID]);
+
+            try
+            {
+                Plugin.Logger.LogInfo("Transplanting entity...");
+                ServantEquipment servantEquipment = entity.Read<ServantEquipment>();
+                Interactable interactable = entity.Read<Interactable>();
+                //DynamicBuffer<InventoryBuffer> inventoryBuffer = entity.ReadBuffer<InventoryBuffer>();
+                InventoryOwner inventoryOwner = entity.Read<InventoryOwner>();
+                ServantPower servantPower = entity.Read<ServantPower>();
+                ServantPowerConstants servantPowerConstants = entity.Read<ServantPowerConstants>();
+                ServantData servantData = entity.Read<ServantData>();
+
+                Plugin.Logger.LogInfo("Components read...");
+                //ServantCoffinstation servantCoffinstation = entity.Read<ServantCoffinstation>();
+                //servantCoffinstation.ConvertFromUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood;
+                //servantCoffinstation.ConvertToUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood;
+                //Plugin.Logger.LogInfo("Conversion set...");
+                //entity.Remove<InteractAbilityBuffer>();
+                entity.Remove<ServantEquipment>();
+                //entity.Remove<InventoryBuffer>();
+                entity.Remove<Interactable>();
+                //entity.Remove<InventoryOwner>();
+                //entity.Remove<ServantCoffinstation>();
+                entity.Remove<ServantPower>();
+                entity.Remove<ServantPowerConstants>();
+                entity.Remove<ServantData>();
+                Plugin.Logger.LogInfo("Cleared references...");
+                //Utilities.AddComponentData(hoveredEntity, inventoryOwner);
+                ServantConvertable servantConvertable = new ServantConvertable { ConvertToUnit = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_VBlood };
+                Utilities.AddComponentData(hoveredEntity, servantConvertable);
+                
+                Utilities.SetComponentData(hoveredEntity, interactable);
+                Plugin.Logger.LogInfo("Components added2...");
+                Utilities.AddComponentData(hoveredEntity, servantEquipment);
+                Plugin.Logger.LogInfo("Components added3...");
+                //Utilities.AddComponentData(hoveredEntity, servantCoffinstation);
+                Utilities.AddComponentData(hoveredEntity, servantPower);
+                Plugin.Logger.LogInfo("Components added4...");
+                Utilities.AddComponentData(hoveredEntity, servantPowerConstants);
+                Utilities.AddComponentData(hoveredEntity, servantData);
+                Plugin.Logger.LogInfo("Components added5...");
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError(e);
+                SystemPatchUtil.Destroy(entity);
+                return hoveredEntity;
+            }
+            SystemPatchUtil.Destroy(entity);
+            return hoveredEntity;
+        }
+
+        public static void ConvertCharacter(Entity userEntity)
+        {
+            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            Team userTeam = userEntity.Read<Team>();
+            TeamReference teamReference = userEntity.Read<TeamReference>();
+            Entity character = userEntity.Read<User>().LocalCharacter._Entity;
+            Utilities.SetComponentData(hoveredEntity, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
+            ModifiableEntity modifiableEntity = new ModifiableEntity { Value = character };
+            ModifiableInt modifiableInt = Utilities.GetComponentData<Follower>(hoveredEntity).ModeModifiable;
+            modifiableInt._Value = (int)FollowMode.Patrol;
+            Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modifiableEntity, ModeModifiable = modifiableInt });
+            Utilities.SetComponentData(hoveredEntity, teamReference);
+
+            //Utilities.AddComponentData(hoveredEntity, new ServantEquipment { }.AddEquipmentEntityIfNotNull());
+            VWorld.Server.EntityManager.AddBuffer<InventoryBuffer>(hoveredEntity);
+            Transplant(hoveredEntity);
+
+            var buffer = hoveredEntity.ReadBuffer<BuffBuffer>();
+            BuffBuffer buffBuffer = new BuffBuffer { Entity = hoveredEntity, PrefabGuid = VBuild.Data.Prefabs.AB_Interact_Servant_Buff };
+            buffer.Add(buffBuffer);
+            var otherBuffer = hoveredEntity.ReadBuffer<InteractAbilityBuffer>();
+            for (int i = 0; i < otherBuffer.Length; i++)
+            {
+                var item = otherBuffer[i];
+                item.Ability = VBuild.Data.Prefabs.AB_Interact_Servant_AbilityGroup;
+                item.Importance = 1;
+                otherBuffer[i] = item;
+            }
+
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
+        }
+
         public static unsafe void SpawnCopy(Entity userEntity)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -121,7 +219,6 @@ namespace VBuild.BuildingSystem
             int index = user.Index;
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
-            
 
             if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
             {
@@ -137,14 +234,11 @@ namespace VBuild.BuildingSystem
                 DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected as charmed.");
-                
             }
             else
             {
                 Plugin.Logger.LogInfo("Couldn't find settings for spawn.");
             }
-
-            
         }
 
         public static unsafe void SpawnTileModel(Entity userEntity)
@@ -299,6 +393,17 @@ namespace VBuild.BuildingSystem
 
         private static void FinalizeTileSpawn(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data, User user)
         {
+            if (!Utilities.HasComponent<InteractedUpon>(tileEntity))
+            {
+                Utilities.AddComponentData(tileEntity, new InteractedUpon { BlockBuildingDisassemble = true, BlockBuildingMovement = true });
+            }
+            else
+            {
+                InteractedUpon interactedUpon = tileEntity.Read<InteractedUpon>();
+                interactedUpon.BlockBuildingDisassemble = true;
+                interactedUpon.BlockBuildingMovement = true;
+                Utilities.SetComponentData(tileEntity, interactedUpon);
+            }
             string message = $"Tile spawned at {aimPosition.value.xy} with rotation {data.TileRotation} degrees clockwise.";
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, message);
             LogTilePlacement(tileEntity);
