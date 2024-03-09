@@ -20,7 +20,7 @@ using Unity.Transforms;
 using VBuild.Core;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
-
+/*
 [HarmonyPatch(typeof(ModifyBloodDrainSystem_Spawn), nameof(ModifyBloodDrainSystem_Spawn.OnUpdate))]
 public static class BloodSystem
 {
@@ -61,7 +61,7 @@ public static class BloodSystem
         entities.Dispose();
     }
 }
-
+*/
 [HarmonyPatch(typeof(RepairDoubleVBloodSpawnedSystem), nameof(RepairDoubleVBloodSpawnedSystem.OnUpdate))]
 public static class RepairDoubleVBloodSpawnedSystemPatch
 {
@@ -71,7 +71,7 @@ public static class RepairDoubleVBloodSpawnedSystemPatch
         return false;
     }
 }
-
+/*
 [HarmonyPatch(typeof(BuffSystem_Spawn_Server), nameof(BuffSystem_Spawn_Server.OnUpdate))]
 public static class BuffSystem_Spawn_Server_Patch
 {
@@ -101,3 +101,4 @@ public static class BuffSystem_Spawn_Server_Patch
         entities.Dispose();
     }
 }
+*/

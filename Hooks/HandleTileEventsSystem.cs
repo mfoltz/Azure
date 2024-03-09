@@ -326,7 +326,7 @@ public static class TileOperationUtility
     {
         if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
         {
-            Plugin.Logger.LogInfo("Unable to verify user entity, disallowing by default.");
+            Plugin.Logger.LogInfo("Unable to verify user entity but allowing by default.");
             return false;
         }
 
@@ -349,12 +349,28 @@ public static class TileOperationUtility
     {
         if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity))
         {
+
             CastleTerritory castleTerritory = Utilities.GetComponentData<CastleTerritory>(territoryEntity);
             Entity castleHeart = castleTerritory.CastleHeart;
             NetworkedEntity territoryOwner = Utilities.GetComponentData<UserOwner>(castleHeart).Owner;
             User territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
             return user.PlatformId.Equals(territoryUser.PlatformId);
         }
-        return false;
+        else
+        {
+            Plugin.Logger.LogInfo("Unable to verify territory, checking via UserOwner...");
+            if (tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId.Equals(user.PlatformId))
+            {
+                Plugin.Logger.LogInfo("Tile is owned by user, allowing.");
+                return true;
+            }
+            else
+            {
+                Plugin.Logger.LogInfo("PlatformID did not match, not allowing.");
+                return false;
+            }
+            
+        }
+        
     }
 }

@@ -150,14 +150,44 @@ namespace VBuild.BuildingSystem
             //begin transplant
             PrefabGUID prefabGUID = VBuild.Data.Prefabs.CHAR_Mount_Horse_Vampire;
             Entity entity = VWorld.Server.EntityManager.Instantiate(VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID]);
+
+            
             
             try
             {
-                ServantEquipment servantEquipment = entity.Read<ServantEquipment>();
+                CanPreventDisableWhenNoPlayersInRange canPreventDisableWhenNoPlayersInRange = entity.Read<CanPreventDisableWhenNoPlayersInRange>();
+                canPreventDisableWhenNoPlayersInRange.CanDisable._Value = false;
 
-                entity.Remove<ServantEquipment>();
+                FeedableInventory feedableInventory = entity.Read<FeedableInventory>();
 
-                Utilities.AddComponentData(hoveredEntity, servantEquipment);
+                Interactable interactable = entity.Read<Interactable>();
+
+                NameableInteractable nameableInteractable = entity.Read<NameableInteractable>();
+
+                GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = entity.Read<GetOwnerTranslationOnSpawn>();
+
+                Mountable mountable = entity.Read<Mountable>();
+
+                SaddleBearer saddleBearer = entity.Read<SaddleBearer>();
+
+                //
+                entity.Remove<CanPreventDisableWhenNoPlayersInRange>();
+                entity.Remove<FeedableInventory>();
+                entity.Remove<Interactable>();
+                entity.Remove<NameableInteractable>();
+                entity.Remove<GetOwnerTranslationOnSpawn>();
+                entity.Remove<Mountable>();
+                entity.Remove<SaddleBearer>();
+                //
+                Utilities.AddComponentData(hoveredEntity, canPreventDisableWhenNoPlayersInRange);
+                Utilities.AddComponentData(hoveredEntity, feedableInventory);
+                Utilities.SetComponentData(hoveredEntity, interactable);
+                Utilities.AddComponentData(hoveredEntity, nameableInteractable);
+                Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
+                Utilities.AddComponentData(hoveredEntity, mountable);
+                Utilities.AddComponentData(hoveredEntity, saddleBearer);
+
+                
             }
             catch (Exception e)
             {
@@ -610,7 +640,7 @@ namespace VBuild.BuildingSystem
                 {
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(node);
                     string name = prefabGUID.LookupName();
-                    if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber") || name.Contains("bush") || name.Contains("grass)"))
+                    if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber") || name.Contains("bush") || name.Contains("grass") || name.Contains("sapling"))
                     {
                         if (ShouldRemoveNodeBasedOnTerritory(node))
                         {
