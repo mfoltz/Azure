@@ -145,6 +145,29 @@ namespace VBuild.BuildingSystem
             SystemPatchUtil.Destroy(entity);
             return hoveredEntity;
         }
+        public static Entity HorseComponents(Entity hoveredEntity)
+        {
+            //begin transplant
+            PrefabGUID prefabGUID = VBuild.Data.Prefabs.CHAR_Mount_Horse_Vampire;
+            Entity entity = VWorld.Server.EntityManager.Instantiate(VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID]);
+            
+            try
+            {
+                ServantEquipment servantEquipment = entity.Read<ServantEquipment>();
+
+                entity.Remove<ServantEquipment>();
+
+                Utilities.AddComponentData(hoveredEntity, servantEquipment);
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError(e);
+                SystemPatchUtil.Destroy(entity);
+                return hoveredEntity;
+            }
+            SystemPatchUtil.Destroy(entity);
+            return hoveredEntity;
+        }
 
         public static void ConvertCharacter(Entity userEntity)
         {
@@ -159,25 +182,8 @@ namespace VBuild.BuildingSystem
             Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modifiableEntity, ModeModifiable = modifiableInt });
             Utilities.SetComponentData(hoveredEntity, teamReference);
 
-            //Utilities.AddComponentData(hoveredEntity, new ServantEquipment { }.AddEquipmentEntityIfNotNull());
-            VWorld.Server.EntityManager.AddBuffer<InventoryBuffer>(hoveredEntity);
             ServantComponents(hoveredEntity);
-            /*
-            var buffer = hoveredEntity.ReadBuffer<BuffBuffer>();
-            BuffBuffer buffBuffer = new BuffBuffer { Entity = hoveredEntity, PrefabGuid = VBuild.Data.Prefabs.AB_Interact_Servant_Buff };
-            buffer.Add(buffBuffer);
-            var otherBuffer = hoveredEntity.ReadBuffer<InteractAbilityBuffer>();
-            for (int i = 0; i < otherBuffer.Length; i++)
-            {
-                var item = otherBuffer[i];
-                item.Ability = VBuild.Data.Prefabs.AB_Interact_Servant_AbilityGroup;
-                item.Importance = 1;
-                otherBuffer[i] = item;
-            }
-            var lastBuffer = VWorld.Server.EntityManager.AddBuffer<InventoryBuffer>(hoveredEntity);
-            var nextBuffer = VWorld.Server.EntityManager.AddBuffer<Snapshot_InventoryBuffer>(hoveredEntity);
-            var lastLastBuffer = VWorld.Server.EntityManager.AddBuffer<InventoryInstanceElement>(hoveredEntity);
-            */
+            HorseComponents(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
         }
 
