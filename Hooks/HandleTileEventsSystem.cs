@@ -239,6 +239,14 @@ namespace WorldBuild.Hooks
                     TileSets.ConvertCharacter(userEntity);
                 };
             }
+            else if (settings.GetToggle("BuffToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    TileSets.BuffAtHover(userEntity);
+                };
+            }
+            
 
 
             else

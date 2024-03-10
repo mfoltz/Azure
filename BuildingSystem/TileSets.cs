@@ -15,6 +15,7 @@ using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.TextCore;
 using UnityEngine.Tilemaps;
 using VBuild.Core;
 using VBuild.Core.Services;
@@ -25,6 +26,7 @@ using static RootMotion.FinalIK.InteractionObject;
 using static UnityEngine.UI.Image;
 using static VBuild.BuildingSystem.TileSets;
 using static VBuild.Core.Services.UnitSpawnerService;
+using static VCF.Core.Basics.RoleCommands;
 using Buff = VBuild.Data.Buff;
 using Exception = System.Exception;
 using ServantData = ProjectM.ServantData;
@@ -92,6 +94,80 @@ namespace VBuild.BuildingSystem
             }
         }
 
+        public static void BuffAtHover(Entity userEntity)
+        {
+            if (VPlus.Data.Databases.playerPrestige.TryGetValue(userEntity.Read<User>().PlatformId, out var data))
+            {
+                PrefabGUID shiny = new(data.PlayerBuff);
+                Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
+                PlayerService.TryGetCharacterFromName(userEntity.Read<User>().CharacterName.ToString(), out Entity character);
+                FromCharacter fromCharacter = new() { Character = character, User = userEntity };
+                if (entity != Entity.Null && VWorld.Server.EntityManager.Exists(entity))
+                {
+                    var buffer = entity.ReadBuffer<BuffBuffer>();
+                    buffer.Add(new BuffBuffer { Entity = entity, PrefabGuid = shiny });
+                    DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                    var debugEvent = new ApplyBuffDebugEvent
+                    {
+                        BuffPrefabGUID = shiny,
+                    };
+                    
+                    
+                    BufferFromEntity<BuffBuffer> bufferFromEntity = VWorld.Server.EntityManager.GetBufferFromEntity<BuffBuffer>();
+                    if (BuffUtility.TryGetBuff(entity, shiny, bufferFromEntity, out var result))
+                    {
+                        debugEventsSystem.ApplyBuff(fromCharacter, debugEvent);
+                        if (result.Has<CreateGameplayEventsOnSpawn>())
+                        {
+                            result.Remove<CreateGameplayEventsOnSpawn>();
+                        }
+
+                        if (result.Has<GameplayEventListeners>())
+                        {
+                            result.Remove<GameplayEventListeners>();
+                        }
+
+                        result.Add<Buff_Persists_Through_Death>();
+                        if (result.Has<RemoveBuffOnGameplayEvent>())
+                        {
+                            result.Remove<RemoveBuffOnGameplayEvent>();
+                        }
+
+                        if (result.Has<RemoveBuffOnGameplayEventEntry>())
+                        {
+                            result.Remove<RemoveBuffOnGameplayEventEntry>();
+                        }
+
+                        if (result.Has<LifeTime>())
+                        {
+                            LifeTime componentData2 = result.Read<LifeTime>();
+                            componentData2.Duration = -1f;
+                            componentData2.EndAction = LifeTimeEndAction.None;
+                            result.Write(componentData2);
+                        }
+
+                        if (result.Has<RemoveBuffOnGameplayEvent>())
+                        {
+                            result.Remove<RemoveBuffOnGameplayEvent>();
+                        }
+
+                        if (result.Has<RemoveBuffOnGameplayEventEntry>())
+                        {
+                            result.Remove<RemoveBuffOnGameplayEventEntry>();
+                        }
+                    }
+                    else
+                    {
+                        Plugin.Logger.LogInfo("Buff failed");
+                    }
+                }
+            }
+            else
+            {
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Couldn't find data.");
+            }
+        }
+
         public static unsafe void KillHoveredEntity(Entity userEntity)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -145,18 +221,45 @@ namespace VBuild.BuildingSystem
             SystemPatchUtil.Destroy(entity);
             return hoveredEntity;
         }
+
+        public static Entity RemoveComponents(Entity hoveredEntity)
+        {
+            try
+            {
+                if (hoveredEntity.Has<VBloodConsumeSource>())
+                {
+                    hoveredEntity.Remove<VBloodConsumeSource>();
+                }
+                else if (hoveredEntity.Has<VBloodUnitSpawnSource>())
+                {
+                    hoveredEntity.Remove<VBloodUnitSpawnSource>();
+                }
+                else if (hoveredEntity.Has<VBloodUnit>())
+                {
+                    hoveredEntity.Remove<VBloodUnit>();
+                }
+                else if (hoveredEntity.Has<VBloodUnlockTechBuffer>())
+                {
+                    hoveredEntity.Remove<VBloodUnlockTechBuffer>();
+                }
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError(e);
+                return hoveredEntity;
+            }
+            return hoveredEntity;
+        }
+
         public static Entity HorseComponents(Entity hoveredEntity)
         {
             //begin transplant
-            PrefabGUID prefabGUID = VBuild.Data.Prefabs.CHAR_Mount_Horse_Vampire;
+            PrefabGUID prefabGUID = VBuild.Data.Prefabs.CHAR_Mount_Horse;
             Entity entity = VWorld.Server.EntityManager.Instantiate(VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID]);
 
-            
-            
             try
             {
-                CanPreventDisableWhenNoPlayersInRange canPreventDisableWhenNoPlayersInRange = entity.Read<CanPreventDisableWhenNoPlayersInRange>();
-                canPreventDisableWhenNoPlayersInRange.CanDisable._Value = false;
+                CanPreventDisableWhenNoPlayersInRange canPreventDisableWhenNoPlayersInRange = new CanPreventDisableWhenNoPlayersInRange { CanDisable = new ModifiableBool { _Value = false } };
 
                 FeedableInventory feedableInventory = entity.Read<FeedableInventory>();
 
@@ -164,20 +267,31 @@ namespace VBuild.BuildingSystem
 
                 NameableInteractable nameableInteractable = entity.Read<NameableInteractable>();
 
-                GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = entity.Read<GetOwnerTranslationOnSpawn>();
+                GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
 
-                Mountable mountable = entity.Read<Mountable>();
+                Mountable mountable = new Mountable { };
+                mountable.Acceleration = 30f;
+                mountable.MaxSpeed = 15f;
+                mountable.RotationSpeed = 20f;
+                mountable.AccelerationRange = 5f;
+                mountable.RotationSpeedRange = 5f;
+                mountable.MountBuff = VBuild.Data.Prefabs.MOUNT_Wolf_Boss_Standard;
+                mountable.HasNearbyUsers = true;
+                mountable.Mounter = hoveredEntity.Read<Follower>().Followed.Value.Read<PlayerCharacter>().UserEntity;
 
-                SaddleBearer saddleBearer = entity.Read<SaddleBearer>();
-
+                DeadSequence deadSequence = entity.Read<DeadSequence>();
+                DynamicCollision dynamicCollision = entity.Read<DynamicCollision>();
+                PhysicsCollider physicsCollider = entity.Read<PhysicsCollider>();
+                var buffer = entity.ReadBuffer<InteractAbilityBuffer>();
                 //
-                entity.Remove<CanPreventDisableWhenNoPlayersInRange>();
                 entity.Remove<FeedableInventory>();
                 entity.Remove<Interactable>();
                 entity.Remove<NameableInteractable>();
-                entity.Remove<GetOwnerTranslationOnSpawn>();
-                entity.Remove<Mountable>();
-                entity.Remove<SaddleBearer>();
+                entity.Remove<DeadSequence>();
+                entity.Remove<DynamicCollision>();
+                entity.Remove<PhysicsCollider>();
+                entity.Remove<InteractAbilityBuffer>();
+                //entity.Remove<GetOwnerTranslationOnSpawn>();
                 //
                 Utilities.AddComponentData(hoveredEntity, canPreventDisableWhenNoPlayersInRange);
                 Utilities.AddComponentData(hoveredEntity, feedableInventory);
@@ -185,9 +299,10 @@ namespace VBuild.BuildingSystem
                 Utilities.AddComponentData(hoveredEntity, nameableInteractable);
                 Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
                 Utilities.AddComponentData(hoveredEntity, mountable);
-                Utilities.AddComponentData(hoveredEntity, saddleBearer);
-
-                
+                Utilities.SetComponentData(hoveredEntity, deadSequence);
+                Utilities.SetComponentData(hoveredEntity, dynamicCollision);
+                Utilities.SetComponentData(hoveredEntity, physicsCollider);
+                Utilities.SetComponentData(hoveredEntity, buffer);
             }
             catch (Exception e)
             {
@@ -214,6 +329,7 @@ namespace VBuild.BuildingSystem
 
             ServantComponents(hoveredEntity);
             HorseComponents(hoveredEntity);
+            RemoveComponents(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
         }
 

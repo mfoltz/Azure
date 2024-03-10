@@ -44,7 +44,7 @@ internal class EmoteSystemPatch
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleCopyMode }, // Salute
             { -578764388, UndoLastTilePlacement }, // Shrug
-            { 808904257, CycleGridSize }, // Sit
+            { 808904257, ToggleBuffMode }, // Sit
             { -1064533554, ToggleTileRotation}, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
@@ -62,7 +62,7 @@ internal class EmoteSystemPatch
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleCopyMode }, // Salute so for multiple wheels it'd be something like use copy mode, replace with toggles for mode with option to exit mode
             { -578764388, UndoLastTilePlacement }, // Shrug
-            { 808904257, CycleGridSize }, // Sit
+            { 808904257, ToggleBuffMode }, // Sit
             { -1064533554, ToggleTileRotation }, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
@@ -106,6 +106,21 @@ internal class EmoteSystemPatch
         
             string stateMessage = settings.GetToggle("CopyToggle") ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"CopyMode: |{stateMessage}|");
+        }
+    }
+    private static void ToggleBuffMode(Player player, ulong playerId)
+    {
+        ResetAllToggles(playerId, "BuffToggle");
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            ResetAllToggles(playerId, "BuffToggle");
+            // Toggle the CopyModeToggle value
+            //bool currentValue = settings.GetToggle("CopyToggle");
+            //settings.SetToggle("CopyToggle", !currentValue);
+            // Update the player's build settings in the database
+
+            string stateMessage = settings.GetToggle("BuffToggle") ? enabledColor : disabledColor;
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"BuffMode: |{stateMessage}|");
         }
     }
 
