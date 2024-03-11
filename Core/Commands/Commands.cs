@@ -12,7 +12,7 @@ using VBuild.BuildingSystem;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Core.Converters;
-using static VBuild.Core.CommandParser;
+using static VCreate.Core.Converters.CommandParser;
 using System.Runtime.CompilerServices;
 using VRising.GameData;
 using Exception = System.Exception;
@@ -29,8 +29,9 @@ using VRising.GameData.Models.Internals;
 using static VBuild.Core.Services.PlayerService;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Unity.Transforms;
+using VCreate.Core.Converters;
 
-namespace VBuild.Core
+namespace VCreate.Core.Commands
 {
     [CommandGroup(name: "VBuild", shortHand: "vb")]
     public class CoreCommands
@@ -61,7 +62,7 @@ namespace VBuild.Core
             public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
             {
                 User user = ctx.Event.User;
-                
+
 
                 DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 if (!wbFlag)
@@ -81,7 +82,7 @@ namespace VBuild.Core
 
                     string enabledColor = FontColors.Green("enabled");
                     ctx.Reply($"freebuild: {enabledColor}");
-                    ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {WorldBuildToggle.CastleHeartConnectionRequirementDisabled}");
+                    ctx.Reply($"BuildingCostsDisabled: {BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {CastleHeartConnectionRequirementDisabled}");
                 }
                 else
                 {
@@ -97,7 +98,7 @@ namespace VBuild.Core
 
                     string disabledColor = FontColors.Red("disabled");
                     ctx.Reply($"freebuild: {disabledColor}");
-                    ctx.Reply($"BuildingCostsDisabled: {WorldBuildToggle.BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {WorldBuildToggle.BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {WorldBuildToggle.CastleHeartConnectionRequirementDisabled}");
+                    ctx.Reply($"BuildingCostsDisabled: {BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {CastleHeartConnectionRequirementDisabled}");
                 }
             }
         }
@@ -174,13 +175,13 @@ namespace VBuild.Core
         public static void ToggleEditTilesCommand(ChatCommandContext ctx, string name)
         {
             User setter = ctx.Event.User;
-            PlayerService.TryGetUserFromName(name, out Entity userEntity);
+            TryGetUserFromName(name, out Entity userEntity);
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 // Toggle the CanEditTiles value
-                bool currentCanEditTiles = settings.GetToggle("CanEditTiles");
-                settings.SetToggle("CanEditTiles", !currentCanEditTiles);
+                bool currentCanEditTiles = settings.GetMode("CanEditTiles");
+                settings.SetMode("CanEditTiles", !currentCanEditTiles);
 
                 Databases.SaveBuildSettings();
                 string enabledColor = FontColors.Green("enabled");
@@ -190,8 +191,8 @@ namespace VBuild.Core
             else
             {
                 // Create new settings for user
-                BuildSettings newSettings = new();
-                newSettings.SetToggle("CanEditTiles", true);
+                Tools newSettings = new();
+                newSettings.SetMode("CanEditTiles", true);
 
                 // Assuming you have a method to add or update settings in your Databases object
                 Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
@@ -211,7 +212,7 @@ namespace VBuild.Core
             }
 
             User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 settings.TileRotation = rotation;
                 Databases.SaveBuildSettings();
@@ -223,7 +224,7 @@ namespace VBuild.Core
         public static void ListTilesCommand(ChatCommandContext ctx)
         {
             ulong SteamID = ctx.Event.User.PlatformId;
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out BuildSettings data))
+            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
             {
                 if (!ModelRegistry.tilesBySet.ContainsKey(data.TileSet))
                 {
@@ -255,7 +256,7 @@ namespace VBuild.Core
             ulong SteamID = ctx.Event.User.PlatformId;
 
             string lowerCaseChoice = choice.ToLower();
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out BuildSettings data))
+            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
             {
                 // want to compare to lowercase version of dictionary keys
 
@@ -288,7 +289,7 @@ namespace VBuild.Core
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out BuildSettings data))
+            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
             {
                 // Assuming there's a similar check for map icons as there is for tile models
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
@@ -304,7 +305,7 @@ namespace VBuild.Core
                     {
                         ctx.Reply("Invalid map icon choice.");
                     }
-                    
+
                 }
                 else
                 {
@@ -323,7 +324,7 @@ namespace VBuild.Core
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out BuildSettings data))
+            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
             {
                 var setChoice = data.TileSet;
                 Dictionary<int, TileConstructor> tiles = GetTilesBySet(setChoice);
@@ -351,7 +352,7 @@ namespace VBuild.Core
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out BuildSettings data))
+            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
             {
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
                 {
@@ -375,9 +376,9 @@ namespace VBuild.Core
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
             User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools data))
             {
-                string lastTileRef = data.PopLastTilePlaced();
+                string lastTileRef = data.PopEntity();
                 if (!string.IsNullOrEmpty(lastTileRef))
                 {
                     string[] parts = lastTileRef.Split(", ");
@@ -411,14 +412,14 @@ namespace VBuild.Core
             }
         }
 
-      
-        
+
+
 
         [Command(name: "chooseMapIcon", shortHand: "cmi", adminOnly: true, usage: ".vb cmi <#>", description: "Choose map icon to add to tiles placed.")]
         public static void ChooseMapIcon(ChatCommandContext ctx, int choice)
         {
             User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
 
                 if (TileUtils.MapIconFunctions.mapIcons.TryGetValue(choice, out int mapIcon))
@@ -430,7 +431,7 @@ namespace VBuild.Core
                 else
                 {
                     ctx.Reply($"Invalid map icon choice, must be greater than 0 and less than {TileUtils.MapIconFunctions.mapIcons.Count}.");
-                
+
                 }
             }
             else
@@ -457,14 +458,14 @@ namespace VBuild.Core
             ctx.Reply(listMessage.ToString());
         }
 
-        
 
-       
+
+
 
         [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".vb dr", description: "Destroys resources in player territories. Only use this after disabling worldbuild.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
-            TileSets.ResourceFunctions.SearchAndDestroy();
+            ResourceFunctions.SearchAndDestroy();
             ctx.Reply("Resource nodes in player territories destroyed. Probably.");
         }
 
@@ -480,7 +481,7 @@ namespace VBuild.Core
                 return;
             }
 
-            var tiles = TileUtils.ClosestTiles(ctx, radius, name); 
+            var tiles = TileUtils.ClosestTiles(ctx, radius, name);
 
             foreach (var tile in tiles)
             {
@@ -546,7 +547,7 @@ namespace VBuild.Core
             ctx.Reply($"Unlocked VBlood feature: {input}");
         }
         */
-        
+
         [Command("reset", "r", "Instantly reset cooldown and hp for the player.", adminOnly: true)]
         public static void ResetCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
@@ -719,7 +720,7 @@ namespace VBuild.Core
             public static void DisableGhosts(ChatCommandContext ctx)
             {
                 var entityManager = VWorld.Server.EntityManager;
-                NativeArray<Entity> entityArray = (entityManager).CreateEntityQuery(new EntityQueryDesc()
+                NativeArray<Entity> entityArray = entityManager.CreateEntityQuery(new EntityQueryDesc()
                 {
                     All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
                     {
@@ -733,7 +734,7 @@ namespace VBuild.Core
                 foreach (var entity in entityArray)
                 {
                     DynamicBuffer<BuffBuffer> buffer;
-                    VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out buffer);
+                    VWorld.Server.EntityManager.TryGetBuffer(entity, out buffer);
                     for (int index = 0; index < buffer.Length; ++index)
                     {
                         if (buffer[index].PrefabGuid.GuidHash == Prefabs.Buff_General_VampireMount_Dead.GuidHash && Utilities.HasComponent<EntityOwner>(entity))
@@ -744,7 +745,7 @@ namespace VBuild.Core
                                 User componentData = Utilities.GetComponentData<User>(Utilities.GetComponentData<PlayerCharacter>(owner).UserEntity);
                                 ctx.Reply("Found dead horse owner, disabling...");
                                 ulong platformId = componentData.PlatformId;
-                                HorseFunctions.PlayerHorseStasisMap[platformId] = new HorseFunctions.HorseStasisState(entity, true);
+                                PlayerHorseStasisMap[platformId] = new HorseStasisState(entity, true);
                                 SystemPatchUtil.Disable(entity);
                             }
                         }
@@ -758,11 +759,11 @@ namespace VBuild.Core
             public static void ReactivateHorse(ChatCommandContext ctx)
             {
                 ulong platformId = ctx.User.PlatformId;
-                if (HorseFunctions.PlayerHorseStasisMap.TryGetValue(platformId, out HorseStasisState horseStasisState) && horseStasisState.IsInStasis)
+                if (PlayerHorseStasisMap.TryGetValue(platformId, out HorseStasisState horseStasisState) && horseStasisState.IsInStasis)
                 {
                     SystemPatchUtil.Enable(horseStasisState.HorseEntity);
                     horseStasisState.IsInStasis = false;
-                    HorseFunctions.PlayerHorseStasisMap[platformId] = horseStasisState;
+                    PlayerHorseStasisMap[platformId] = horseStasisState;
                     ctx.Reply("Your horse has been reactivated.");
                 }
                 else
@@ -778,8 +779,8 @@ namespace VBuild.Core
 
                 public HorseStasisState(Entity horseEntity, bool isInStasis)
                 {
-                    this.HorseEntity = horseEntity;
-                    this.IsInStasis = isInStasis;
+                    HorseEntity = horseEntity;
+                    IsInStasis = isInStasis;
                 }
             }
         }
@@ -787,8 +788,8 @@ namespace VBuild.Core
         [Command(name: "unlock", shortHand: "u", adminOnly: true, usage: ".v u <Player>", description: "Unlocks all the things.")]
         public void UnlockCommand(ChatCommandContext ctx, string playerName, string unlockCategory = "all")
         {
-            PlayerService.TryGetPlayerFromString(playerName, out PlayerService.Player player);
-            PlayerService.Player player1;
+            TryGetPlayerFromString(playerName, out Player player);
+            Player player1;
             Entity entity1;
             if ((object)player == null)
             {
@@ -928,7 +929,7 @@ namespace VBuild.Core
         }
 
         [Command("bloodpotion", "bp", "{Blood Name} [quantity=1] [quality=100]", "Creates a Potion with specified Blood Type, Quality, and Quantity", null, true)]
-        public static void GiveBloodPotionCommand(ChatCommandContext ctx, VBuild.Core.CommandParser.BloodType type = BloodType.frailed, int quantity = 1, float quality = 100f)
+        public static void GiveBloodPotionCommand(ChatCommandContext ctx, BloodType type = BloodType.frailed, int quantity = 1, float quality = 100f)
         {
             quality = Mathf.Clamp(quality, 0.0f, 100f);
             int num;
@@ -955,7 +956,7 @@ namespace VBuild.Core
             chatCommandContext.Reply(stringAndClear);
         }
 
-        
+
 
         [Command("ping", "p", null, "Shows your latency.", null, false)]
         public static void PingCommand(ChatCommandContext ctx, string mode = "")
@@ -972,7 +973,7 @@ namespace VBuild.Core
 
         public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
         {
-            PlayerService.Player player1;
+            Player player1;
             Entity entity1;
             if ((object)player == null)
             {

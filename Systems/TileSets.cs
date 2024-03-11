@@ -78,7 +78,7 @@ namespace VBuild.BuildingSystem
                 // need to figure out how to make everything able to attack by default to and if the combat buffs are universal or apply to them specifically
 
                 ulong steamId = user.PlatformId;
-                if (Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings settings))
+                if (Databases.playerBuildSettings.TryGetValue(steamId, out Tools settings))
                 {
                     // Create a unique string reference for the entity or prefab or whatever
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
@@ -384,7 +384,8 @@ namespace VBuild.BuildingSystem
             Utilities.SetComponentData(hoveredEntity, teamReference);
             //GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
             //Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
-
+            // so this gets the translation of the entity from when it spawned in? 
+            //OffsetTranslationOnSpawn offsetTranslationOnSpawn = new OffsetTranslationOnSpawn { Offset = character.Read<LocalToWorld>().Position };
             EntityManager entityManager = VWorld.Server.EntityManager;
             entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
@@ -400,7 +401,7 @@ namespace VBuild.BuildingSystem
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
 
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
                 EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
@@ -434,7 +435,7 @@ namespace VBuild.BuildingSystem
             var steamId = user.PlatformId;
             var aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
 
-            if (!Databases.playerBuildSettings.TryGetValue(steamId, out BuildSettings data))
+            if (!Databases.playerBuildSettings.TryGetValue(steamId, out Tools data))
             {
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Unable to locate build settings.");
                 return;
@@ -443,7 +444,7 @@ namespace VBuild.BuildingSystem
             HandleBuildSettings(data, aimPosition, userEntity, user);
         }
 
-        private static void HandleBuildSettings(BuildSettings data, Nullable_Unboxed<float3> aimPosition, Entity userEntity, User user)
+        private static void HandleBuildSettings(Tools data, Nullable_Unboxed<float3> aimPosition, Entity userEntity, User user)
         {
             var prefabEntity = GetPrefabEntity(data);
             if (prefabEntity == Entity.Null)
@@ -460,11 +461,11 @@ namespace VBuild.BuildingSystem
             }
             string entityString = $"{tileEntity.Index}, {tileEntity.Version}";
 
-            data.AddTilePlaced(entityString);
+            data.AddEntity(entityString);
             ApplyTileSettings(tileEntity, aimPosition, data, userEntity, user);
         }
 
-        private static Entity GetPrefabEntity(BuildSettings data)
+        private static Entity GetPrefabEntity(Tools data)
         {
             PrefabGUID prefabGUID = new(data.TileModel);
             return VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap.TryGetValue(prefabGUID, out Entity entity) ? entity : Entity.Null;
@@ -476,7 +477,7 @@ namespace VBuild.BuildingSystem
                 // Other special words and their handlers can be added here
             };
 
-        private static Entity InstantiateTilePrefab(Entity prefabEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data, Entity userEntity, User user)
+        private static Entity InstantiateTilePrefab(Entity prefabEntity, Nullable_Unboxed<float3> aimPosition, Tools data, Entity userEntity, User user)
         {
             PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(prefabEntity);
             string prefabName = prefabGUID.LookupName().ToLower();
@@ -501,7 +502,7 @@ namespace VBuild.BuildingSystem
             return prefabEntity;
         }
 
-        private static void ApplyTileSettings(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data, Entity userEntity, User user)
+        private static void ApplyTileSettings(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, Tools data, Entity userEntity, User user)
         {
             // Apply settings like ImmortalTiles, MapIconToggle, etc.
             ApplyImmortalTilesSetting(tileEntity, data);
@@ -511,7 +512,7 @@ namespace VBuild.BuildingSystem
             FinalizeTileSpawn(tileEntity, aimPosition, data, user);
         }
 
-        private static Entity DefaultInstantiateBehavior(Entity prefabEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data)
+        private static Entity DefaultInstantiateBehavior(Entity prefabEntity, Nullable_Unboxed<float3> aimPosition, Tools data)
         {
             Entity tileEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
             Utilities.SetComponentData(tileEntity, new Translation { Value = aimPosition.Value });
@@ -527,17 +528,17 @@ namespace VBuild.BuildingSystem
             Utilities.SetComponentData(tileEntity, new Rotation { Value = rotationQuaternion });
         }
 
-        private static void ApplyImmortalTilesSetting(Entity tileEntity, BuildSettings data)
+        private static void ApplyImmortalTilesSetting(Entity tileEntity, Tools data)
         {
-            if (data.GetToggle("ImmortalTiles"))
+            if (data.GetMode("ImmortalTiles"))
             {
                 Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
             }
         }
 
-        private static void ApplyMapIconSetting(Entity tileEntity, BuildSettings data, User user)
+        private static void ApplyMapIconSetting(Entity tileEntity, Tools data, User user)
         {
-            if (data.GetToggle("MapIconToggle"))
+            if (data.GetMode("MapIconToggle"))
             {
                 if (data.MapIcon == 0)
                 {
@@ -555,9 +556,9 @@ namespace VBuild.BuildingSystem
             }
         }
 
-        private static void ApplySnappingSetting(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data)
+        private static void ApplySnappingSetting(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, Tools data)
         {
-            if (data.GetToggle("SnappingToggle"))
+            if (data.GetMode("SnappingToggle"))
             {
                 float3 mousePosition = aimPosition.Value;
                 // Assuming TileSnap is an int representing the grid size index
@@ -571,7 +572,7 @@ namespace VBuild.BuildingSystem
             }
         }
 
-        private static void FinalizeTileSpawn(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, BuildSettings data, User user)
+        private static void FinalizeTileSpawn(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, Tools data, User user)
         {
             if (!Utilities.HasComponent<InteractedUpon>(tileEntity))
             {

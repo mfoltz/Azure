@@ -1,4 +1,4 @@
-﻿namespace VBuild.Core
+﻿namespace VCreate.Core.Converters
 {
     public class CommandParser
     {

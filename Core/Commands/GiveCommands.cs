@@ -5,7 +5,7 @@ using Unity.Entities;
 using VampireCommandFramework;
 using VBuild.Core.Toolbox;
 
-namespace VBuild.Core.Commands
+namespace VCreate.Core.Commands
 {
     [CommandGroup(name: "VBuild", shortHand: "vb")]
     internal class GiveItemCommands

@@ -104,7 +104,7 @@ internal class EmoteSystemPatch
             //settings.SetToggle("CopyToggle", !currentValue);
             // Update the player's build settings in the database
         
-            string stateMessage = settings.GetToggle("CopyToggle") ? enabledColor : disabledColor;
+            string stateMessage = settings.GetMode("CopyToggle") ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"CopyMode: |{stateMessage}|");
         }
     }
@@ -118,7 +118,7 @@ internal class EmoteSystemPatch
             //settings.SetToggle("CopyToggle", !currentValue);
             // Update the player's build settings in the database
 
-            string stateMessage = settings.GetToggle("BuffToggle") ? enabledColor : disabledColor;
+            string stateMessage = settings.GetMode("BuffToggle") ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"BuffMode: |{stateMessage}|");
         }
     }
@@ -132,7 +132,7 @@ internal class EmoteSystemPatch
             //settings.SetToggle("CopyToggle", !currentValue);
             // Update the player's build settings in the database
 
-            string stateMessage = settings.GetToggle("LinkToggle") ? enabledColor : disabledColor;
+            string stateMessage = settings.GetMode("LinkToggle") ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"LinkMode: |{stateMessage}|");
         }
     }
@@ -147,7 +147,7 @@ internal class EmoteSystemPatch
             //settings.SetToggle("CopyToggle", !currentValue);
             // Update the player's build settings in the database
 
-            string stateMessage = settings.GetToggle("EquipToggle") ? enabledColor : disabledColor;
+            string stateMessage = settings.GetMode("EquipToggle") ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"EquipMode: |{stateMessage}|");
         }
     }
@@ -159,7 +159,7 @@ internal class EmoteSystemPatch
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
-            bool currentValue = settings.GetToggle("KillToggle");
+            bool currentValue = settings.GetMode("KillToggle");
             string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
             Databases.SaveBuildSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"KillMode: |{stateMessage}|");
@@ -170,8 +170,8 @@ internal class EmoteSystemPatch
     {
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
-            bool currentValue = settings.GetToggle("BuildMode");
-            settings.SetToggle("BuildMode", !currentValue);
+            bool currentValue = settings.GetMode("BuildMode");
+            settings.SetMode("BuildMode", !currentValue);
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
@@ -186,7 +186,7 @@ internal class EmoteSystemPatch
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
-            bool currentValue = settings.GetToggle("InspectToggle");
+            bool currentValue = settings.GetMode("InspectToggle");
             string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
             Databases.SaveBuildSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"InspectMode: |{stateMessage}|");
@@ -200,7 +200,7 @@ internal class EmoteSystemPatch
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
-            bool currentValue = settings.GetToggle("DebuffToggle");
+            bool currentValue = settings.GetMode("DebuffToggle");
             string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
             Databases.SaveBuildSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"DebuffMode: |{stateMessage}|");
@@ -213,7 +213,7 @@ internal class EmoteSystemPatch
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
-            bool currentValue = settings.GetToggle("ConvertToggle");
+            bool currentValue = settings.GetMode("ConvertToggle");
             string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
             Databases.SaveBuildSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ConvertMode: |{stateMessage}|");
@@ -225,8 +225,8 @@ internal class EmoteSystemPatch
     {
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
-            bool currentValue = settings.GetToggle("ImmortalTiles");
-            settings.SetToggle("ImmortalTiles", !currentValue);
+            bool currentValue = settings.GetMode("ImmortalTiles");
+            settings.SetMode("ImmortalTiles", !currentValue);
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
@@ -252,8 +252,8 @@ internal class EmoteSystemPatch
     {
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
-            bool currentValue = settings.GetToggle("MapIconToggle");
-            settings.SetToggle("MapIconToggle", !currentValue);
+            bool currentValue = settings.GetMode("MapIconToggle");
+            settings.SetMode("MapIconToggle", !currentValue);
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
@@ -265,8 +265,8 @@ internal class EmoteSystemPatch
     {
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
-            bool currentValue = settings.GetToggle("SnappingToggle");
-            settings.SetToggle("SnappingToggle", !currentValue);
+            bool currentValue = settings.GetMode("SnappingToggle");
+            settings.SetMode("SnappingToggle", !currentValue);
             Databases.playerBuildSettings[playerId] = settings;
             Databases.SaveBuildSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
@@ -390,18 +390,18 @@ internal class EmoteSystemPatch
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
             // Default all toggles to false
-            settings.SetToggle("ControlToggle", false);
-            settings.SetToggle("KillToggle", false);
-            settings.SetToggle("BuildMode", false);
-            settings.SetToggle("InspectToggle", false);
-            settings.SetToggle("SnappingToggle", false);
-            settings.SetToggle("ImmortalTiles", false);
-            settings.SetToggle("MapIconToggle", false);
-            settings.SetToggle("CopyToggle", false);
-            settings.SetToggle("DebuffToggle", false);
-            settings.SetToggle("ConvertToggle", false);
-            settings.SetToggle("BuffToggle", false);
-            settings.SetToggle("LinkToggle", false);
+            settings.SetMode("ControlToggle", false);
+            settings.SetMode("KillToggle", false);
+            settings.SetMode("BuildMode", false);
+            settings.SetMode("InspectToggle", false);
+            settings.SetMode("SnappingToggle", false);
+            settings.SetMode("ImmortalTiles", false);
+            settings.SetMode("MapIconToggle", false);
+            settings.SetMode("CopyToggle", false);
+            settings.SetMode("DebuffToggle", false);
+            settings.SetMode("ConvertToggle", false);
+            settings.SetMode("BuffToggle", false);
+            settings.SetMode("LinkToggle", false);
 
 
 
@@ -420,25 +420,25 @@ internal class EmoteSystemPatch
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
             // Default all toggles to false
-            settings.SetToggle("ControlToggle", false);
-            settings.SetToggle("KillToggle", false);
-            settings.SetToggle("BuildMode", false);
-            settings.SetToggle("InspectToggle", false);
-            settings.SetToggle("SnappingToggle", false);
-            settings.SetToggle("ImmortalTiles", false);
-            settings.SetToggle("MapIconToggle", false);
-            settings.SetToggle("CopyToggle", false);
-            settings.SetToggle("DebuffToggle", false);
-            settings.SetToggle("ConvertToggle", false);
-            settings.SetToggle("BuffToggle", false);
-            settings.SetToggle("LinkToggle", false);
+            settings.SetMode("ControlToggle", false);
+            settings.SetMode("KillToggle", false);
+            settings.SetMode("BuildMode", false);
+            settings.SetMode("InspectToggle", false);
+            settings.SetMode("SnappingToggle", false);
+            settings.SetMode("ImmortalTiles", false);
+            settings.SetMode("MapIconToggle", false);
+            settings.SetMode("CopyToggle", false);
+            settings.SetMode("DebuffToggle", false);
+            settings.SetMode("ConvertToggle", false);
+            settings.SetMode("BuffToggle", false);
+            settings.SetMode("LinkToggle", false);
 
 
 
             // Enable the exceptToggle, if specified
             if (!string.IsNullOrEmpty(exceptToggle))
             {
-                settings.SetToggle(exceptToggle, true);
+                settings.SetMode(exceptToggle, true);
             }
 
             // Update the player's build settings in the database
@@ -481,7 +481,7 @@ internal class EmoteSystemPatch
             }
             else
             {
-                bool currentValue = settings.GetToggle("ControlToggle");
+                bool currentValue = settings.GetMode("ControlToggle");
                 string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
                 Databases.SaveBuildSettings();
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ControlMode: |{stateMessage}|");
@@ -499,7 +499,7 @@ internal class EmoteSystemPatch
 
         if (Databases.playerBuildSettings.TryGetValue(platformId, out var settings))
         {
-            string lastTileRef = settings.PopLastTilePlaced();
+            string lastTileRef = settings.PopEntity();
             if (!string.IsNullOrEmpty(lastTileRef))
             {
                 string[] parts = lastTileRef.Split(", ");

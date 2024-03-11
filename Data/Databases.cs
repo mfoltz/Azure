@@ -22,6 +22,6 @@ namespace VBuild.Data
             IncludeFields = true
         };
 
-        public static Dictionary<ulong, BuildSettings> playerBuildSettings = new();
+        public static Dictionary<ulong, Tools> playerBuildSettings = new();
     }
 }

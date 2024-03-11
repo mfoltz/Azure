@@ -1,5 +1,4 @@
 ﻿using Bloodstone.API;
-using VBuild.Core;
 using FMOD.Studio;
 using HarmonyLib;
 using Il2CppSystem;
@@ -31,93 +30,12 @@ using ProjectM.Tiles;
 using ProjectM.Gameplay;
 using ProjectM.Shared.Systems;
 using VBuild.Core.Services;
+using VCreate.Core.Commands;
 
 //WIP
 
 namespace WorldBuild.Hooks
 {
-
-    /*
-    [HarmonyPatch(typeof(FollowerSystem), nameof(FollowerSystem.OnUpdate))]
-    public static class FollowerSystem_Patch
-    {
-        public static void Prefix(FollowerSystem __instance)
-        {
-            NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Allocator.Temp);
-            foreach (Entity entity in entities)
-            {
-                Plugin.Logger.LogInfo("FollowerSystem Prefix called, processing follower entity00...");
-                entity.LogComponentTypes();
-                Follower follower = Utilities.GetComponentData<Follower>(entity);
-                Entity followerEntity = follower.Followed;
-               
-                
-            }
-            entities.Dispose();
-
-            entities = __instance.__OnUpdate_LambdaJob1_entityQuery.ToEntityArray(Allocator.Temp);
-            foreach (Entity entity in entities)
-            {
-                Plugin.Logger.LogInfo("FollowerSystem Prefix called, processing follower entity01...");
-                entity.LogComponentTypes();
-
-
-
-            }
-            entities.Dispose();
-        }
-    }
-    
-    
-    [HarmonyPatch(typeof(CreateGameplayEventsOnDamageTakenSystem), nameof(CreateGameplayEventsOnDamageTakenSystem.OnUpdate))]
-    public static class CreateGameplayEventsOnDamageTakenSystem_Patch
-    {
-        public static void Prefix(CreateGameplayEventsOnDamageTakenSystem __instance)
-        {
-            NativeArray<Entity> entities = __instance._DamageTakenEventQuery.ToEntityArray(Allocator.Temp);
-            foreach (Entity entity in entities)
-            {
-                //Plugin.Logger.LogInfo("CreateGameplayEventsOnDamageTakenSystem Prefix called, processing DamageTakenEvent...");
-                //entity.LogComponentTypes();
-                DamageTakenEvent damageTakenEvent = Utilities.GetComponentData<DamageTakenEvent>(entity);
-                Entity damageTakenEventEntity = damageTakenEvent.Entity;
-                Entity source = damageTakenEvent.Source;
-                //damageTakenEventEntity.LogComponentTypes();
-                //source.LogComponentTypes();
-                if (Utilities.HasComponent<EntityOwner>(source))
-                {
-                    EntityOwner entityOwner = Utilities.GetComponentData<EntityOwner>(source);
-                    //entityOwner.Owner.LogComponentTypes();
-                    if (!Utilities.HasComponent<ControlledBy>(entityOwner.Owner))
-                    {
-                        continue;
-                    }
-                    ControlledBy controlledBy = Utilities.GetComponentData<ControlledBy>(entityOwner.Owner);
-                    Entity controller = controlledBy.Controller;
-                    //controller.LogComponentTypes();
-                    User user = Utilities.GetComponentData<User>(controller);
-                    if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
-                    {
-                        
-                        if (settings.DismantleMode)
-                        {
-                            Plugin.Logger.LogInfo("Player is in dismantle mode, destroying tile...");
-                            if (Utilities.HasComponent<TileModel>(damageTakenEventEntity))
-                            {
-                                string entityString = damageTakenEventEntity.Index.ToString() + ", " + damageTakenEventEntity.Version.ToString(); //funny story, ask me about it if you end up reading this :P
-                                //Plugin.Logger.LogInfo(entityString);
-
-                                SystemPatchUtil.Destroy(damageTakenEventEntity);
-                            }
-                        }
-                        
-                    }
-                }
-            }
-            entities.Dispose();
-        }
-    }
-    */
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
     public static class CastleHeartPlacementPatch
     {
@@ -128,57 +46,51 @@ namespace WorldBuild.Hooks
             //Plugin.Logger.LogInfo("PlaceTileModelSystem Prefix called...");
             EntityManager entityManager = VWorld.Server.EntityManager;
 
-            var castJobs = __instance._AbilityCastFinishedQuery.ToEntityArray(Allocator.Temp);
+        
             var jobs = __instance._BuildTileQuery.ToEntityArray(Allocator.Temp);
             foreach (var job in jobs)
             {
                 if (IsCastleHeart(job))
                 {
-                    if (!VBuild.Core.CoreCommands.WorldBuildToggle.wbFlag)
-                    {
-                        return;
-                    }
+                    if (!CoreCommands.WorldBuildToggle.wbFlag) return;
                     CancelCastleHeartPlacement(entityManager, job);
                 }
             }
             jobs.Dispose();
 
-            foreach (var job in castJobs)
+            jobs = __instance._AbilityCastFinishedQuery.ToEntityArray(Allocator.Temp);
+            foreach (var job in jobs)
             {
-                //Plugin.Logger.LogInfo("AbilityCastFinished event...");
-                //job.LogComponentTypes();
-                if (Utilities.HasComponent<AbilityPreCastFinishedEvent>(job))
-                {
-                    AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
+                if (!Utilities.HasComponent<AbilityPreCastFinishedEvent>(job)) continue;
+                
+                AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
+                Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
+                PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
+                Entity character = abilityPreCastFinishedEvent.Character;
 
-                    Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
-                    //abilityGroupData.LogComponentTypes();
-                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
-                    Entity character = abilityPreCastFinishedEvent.Character;
-                    if (!Utilities.HasComponent<PlayerCharacter>(character))
+                if (!Utilities.HasComponent<PlayerCharacter>(character)) continue;
+
+                PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
+                Entity userEntity = playerCharacter.UserEntity;
+                User user = Utilities.GetComponentData<User>(userEntity);
+
+                if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings) && settings.)
+                {
+                    if (prefabGUID.Equals(VBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
                     {
-                        continue;
-                    }
-                    PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
-                    Entity userEntity = playerCharacter.UserEntity;
-                    User user = Utilities.GetComponentData<User>(userEntity);
-                    if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
-                    {
-                        if (prefabGUID.Equals(VBuild.Data.Prefabs.AB_Consumable_Tech_Ability_Charm_Level02_AbilityGroup))
-                        {
-                            Plugin.Logger.LogInfo("Charm ability cast detected...");
-                            HandleAbilityCast(userEntity);
-                        }
+                        Plugin.Logger.LogInfo("Charm ability cast detected...");
+                        HandleAbilityCast(userEntity);
                     }
                 }
+                
             }
-            castJobs.Dispose();
+            jobs.Dispose();
         }
         public static void HandleAbilityCast(Entity userEntity)
         {
             var user = Utilities.GetComponentData<User>(userEntity);
 
-            if (!Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
+            if (!Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 return; // or handle the case of missing settings
             }
@@ -190,12 +102,12 @@ namespace WorldBuild.Hooks
             action?.Invoke(userEntity, settings);
         }
 
-        private static System.Action<Entity, BuildSettings> DecideAction(BuildSettings settings)
+        private static System.Action<Entity, Tools> DecideAction(Tools settings)
         {
             // Example: Checking for a specific prefabGUID and toggle
             Plugin.Logger.LogInfo("Deciding action based on settings...");
             
-            if (settings.GetToggle("InspectToggle"))
+            if (settings.GetMode("InspectToggle"))
             {
                 return (userEntity, _) =>
                 {
@@ -203,14 +115,14 @@ namespace WorldBuild.Hooks
                     TileSets.InspectHoveredEntity(userEntity);
                 };
             }
-            else if (settings.GetToggle("KillToggle"))
+            else if (settings.GetMode("KillToggle"))
             {
                 return (userEntity, _) =>
                 {
                     TileSets.KillHoveredEntity(userEntity);
                 };
             }
-            else if (settings.GetToggle("ControlToggle"))
+            else if (settings.GetMode("ControlToggle"))
             {
                 return (userEntity, _) =>
                 {
@@ -218,42 +130,42 @@ namespace WorldBuild.Hooks
                     VBuild.Hooks.EmoteSystemPatch.ControlCommand(userEntity);
                 };
             }
-            else if (settings.GetToggle("CopyToggle"))
+            else if (settings.GetMode("CopyToggle"))
             {
                 return (userEntity, _) =>
                 {
                     TileSets.SpawnCopy(userEntity);
                 };
             }
-            else if (settings.GetToggle("DebuffToggle"))
+            else if (settings.GetMode("DebuffToggle"))
             {
                 return (userEntity, _) =>
                 {
                     TileSets.DebuffTileModel(userEntity);
                 };
             }
-            else if (settings.GetToggle("ConvertToggle"))
+            else if (settings.GetMode("ConvertToggle"))
             {
                 return (userEntity, _) =>
                 {
                     TileSets.ConvertCharacter(userEntity);
                 };
             }
-            else if (settings.GetToggle("BuffToggle"))
+            else if (settings.GetMode("BuffToggle"))
             {
                 return (userEntity, _) =>
                 {
                     TileSets.BuffAtHover(userEntity);
                 };
             }
-            else if (settings.GetToggle("EquipToggle"))
+            else if (settings.GetMode("EquipToggle"))
             {
                 return (userEntity, _) =>
                 {
                     TileSets.SummonHelpers(userEntity);
                 };
             }
-            else if (settings.GetToggle("LinkToggle"))
+            else if (settings.GetMode("LinkToggle"))
             {
                 return (userEntity, _) =>
                 {
@@ -360,9 +272,9 @@ public static class TileOperationUtility
 
     private static bool CanEditTiles(User user)
     {
-        if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings data))
+        if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools data))
         {
-            return data.GetToggle("CanEditTiles");
+            return data.GetMode("CanEditTiles");
         }
         return false;
     }

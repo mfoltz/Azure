@@ -82,13 +82,13 @@ namespace VBuild.Core
             Plugin.Logger.LogWarning($"BuildSettings found: {json}");
             try
             {
-                Databases.playerBuildSettings = JsonSerializer.Deserialize<Dictionary<ulong, BuildSettings>>(json);
+                Databases.playerBuildSettings = JsonSerializer.Deserialize<Dictionary<ulong, Tools>>(json);
                 Plugin.Logger.LogWarning("BuildSettings Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                Databases.playerBuildSettings = new Dictionary<ulong, BuildSettings>();
+                Databases.playerBuildSettings = new Dictionary<ulong, Tools>();
                 Plugin.Logger.LogWarning("BuildSettings Created");
             }
         }

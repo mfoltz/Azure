@@ -6,12 +6,12 @@ using VBuild.Data;
 using VBuild.Core.Toolbox;
 using VBuild.Core.Converters;
 
-namespace VBuild.Core
+namespace VCreate.Core.Commands
 {
-  
+
     internal class BuffCommands
     {
-        
+
         [Command(name: "buff", shortHand: "b", adminOnly: true, usage: ".v b <PrefabGUID> <Player> <Duration> <Persists>", description: "Buff a player with a prefab name or guid.")]
         public void BuffCommand(ChatCommandContext ctx, FoundPrefabGuid buffGuid, FoundPlayer player = null, int duration = Helper.DEFAULT_DURATION, bool persistsThroughDeath = false)
         {

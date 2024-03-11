@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	<AssemblyName>VBuild</AssemblyName>
+	<AssemblyName>VCreate</AssemblyName>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<LangVersion>latest</LangVersion>
@@ -31,9 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="VPlus">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRising\VRising_Server\BepInEx\plugins\VPlus.dll</HintPath>
-    </Reference>
     <Reference Include="VRising.GameData">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRising\VRising_Server\BepInEx\plugins\VRising.GameData.dll</HintPath>
     </Reference>

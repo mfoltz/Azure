@@ -8,9 +8,9 @@ using VampireCommandFramework;
 using VBuild.Core.Toolbox;
 using VBuild.Core.Converters;
 
-namespace VBuild.Core
+namespace VCreate.Core.Commands
 {
-    
+
     internal class GodCommands
     {
         public static Dictionary<Entity, Dictionary<string, bool>> PlayerBuffDictionary = new Dictionary<Entity, Dictionary<string, bool>>();
