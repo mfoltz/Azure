@@ -74,7 +74,7 @@ namespace WorldBuild.Hooks
                 Entity userEntity = playerCharacter.UserEntity;
                 User user = Utilities.GetComponentData<User>(userEntity);
 
-                if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings) && settings.)
+                if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings) && settings.)
                 {
                     if (prefabGUID.Equals(VBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
                     {
@@ -90,7 +90,7 @@ namespace WorldBuild.Hooks
         {
             var user = Utilities.GetComponentData<User>(userEntity);
 
-            if (!Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (!Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 return; // or handle the case of missing settings
             }
@@ -112,14 +112,14 @@ namespace WorldBuild.Hooks
                 return (userEntity, _) =>
                 {
                     //Plugin.Logger.LogInfo("Inspect mode enabled, skipping tile spawn...");
-                    TileSets.InspectHoveredEntity(userEntity);
+                    OnHover.InspectHoveredEntity(userEntity);
                 };
             }
             else if (settings.GetMode("KillToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    TileSets.KillHoveredEntity(userEntity);
+                    OnHover.KillHoveredEntity(userEntity);
                 };
             }
             else if (settings.GetMode("ControlToggle"))
@@ -134,42 +134,42 @@ namespace WorldBuild.Hooks
             {
                 return (userEntity, _) =>
                 {
-                    TileSets.SpawnCopy(userEntity);
+                    OnHover.SpawnCopy(userEntity);
                 };
             }
             else if (settings.GetMode("DebuffToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    TileSets.DebuffTileModel(userEntity);
+                    OnHover.DebuffTileModel(userEntity);
                 };
             }
             else if (settings.GetMode("ConvertToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    TileSets.ConvertCharacter(userEntity);
+                    OnHover.ConvertCharacter(userEntity);
                 };
             }
             else if (settings.GetMode("BuffToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    TileSets.BuffAtHover(userEntity);
+                    OnHover.BuffAtHover(userEntity);
                 };
             }
             else if (settings.GetMode("EquipToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    TileSets.SummonHelpers(userEntity);
+                    OnHover.SummonHelpers(userEntity);
                 };
             }
             else if (settings.GetMode("LinkToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    TileSets.LinkHelper(userEntity);
+                    OnHover.LinkHelper(userEntity);
                 };
             }
             
@@ -180,7 +180,7 @@ namespace WorldBuild.Hooks
                 return (userEntity, _) =>
                 {
                     Plugin.Logger.LogInfo("No specific action decided, proceeding with default...");
-                    TileSets.SpawnTileModel(userEntity);
+                    OnHover.SpawnTileModel(userEntity);
                 };
             }
             
@@ -272,7 +272,7 @@ public static class TileOperationUtility
 
     private static bool CanEditTiles(User user)
     {
-        if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools data))
+        if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools data))
         {
             return data.GetMode("CanEditTiles");
         }

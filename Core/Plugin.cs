@@ -14,8 +14,9 @@ using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.BuildingSystem;
 using VBuild.Data;
+using VCreate.Systems;
 
-namespace VBuild.Core
+namespace VCreate.Core
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("gg.deca.Bloodstone")]
@@ -24,10 +25,12 @@ namespace VBuild.Core
     {
         private Harmony _harmony;
         internal static Plugin Instance { get; private set; }
-        public static ManualLogSource Logger;
+
+        private static ManualLogSource Logger;
+        public static new ManualLogSource Log => Logger;
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
-        public static readonly string BuildSettingsJson = Path.Combine(Plugin.ConfigPath, "player_build_settings.json");
+        public static readonly string PlayerSettingsJSON = Path.Combine(Plugin.ConfigPath, "playerSettings.json");
 
         public override void Load()
         {
@@ -44,9 +47,10 @@ namespace VBuild.Core
 
         private void GameDataOnInitialize(World world)
         {
+
         }
 
-        private void InitConfig()
+        private static void InitConfig()
         {
             // Initialize configuration settings
 
@@ -60,7 +64,7 @@ namespace VBuild.Core
         {
             Config.Clear();
             _harmony.UnpatchSelf();
-            Databases.SaveBuildSettings();
+            VCreate.Core.DataStructures.SaveSettings();
             return true;
         }
 
@@ -72,23 +76,23 @@ namespace VBuild.Core
 
         public static void LoadData()
         {
-            if (!File.Exists(Plugin.BuildSettingsJson))
+            if (!File.Exists(Plugin.PlayerSettingsJSON))
             {
-                var stream = File.Create(Plugin.BuildSettingsJson);
+                var stream = File.Create(Plugin.PlayerSettingsJSON);
                 stream.Dispose();
             }
 
-            string json = File.ReadAllText(Plugin.BuildSettingsJson);
+            string json = File.ReadAllText(Plugin.PlayerSettingsJSON);
             Plugin.Logger.LogWarning($"BuildSettings found: {json}");
             try
             {
-                Databases.playerBuildSettings = JsonSerializer.Deserialize<Dictionary<ulong, Tools>>(json);
+                VCreate.Core.DataStructures.PlayerSettings = JsonSerializer.Deserialize<Dictionary<ulong, Omnitool>>(json);
                 Plugin.Logger.LogWarning("BuildSettings Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                Databases.playerBuildSettings = new Dictionary<ulong, Tools>();
+                VCreate.Core.DataStructures.PlayerSettings = [];
                 Plugin.Logger.LogWarning("BuildSettings Created");
             }
         }

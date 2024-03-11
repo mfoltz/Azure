@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VampireCommandFramework;
 using Il2CppSystem;
-using static VBuild.BuildingSystem.TileSets;
+using static VBuild.BuildingSystem.OnHover;
 using VBuild.BuildingSystem;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
@@ -177,7 +177,7 @@ namespace VCreate.Core.Commands
             User setter = ctx.Event.User;
             TryGetUserFromName(name, out Entity userEntity);
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 // Toggle the CanEditTiles value
                 bool currentCanEditTiles = settings.GetMode("CanEditTiles");
@@ -195,7 +195,7 @@ namespace VCreate.Core.Commands
                 newSettings.SetMode("CanEditTiles", true);
 
                 // Assuming you have a method to add or update settings in your Databases object
-                Databases.playerBuildSettings.Add(user.PlatformId, newSettings);
+                Databases.playerSettings.Add(user.PlatformId, newSettings);
                 Databases.SaveBuildSettings();
                 ctx.Reply($"Created new build settings and set tile permissions to true.");
             }
@@ -212,7 +212,7 @@ namespace VCreate.Core.Commands
             }
 
             User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 settings.TileRotation = rotation;
                 Databases.SaveBuildSettings();
@@ -224,14 +224,14 @@ namespace VCreate.Core.Commands
         public static void ListTilesCommand(ChatCommandContext ctx)
         {
             ulong SteamID = ctx.Event.User.PlatformId;
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
+            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
             {
                 if (!ModelRegistry.tilesBySet.ContainsKey(data.TileSet))
                 {
                     ctx.Reply("Invalid set name.");
                     return;
                 }
-                var tiles = TileSets.GetTilesBySet(data.TileSet);
+                var tiles = OnHover.GetTilesBySet(data.TileSet);
                 if (tiles == null)
                 {
                     ctx.Reply($"No tiles available for '{data.TileSet}'.");
@@ -256,7 +256,7 @@ namespace VCreate.Core.Commands
             ulong SteamID = ctx.Event.User.PlatformId;
 
             string lowerCaseChoice = choice.ToLower();
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
+            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
             {
                 // want to compare to lowercase version of dictionary keys
 
@@ -289,7 +289,7 @@ namespace VCreate.Core.Commands
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
+            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
             {
                 // Assuming there's a similar check for map icons as there is for tile models
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
@@ -324,7 +324,7 @@ namespace VCreate.Core.Commands
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
+            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
             {
                 var setChoice = data.TileSet;
                 Dictionary<int, TileConstructor> tiles = GetTilesBySet(setChoice);
@@ -352,7 +352,7 @@ namespace VCreate.Core.Commands
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerBuildSettings.TryGetValue(SteamID, out Tools data))
+            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
             {
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
                 {
@@ -376,7 +376,7 @@ namespace VCreate.Core.Commands
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
             User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools data))
+            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools data))
             {
                 string lastTileRef = data.PopEntity();
                 if (!string.IsNullOrEmpty(lastTileRef))
@@ -419,7 +419,7 @@ namespace VCreate.Core.Commands
         public static void ChooseMapIcon(ChatCommandContext ctx, int choice)
         {
             User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
 
                 if (TileUtils.MapIconFunctions.mapIcons.TryGetValue(choice, out int mapIcon))

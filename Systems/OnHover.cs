@@ -25,11 +25,12 @@ using VBuild.Core;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Data;
+using VCreate.Systems;
 using VRising.GameData.Models;
 using static ProjectM.Behaviours.CastOptionCandidateSorters;
 using static RootMotion.FinalIK.InteractionObject;
 using static UnityEngine.UI.Image;
-using static VBuild.BuildingSystem.TileSets;
+using static VBuild.BuildingSystem.OnHover;
 using static VBuild.Core.Services.UnitSpawnerService;
 using static VCF.Core.Basics.RoleCommands;
 using Buff = VBuild.Data.Buff;
@@ -42,10 +43,10 @@ using User = ProjectM.Network.User;
 
 namespace VBuild.BuildingSystem
 {
-    public class TileSets
+    public class OnHover
     {
         
-        public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 10f }; // grid sizes to cycle through
+        
 
         public static unsafe void InspectHoveredEntity(Entity userEntity)
         {
@@ -78,7 +79,7 @@ namespace VBuild.BuildingSystem
                 // need to figure out how to make everything able to attack by default to and if the combat buffs are universal or apply to them specifically
 
                 ulong steamId = user.PlatformId;
-                if (Databases.playerBuildSettings.TryGetValue(steamId, out Tools settings))
+                if (Databases.playerSettings.TryGetValue(steamId, out Omnitool settings))
                 {
                     // Create a unique string reference for the entity or prefab or whatever
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
@@ -104,7 +105,7 @@ namespace VBuild.BuildingSystem
 
         public static void BuffAtHover(Entity userEntity)
         {
-            if (VPlus.Data.Databases.playerPrestige.TryGetValue(userEntity.Read<User>().PlatformId, out var data))
+            if (VCreate.Systems.Omnitool.data.TryGetValue(userEntity.Read<User>().PlatformId, out var data))
             {
                 
                 
@@ -401,7 +402,7 @@ namespace VBuild.BuildingSystem
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
 
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
                 EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
                 EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
@@ -435,7 +436,7 @@ namespace VBuild.BuildingSystem
             var steamId = user.PlatformId;
             var aimPosition = new Nullable_Unboxed<float3>(userEntity.Read<EntityInput>().AimPosition);
 
-            if (!Databases.playerBuildSettings.TryGetValue(steamId, out Tools data))
+            if (!Databases.playerSettings.TryGetValue(steamId, out Tools data))
             {
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Unable to locate build settings.");
                 return;
@@ -563,7 +564,7 @@ namespace VBuild.BuildingSystem
                 float3 mousePosition = aimPosition.Value;
                 // Assuming TileSnap is an int representing the grid size index
                 // If TileSnap now refers directly to the size, adjust accordingly
-                float gridSize = TileSets.gridSizes[data.TileSnap]; // Adjust this line if the way you access grid sizes has changed
+                float gridSize = OnHover.gridSizes[data.TileSnap]; // Adjust this line if the way you access grid sizes has changed
                 mousePosition = new float3(
                     math.round(mousePosition.x / gridSize) * gridSize,
                     mousePosition.y,
