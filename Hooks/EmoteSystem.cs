@@ -37,7 +37,7 @@ internal class EmoteSystemPatch
 
     private static readonly Dictionary<int, Action<Player, ulong>> emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
-            { -658066984, ToggleSnapping }, // Beckon
+            { -658066984, ToggleEquipMode }, // Beckon
             { -1462274656, ToggleBuildMode }, // Bow
             { -26826346, ToggleConvert }, // Clap
             { -452406649, ToggleInspectMode }, // Point
@@ -45,7 +45,7 @@ internal class EmoteSystemPatch
             { -370061286, ToggleCopyMode }, // Salute
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, ToggleBuffMode }, // Sit
-            { -1064533554, ToggleTileRotation}, // Surrender
+            { -1064533554, ToggleLinkMode}, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
             { -1525577000, ToggleControlMode } // Yes
@@ -55,7 +55,7 @@ internal class EmoteSystemPatch
     {
         emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
-            { -658066984, ToggleSnapping }, // Beckon
+            { -658066984, ToggleEquipMode }, // Beckon
             { -1462274656, ToggleBuildMode }, // Bow
             { -26826346, ToggleConvert }, // Clap
             { -452406649, ToggleInspectMode }, // Point
@@ -63,7 +63,7 @@ internal class EmoteSystemPatch
             { -370061286, ToggleCopyMode }, // Salute so for multiple wheels it'd be something like use copy mode, replace with toggles for mode with option to exit mode
             { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, ToggleBuffMode }, // Sit
-            { -1064533554, ToggleTileRotation }, // Surrender
+            { -1064533554, ToggleLinkMode }, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
             { -1525577000, ToggleControlMode } // Yes
@@ -113,7 +113,6 @@ internal class EmoteSystemPatch
         ResetAllToggles(playerId, "BuffToggle");
         if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
         {
-            ResetAllToggles(playerId, "BuffToggle");
             // Toggle the CopyModeToggle value
             //bool currentValue = settings.GetToggle("CopyToggle");
             //settings.SetToggle("CopyToggle", !currentValue);
@@ -121,6 +120,35 @@ internal class EmoteSystemPatch
 
             string stateMessage = settings.GetToggle("BuffToggle") ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"BuffMode: |{stateMessage}|");
+        }
+    }
+    private static void ToggleLinkMode(Player player, ulong playerId)
+    {
+        ResetAllToggles(playerId, "LinkToggle");
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            // Toggle the CopyModeToggle value
+            //bool currentValue = settings.GetToggle("CopyToggle");
+            //settings.SetToggle("CopyToggle", !currentValue);
+            // Update the player's build settings in the database
+
+            string stateMessage = settings.GetToggle("LinkToggle") ? enabledColor : disabledColor;
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"LinkMode: |{stateMessage}|");
+        }
+    }
+
+    private static void ToggleEquipMode(Player player, ulong playerId)
+    {
+        ResetAllToggles(playerId, "EquipToggle");
+        if (Databases.playerBuildSettings.TryGetValue(playerId, out var settings))
+        {
+            // Toggle the CopyModeToggle value
+            //bool currentValue = settings.GetToggle("CopyToggle");
+            //settings.SetToggle("CopyToggle", !currentValue);
+            // Update the player's build settings in the database
+
+            string stateMessage = settings.GetToggle("EquipToggle") ? enabledColor : disabledColor;
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"EquipMode: |{stateMessage}|");
         }
     }
 
@@ -191,6 +219,7 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ConvertMode: |{stateMessage}|");
         }
     }
+   
 
     private static void ToggleImmortalTiles(Player player, ulong playerId)
     {
@@ -370,6 +399,9 @@ internal class EmoteSystemPatch
             settings.SetToggle("MapIconToggle", false);
             settings.SetToggle("CopyToggle", false);
             settings.SetToggle("DebuffToggle", false);
+            settings.SetToggle("ConvertToggle", false);
+            settings.SetToggle("BuffToggle", false);
+            settings.SetToggle("LinkToggle", false);
 
 
 
@@ -397,6 +429,9 @@ internal class EmoteSystemPatch
             settings.SetToggle("MapIconToggle", false);
             settings.SetToggle("CopyToggle", false);
             settings.SetToggle("DebuffToggle", false);
+            settings.SetToggle("ConvertToggle", false);
+            settings.SetToggle("BuffToggle", false);
+            settings.SetToggle("LinkToggle", false);
 
 
 

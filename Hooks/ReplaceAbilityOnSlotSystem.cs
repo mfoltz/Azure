@@ -56,7 +56,11 @@ namespace WorldBuild.Hooks
                             }
                             */
                             // Replacing or adding abilities directly without checking buffer length
-                            ReplaceAbilityOnSlotBuff buildAbility = new ReplaceAbilityOnSlotBuff { Slot = 1, NewGroupId = spell1, };
+
+                                                        
+
+
+                            ReplaceAbilityOnSlotBuff buildAbility = new ReplaceAbilityOnSlotBuff { Slot = 1, NewGroupId = spell1 };
                             ReplaceAbilityOnSlotBuff nukeAbility = new ReplaceAbilityOnSlotBuff { Slot = 4, NewGroupId = spell2 };
 
                             //buffer.Clear(); // Clear the buffer if you want to reset abilities

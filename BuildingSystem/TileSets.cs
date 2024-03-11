@@ -1,12 +1,15 @@
 ﻿using Bloodstone.API;
 using Il2CppSystem;
+using MS.Internal.Xml.XPath;
 using ProjectM;
 using ProjectM.Behaviours;
+using ProjectM.Gameplay.Scripting;
 using ProjectM.Network;
 using ProjectM.Pathfinding;
 using ProjectM.Shared;
 using ProjectM.Shared.Systems;
 using ProjectM.Tiles;
+using ProjectM.UI;
 using System.Reflection;
 using Unity.Collections;
 using Unity.Entities;
@@ -15,12 +18,14 @@ using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Jobs;
 using UnityEngine.TextCore;
 using UnityEngine.Tilemaps;
 using VBuild.Core;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 using VBuild.Data;
+using VRising.GameData.Models;
 using static ProjectM.Behaviours.CastOptionCandidateSorters;
 using static RootMotion.FinalIK.InteractionObject;
 using static UnityEngine.UI.Image;
@@ -28,6 +33,7 @@ using static VBuild.BuildingSystem.TileSets;
 using static VBuild.Core.Services.UnitSpawnerService;
 using static VCF.Core.Basics.RoleCommands;
 using Buff = VBuild.Data.Buff;
+using Collider = Unity.Physics.Collider;
 using Exception = System.Exception;
 using ServantData = ProjectM.ServantData;
 using StringComparer = System.StringComparer;
@@ -38,6 +44,7 @@ namespace VBuild.BuildingSystem
 {
     public class TileSets
     {
+        
         public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 10f }; // grid sizes to cycle through
 
         public static unsafe void InspectHoveredEntity(Entity userEntity)
@@ -51,6 +58,7 @@ namespace VBuild.BuildingSystem
             if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
             {
                 // Log the component types of the hovered entity
+                
                 hoveredEntity.LogComponentTypes();
                 // component details here
                 //List<ComponentType> componentTypes = hoveredEntity.GetComponentTypes();
@@ -98,67 +106,54 @@ namespace VBuild.BuildingSystem
         {
             if (VPlus.Data.Databases.playerPrestige.TryGetValue(userEntity.Read<User>().PlatformId, out var data))
             {
+                
+                
                 PrefabGUID shiny = new(data.PlayerBuff);
                 Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
-                PlayerService.TryGetCharacterFromName(userEntity.Read<User>().CharacterName.ToString(), out Entity character);
-                FromCharacter fromCharacter = new() { Character = character, User = userEntity };
-                if (entity != Entity.Null && VWorld.Server.EntityManager.Exists(entity))
+                
+                
+                //PlayerService.TryGetCharacterFromName(userEntity.Read<User>().CharacterName.ToString(), out Entity character);
+                FromCharacter fromCharacter = new() { Character = entity, User = userEntity };
+                DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                var debugEvent = new ApplyBuffDebugEvent
                 {
-                    var buffer = entity.ReadBuffer<BuffBuffer>();
-                    buffer.Add(new BuffBuffer { Entity = entity, PrefabGuid = shiny });
-                    DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-                    var debugEvent = new ApplyBuffDebugEvent
+                    BuffPrefabGUID = shiny,
+                };
+
+                if (!BuffUtility.TryGetBuff(VWorld.Server.EntityManager, entity, shiny, out Entity buffEntity))
+                {
+                    debugEventsSystem.ApplyBuff(fromCharacter, debugEvent);
+                    if (BuffUtility.TryGetBuff(VWorld.Server.EntityManager, entity, shiny, out buffEntity))
                     {
-                        BuffPrefabGUID = shiny,
-                    };
-                    
-                    
-                    BufferFromEntity<BuffBuffer> bufferFromEntity = VWorld.Server.EntityManager.GetBufferFromEntity<BuffBuffer>();
-                    if (BuffUtility.TryGetBuff(entity, shiny, bufferFromEntity, out var result))
-                    {
-                        debugEventsSystem.ApplyBuff(fromCharacter, debugEvent);
-                        if (result.Has<CreateGameplayEventsOnSpawn>())
+                        if (buffEntity.Has<CreateGameplayEventsOnSpawn>())
                         {
-                            result.Remove<CreateGameplayEventsOnSpawn>();
+                            buffEntity.Remove<CreateGameplayEventsOnSpawn>();
+                        }
+                        if (buffEntity.Has<GameplayEventListeners>())
+                        {
+                            buffEntity.Remove<GameplayEventListeners>();
+                        }
+                        if (!Utilities.HasComponent<Buff_Persists_Through_Death>(buffEntity))
+                        {
+                            Utilities.AddComponent<Buff_Persists_Through_Death>(buffEntity);
                         }
 
-                        if (result.Has<GameplayEventListeners>())
+                        if (buffEntity.Has<LifeTime>())
                         {
-                            result.Remove<GameplayEventListeners>();
+                            var lifetime = buffEntity.Read<LifeTime>();
+                            lifetime.Duration = -1;
+                            lifetime.EndAction = LifeTimeEndAction.None;
+                            buffEntity.Write(lifetime);
+                            //buffEntity.Remove<LifeTime>();
                         }
-
-                        result.Add<Buff_Persists_Through_Death>();
-                        if (result.Has<RemoveBuffOnGameplayEvent>())
+                        if (buffEntity.Has<RemoveBuffOnGameplayEvent>())
                         {
-                            result.Remove<RemoveBuffOnGameplayEvent>();
+                            buffEntity.Remove<RemoveBuffOnGameplayEvent>();
                         }
-
-                        if (result.Has<RemoveBuffOnGameplayEventEntry>())
+                        if (buffEntity.Has<RemoveBuffOnGameplayEventEntry>())
                         {
-                            result.Remove<RemoveBuffOnGameplayEventEntry>();
+                            buffEntity.Remove<RemoveBuffOnGameplayEventEntry>();
                         }
-
-                        if (result.Has<LifeTime>())
-                        {
-                            LifeTime componentData2 = result.Read<LifeTime>();
-                            componentData2.Duration = -1f;
-                            componentData2.EndAction = LifeTimeEndAction.None;
-                            result.Write(componentData2);
-                        }
-
-                        if (result.Has<RemoveBuffOnGameplayEvent>())
-                        {
-                            result.Remove<RemoveBuffOnGameplayEvent>();
-                        }
-
-                        if (result.Has<RemoveBuffOnGameplayEventEntry>())
-                        {
-                            result.Remove<RemoveBuffOnGameplayEventEntry>();
-                        }
-                    }
-                    else
-                    {
-                        Plugin.Logger.LogInfo("Buff failed");
                     }
                 }
             }
@@ -166,6 +161,57 @@ namespace VBuild.BuildingSystem
             {
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Couldn't find data.");
             }
+        }
+
+        public static void BuffNonPlayer(Entity unitEntity, Entity userEntity, PrefabGUID prefabGUID)
+        {
+            
+          
+            //PlayerService.TryGetCharacterFromName(userEntity.Read<User>().CharacterName.ToString(), out Entity character);
+            FromCharacter fromCharacter = new() { Character = unitEntity, User = unitEntity };
+            DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            var debugEvent = new ApplyBuffDebugEvent
+            {
+                BuffPrefabGUID = prefabGUID,
+            };
+            if (!BuffUtility.TryGetBuff(VWorld.Server.EntityManager, unitEntity, prefabGUID, out Entity buffEntity))
+            {
+                debugEventsSystem.ApplyBuff(fromCharacter, debugEvent);
+                if (BuffUtility.TryGetBuff(VWorld.Server.EntityManager, unitEntity, prefabGUID, out buffEntity))
+                {
+                    if (buffEntity.Has<CreateGameplayEventsOnSpawn>())
+                    {
+                        buffEntity.Remove<CreateGameplayEventsOnSpawn>();
+                    }
+                    if (buffEntity.Has<GameplayEventListeners>())
+                    {
+                        buffEntity.Remove<GameplayEventListeners>();
+                    }
+                    if (!Utilities.HasComponent<Buff_Persists_Through_Death>(buffEntity))
+                    {
+                        Utilities.AddComponent<Buff_Persists_Through_Death>(buffEntity);
+                    }
+
+                    if (buffEntity.Has<LifeTime>())
+                    {
+                        var lifetime = buffEntity.Read<LifeTime>();
+                        lifetime.Duration = -1;
+                        lifetime.EndAction = LifeTimeEndAction.None;
+                        buffEntity.Write(lifetime);
+                        //buffEntity.Remove<LifeTime>();
+                    }
+                    if (buffEntity.Has<RemoveBuffOnGameplayEvent>())
+                    {
+                        buffEntity.Remove<RemoveBuffOnGameplayEvent>();
+                    }
+                    if (buffEntity.Has<RemoveBuffOnGameplayEventEntry>())
+                    {
+                        buffEntity.Remove<RemoveBuffOnGameplayEventEntry>();
+                    }
+                }
+            }
+            
+            
         }
 
         public static unsafe void KillHoveredEntity(Entity userEntity)
@@ -185,6 +231,22 @@ namespace VBuild.BuildingSystem
             }
             if (hoveredEntity != Entity.Null && VWorld.Server.EntityManager.Exists(hoveredEntity))
             {
+                /*
+                if (Utilities.HasComponent<Health>(hoveredEntity))
+                {
+                    Health health = hoveredEntity.Read<Health>();
+                    if (health.Value < 0)
+                    {
+                        health.Value = health.MaxHealth;
+                        hoveredEntity.Write(health);
+                    }
+                    else
+                    {
+                        health.Value = -1;
+                        hoveredEntity.Write(health);
+                    }
+                }
+                */
                 if (!Utilities.HasComponent<Dead>(hoveredEntity))
                 {
                     Utilities.AddComponentData(hoveredEntity, new Dead { DoNotDestroy = false });
@@ -198,120 +260,114 @@ namespace VBuild.BuildingSystem
             }
         }
 
-        public static Entity ServantComponents(Entity hoveredEntity)
+        public static void SummonHelpers(Entity userEntity)
         {
-            //begin transplant
-            PrefabGUID prefabGUID = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_Servant;
-            Entity entity = VWorld.Server.EntityManager.Instantiate(VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID]);
-
-            try
+            // want this to spawn all the dummise
+            User user = Utilities.GetComponentData<User>(userEntity);
+            int index = user.Index;
+            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            PrefabCollectionSystem prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
+            PrefabGUID paladin = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_Servant;
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            //spawncharmeable on the pet
+            //VWorld.Server.EntityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
+            FromCharacter fromCharacter = new() { Character = hoveredEntity, User = userEntity };
+            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
+            
+            
+            var debugEventEquipment = new SpawnCharmeableDebugEvent
             {
-                ServantEquipment servantEquipment = entity.Read<ServantEquipment>();
+                PrefabGuid = tr,
+                Position = hoveredEntity.Read<LocalToWorld>().Position,
+            };
+            DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEventEquipment, entityCommandBuffer, ref fromCharacter);
 
-                entity.Remove<ServantEquipment>();
-
-                Utilities.AddComponentData(hoveredEntity, servantEquipment);
-            }
-            catch (Exception e)
+            debugEventEquipment = new SpawnCharmeableDebugEvent
             {
-                Plugin.Logger.LogError(e);
-                SystemPatchUtil.Destroy(entity);
-                return hoveredEntity;
-            }
-            SystemPatchUtil.Destroy(entity);
-            return hoveredEntity;
+                PrefabGuid = paladin,
+                Position = hoveredEntity.Read<LocalToWorld>().Position
+            };
+            // this will be following the player and will fire the follower hook
+
         }
 
-        public static Entity RemoveComponents(Entity hoveredEntity)
+        public static void LinkHelper(Entity userEntity)
         {
-            try
+            //List<Entity> followerEntities = new List<Entity>();
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            Team userTeam = userEntity.Read<Team>();
+            TeamReference teamReference = userEntity.Read<TeamReference>();
+            Entity character = userEntity.Read<User>().LocalCharacter._Entity;
+
+            if (VWorld.Server.EntityManager.TryGetBuffer<FollowerBuffer>(character, out var followers))
             {
-                if (hoveredEntity.Has<VBloodConsumeSource>())
+                for (int i = 0; i < followers.Length; i++)
                 {
-                    hoveredEntity.Remove<VBloodConsumeSource>();
+                    if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(followers[i].Entity._Entity, out var buffs))
+                    {
+                        foreach (var buff in buffs)
+                        {
+                            if (buff.PrefabGuid.Equals(VBuild.Data.Buff.AB_Charm_Active_Human_Buff))
+                            {
+
+                                Entity entityToFollow = Entity.Null;
+                                // want to link this follower to the follower with a follower buffer
+                                foreach (var following in followers)
+                                {
+                                    if (VWorld.Server.EntityManager.TryGetBufferReadOnly<FollowerBuffer>(following.Entity._Entity, out var buffer))
+                                    {
+                                        // want to link the follower to the hovered entity if it has a follower buffer
+                                        entityToFollow = following.Entity._Entity;
+                                        break;
+                                    }
+
+                                }
+                                if (entityToFollow == Entity.Null)
+                                {
+                                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No familar found to link helper to.");
+                                    continue; //no familar found to link
+                                }
+                                else
+                                {
+                                    Utilities.SetComponentData(hoveredEntity, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
+                                    ModifiableEntity modEnt = ModifiableEntity.CreateFixed(entityToFollow);
+                                    ModifiableInt modInt = Utilities.GetComponentData<Follower>(hoveredEntity).ModeModifiable;
+                                    modInt._Value = (int)FollowMode.Unit;
+
+                                    Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modEnt, ModeModifiable = modInt, Stationary = ModifiableBool.CreateFixed(false) });
+                                    Utilities.SetComponentData(hoveredEntity, teamReference);
+                                    GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
+                                    Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
+                                    //entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
+                                    // now should be safe to get rid of charm
+
+                                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Linked helper to familiar.");
+                                }
+
+                            }
+                        }
+                        Plugin.Logger.LogInfo("Modifying buffs...");
+                        DebuffNonPlayer(hoveredEntity);
+                        BuffNonPlayer(hoveredEntity, userEntity, VBuild.Data.Buff.Admin_Observe_Invisible_Buff);
+                        //BuffNonPlayer(hoveredEntity, userEntity, VBuild.Data.Buff.AB_InvisibilityAndImmaterial_Buff);
+                    }
+
+
                 }
-                else if (hoveredEntity.Has<VBloodUnitSpawnSource>())
-                {
-                    hoveredEntity.Remove<VBloodUnitSpawnSource>();
-                }
-                else if (hoveredEntity.Has<VBloodUnit>())
-                {
-                    hoveredEntity.Remove<VBloodUnit>();
-                }
-                else if (hoveredEntity.Has<VBloodUnlockTechBuffer>())
-                {
-                    hoveredEntity.Remove<VBloodUnlockTechBuffer>();
-                }
+                Plugin.Logger.LogInfo("Attempted to link helper to familar...");
             }
-            catch (Exception e)
+            else
             {
-                Plugin.Logger.LogError(e);
-                return hoveredEntity;
+                Plugin.Logger.LogInfo("No followers found...");
             }
-            return hoveredEntity;
-        }
-
-        public static Entity HorseComponents(Entity hoveredEntity)
-        {
-            //begin transplant
-            PrefabGUID prefabGUID = VBuild.Data.Prefabs.CHAR_Mount_Horse;
-            Entity entity = VWorld.Server.EntityManager.Instantiate(VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[prefabGUID]);
-
-            try
-            {
-                CanPreventDisableWhenNoPlayersInRange canPreventDisableWhenNoPlayersInRange = new CanPreventDisableWhenNoPlayersInRange { CanDisable = new ModifiableBool { _Value = false } };
-
-                FeedableInventory feedableInventory = entity.Read<FeedableInventory>();
-
-                Interactable interactable = entity.Read<Interactable>();
-
-                NameableInteractable nameableInteractable = entity.Read<NameableInteractable>();
-
-                GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
-
-                Mountable mountable = new Mountable { };
-                mountable.Acceleration = 30f;
-                mountable.MaxSpeed = 15f;
-                mountable.RotationSpeed = 20f;
-                mountable.AccelerationRange = 5f;
-                mountable.RotationSpeedRange = 5f;
-                mountable.MountBuff = VBuild.Data.Prefabs.MOUNT_Wolf_Boss_Standard;
-                mountable.HasNearbyUsers = true;
-                mountable.Mounter = hoveredEntity.Read<Follower>().Followed.Value.Read<PlayerCharacter>().UserEntity;
-
-                DeadSequence deadSequence = entity.Read<DeadSequence>();
-                DynamicCollision dynamicCollision = entity.Read<DynamicCollision>();
-                PhysicsCollider physicsCollider = entity.Read<PhysicsCollider>();
-                var buffer = entity.ReadBuffer<InteractAbilityBuffer>();
-                //
-                entity.Remove<FeedableInventory>();
-                entity.Remove<Interactable>();
-                entity.Remove<NameableInteractable>();
-                entity.Remove<DeadSequence>();
-                entity.Remove<DynamicCollision>();
-                entity.Remove<PhysicsCollider>();
-                entity.Remove<InteractAbilityBuffer>();
-                //entity.Remove<GetOwnerTranslationOnSpawn>();
-                //
-                Utilities.AddComponentData(hoveredEntity, canPreventDisableWhenNoPlayersInRange);
-                Utilities.AddComponentData(hoveredEntity, feedableInventory);
-                Utilities.SetComponentData(hoveredEntity, interactable);
-                Utilities.AddComponentData(hoveredEntity, nameableInteractable);
-                Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
-                Utilities.AddComponentData(hoveredEntity, mountable);
-                Utilities.SetComponentData(hoveredEntity, deadSequence);
-                Utilities.SetComponentData(hoveredEntity, dynamicCollision);
-                Utilities.SetComponentData(hoveredEntity, physicsCollider);
-                Utilities.SetComponentData(hoveredEntity, buffer);
-            }
-            catch (Exception e)
-            {
-                Plugin.Logger.LogError(e);
-                SystemPatchUtil.Destroy(entity);
-                return hoveredEntity;
-            }
-            SystemPatchUtil.Destroy(entity);
-            return hoveredEntity;
+            
+           
+            
+             
+            
         }
 
         public static void ConvertCharacter(Entity userEntity)
@@ -326,10 +382,11 @@ namespace VBuild.BuildingSystem
             modifiableInt._Value = (int)FollowMode.Patrol;
             Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modifiableEntity, ModeModifiable = modifiableInt });
             Utilities.SetComponentData(hoveredEntity, teamReference);
+            //GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
+            //Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
 
-            ServantComponents(hoveredEntity);
-            HorseComponents(hoveredEntity);
-            RemoveComponents(hoveredEntity);
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
         }
 
@@ -601,6 +658,17 @@ namespace VBuild.BuildingSystem
                 for (int i = 0; i < buffer.Length; i++)
                 {
                     SystemPatchUtil.Destroy(buffer[i].Entity);
+                }
+            }
+        }
+        public static void DebuffNonPlayer(Entity unitEntity)
+        {
+            
+            if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(unitEntity, out DynamicBuffer<BuffBuffer> buffer))
+            {
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    SystemPatchUtil.Disable(buffer[i].Entity);
                 }
             }
         }

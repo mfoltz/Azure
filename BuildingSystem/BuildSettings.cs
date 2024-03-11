@@ -34,6 +34,9 @@ namespace VBuild.BuildingSystem
             SetToggle("DebuffToggle", false);
             SetToggle("ConvertToggle", false);
             SetToggle("BuffToggle", false);
+            SetToggle("EquipToggle", false);
+            SetToggle("LinkToggle", false);
+           
         }
 
         // Method to set a toggle value

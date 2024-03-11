@@ -246,6 +246,20 @@ namespace WorldBuild.Hooks
                     TileSets.BuffAtHover(userEntity);
                 };
             }
+            else if (settings.GetToggle("EquipToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    TileSets.SummonHelpers(userEntity);
+                };
+            }
+            else if (settings.GetToggle("LinkToggle"))
+            {
+                return (userEntity, _) =>
+                {
+                    TileSets.LinkHelper(userEntity);
+                };
+            }
             
 
 
