@@ -7,9 +7,9 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 using VampireCommandFramework;
-using VBuild.Core.Services;
-using VBuild.Core.Toolbox;
-using VBuild.Data;
+using VCreate.Core.Services;
+using VCreate.Core.Toolbox;
+using VCreate.Data;
 using VCreate.Core;
 
 namespace VCreate.Systems;
@@ -44,9 +44,12 @@ internal static class Enablers
                 var origin = VWorld.Server.EntityManager.GetComponentData<LocalToWorld>(e).Position;
                 var prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
                 PrefabGUID tileGUID;
+
                 tileGUID = prefabCollectionSystem.NameToPrefabGuidDictionary.TryGetValue(name, out var guid) ? guid : throw new ArgumentException($"Tile name '{name}' not found.", nameof(name));
                 foreach (var tile in tiles)
                 {
+                    // filter for tile models to make this slightly more user-friendly
+                    if (!tileGUID.LookupName().ToLower().Contains("tile")) continue;
                     var position = VWorld.Server.EntityManager.GetComponentData<LocalToWorld>(tile).Position;
                     var distance = UnityEngine.Vector3.Distance(origin, position);
                     var em = VWorld.Server.EntityManager;

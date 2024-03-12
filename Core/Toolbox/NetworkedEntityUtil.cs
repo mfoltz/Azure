@@ -2,7 +2,7 @@ using Bloodstone.API;
 using ProjectM.Network;
 using Unity.Entities;
 
-namespace VBuild.Core.Toolbox;
+namespace VCreate.Core.Toolbox;
 
 
 public static class NetworkedEntityUtil

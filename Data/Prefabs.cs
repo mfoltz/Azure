@@ -1,7 +1,7 @@
 ﻿using ProjectM;
 using System.Reflection;
 
-namespace VBuild.Data;
+namespace VCreate.Data;
 
 public static class Prefabs
 {

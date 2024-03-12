@@ -28,7 +28,7 @@ namespace VCreate.Core
             set => playerSettings = value;
         }
 
-        public static void SaveSettings()
+        public static void Save()
         {
             try
             {

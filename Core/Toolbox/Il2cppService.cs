@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Type = Il2CppSystem.Type;
 
-namespace VBuild.Core.Toolbox;
+namespace VCreate.Core.Toolbox;
 
 public static class Il2cppService
 {

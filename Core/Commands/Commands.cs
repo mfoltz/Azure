@@ -1,5 +1,4 @@
 ﻿using Bloodstone.API;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
@@ -8,54 +7,56 @@ using System.Text;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 using VampireCommandFramework;
-using VBuild.BuildingSystem;
-using VBuild.Core.Converters;
-using VBuild.Core.Services;
-using VBuild.Core.Toolbox;
-using VBuild.Data;
 using VCreate.Systems;
+using VCreate.Core.Converters;
+using VCreate.Core.Toolbox;
+using VCreate.Data;
 using VRising.GameData;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
-using static VBuild.Core.Services.PlayerService;
+using static VCreate.Core.Services.PlayerService;
 using static VCreate.Core.Converters.CommandParser;
 using Exception = System.Exception;
+using static VCreate.Systems.Enablers;
 
 namespace VCreate.Core.Commands
 {
-    [CommandGroup(name: "VBuild", shortHand: "vb")]
     public class CoreCommands
     {
-
         public class WorldBuildToggle
         {
-            public static bool wbFlag = false;
+            private static bool wbFlag = false;
 
-            public static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
+            public static bool WbFlag
+            {
+                get { return wbFlag; }
+            }
+
+
+            private static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
             {
                 SettingType = (DebugSettingType)5,
                 Value = false
             };
 
-            public static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
+            private static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
             {
                 SettingType = (DebugSettingType)16,
                 Value = false
             };
-            public static SetDebugSettingEvent CastleHeartConnectionRequirementDisabled = new SetDebugSettingEvent()
+
+            private static SetDebugSettingEvent CastleHeartConnectionRequirementDisabled = new SetDebugSettingEvent()
             {
                 SettingType = (DebugSettingType)27,
                 Value = false
             };
 
-            [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".twb", description: "Toggles worldbuild debug settings for no-cost building anywhere.")]
+            [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".twb", description: "Toggles worldbuilding debug settings for no-cost building anywhere.")]
             public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
             {
                 User user = ctx.Event.User;
-
 
                 DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 if (!wbFlag)
@@ -95,11 +96,12 @@ namespace VCreate.Core.Commands
                 }
             }
         }
+
         public class BuildingCostsToggle
         {
-            public static bool buildingCostsFlag = false;
+            private static bool buildingCostsFlag = false;
 
-            public static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
+            private static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
             {
                 SettingType = (DebugSettingType)5, // Assuming this is the correct DebugSettingType for building costs
                 Value = false
@@ -121,17 +123,18 @@ namespace VCreate.Core.Commands
                 ctx.Reply($"BuildingCostsDisabled: {BuildingCostsDebugSetting.Value}");
             }
         }
+
         public class CastleHeartConnectionToggle
         {
             public static bool castleHeartConnectionRequirementFlag = false;
 
             public static SetDebugSettingEvent CastleHeartConnectionDebugSetting = new SetDebugSettingEvent()
             {
-                SettingType = (DebugSettingType)27, // Replace X with the correct DebugSettingType for Castle Heart connection requirement
+                SettingType = (DebugSettingType)27,
                 Value = false
             };
 
-            [Command(name: "toggleCastleHeartConnection", shortHand: "tchc", adminOnly: true, usage: ".tchc", description: "Toggles the Castle Heart connection requirement for no-requirement building.")]
+            [Command(name: "toggleCastleHeartConnectionRequirement", shortHand: "tch", adminOnly: true, usage: ".tch", description: "Toggles the Castle Heart connection requirement for structures.")]
             public static void ToggleCastleHeartConnectionCommand(ChatCommandContext ctx)
             {
                 User user = ctx.Event.User;
@@ -148,9 +151,8 @@ namespace VCreate.Core.Commands
             }
         }
 
-
-        [Command(name: "tilePermissions", shortHand: "perms", adminOnly: true, usage: ".vb perms <Name>", description: "Toggles tile permissions for a player (allows moving or dismantling things outside of their territory if it is something that can be moved or disabled).")]
-        public static void ToggleEditTilesCommand(ChatCommandContext ctx, string name)
+        [Command(name: "MoveDismantleEditPermissions", shortHand: "perms", adminOnly: true, usage: ".perms [Name]", description: "Toggles tile permissions for a player (allows moving or dismantling things outside of their territory if it is something that could normally be moved or disabled).")]
+        public static void TogglePlayerPermissions(ChatCommandContext ctx, string name)
         {
             User setter = ctx.Event.User;
             TryGetUserFromName(name, out Entity userEntity);
@@ -158,116 +160,44 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
                 // Toggle the CanEditTiles value
-                bool currentCanEditTiles = data.GetMode("CanEditTiles");
-                settings.SetMode("CanEditTiles", !currentCanEditTiles);
+                bool currentCanEditTiles = !data.Permissions;
 
-                Databases.SaveBuildSettings();
+                DataStructures.Save();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"Edit tiles outside of territories: {(currentCanEditTiles ? disabledColor : enabledColor)}");
             }
             else
             {
-                // Create new settings for user
-                Omnitool newSettings = new();
-                newSettings.("CanEditTiles", true);
-
-                // Assuming you have a method to add or update settings in your Databases object
-                Databases.playerSettings.Add(user.PlatformId, newSettings);
-                Databases.SaveBuildSettings();
-                ctx.Reply($"Created new build settings and set tile permissions to true.");
+                ctx.Reply("Couldn't find omnitool data.");
             }
         }
 
-
-        [Command(name: "tileRotation", shortHand: "tr", adminOnly: false, usage: ".vb tr [0/90/180/270]", description: "Sets rotation of tiles placed.")]
+        [Command(name: "setTileRotation", shortHand: "str", adminOnly: false, usage: ".str [0/90/180/270]", description: "Sets rotation for spawned tiles.")]
         public static void SetTileRotationCommand(ChatCommandContext ctx, int rotation)
         {
             if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)
             {
-                ctx.Reply("Invalid rotation. Please use 0, 90, 180, or 270 degrees.");
+                ctx.Reply("Invalid rotation. Use 0, 90, 180, or 270 degrees.");
                 return;
             }
 
             User user = ctx.Event.User;
-            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool settings))
             {
-                settings.TileRotation = rotation;
-                Databases.SaveBuildSettings();
+                settings.SetData("Rotation", rotation);
+                DataStructures.Save();
                 ctx.Reply($"Tile rotation set to: {rotation} degrees.");
             }
         }
 
-        [Command(name: "listSet", shortHand: "ls", adminOnly: true, usage: ".vb ls", description: "Lists available tiles from current set.")]
-        public static void ListTilesCommand(ChatCommandContext ctx)
-        {
-            ulong SteamID = ctx.Event.User.PlatformId;
-            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
-            {
-                if (!ModelRegistry.tilesBySet.ContainsKey(data.TileSet))
-                {
-                    ctx.Reply("Invalid set name.");
-                    return;
-                }
-                var tiles = OnHover.GetTilesBySet(data.TileSet);
-                if (tiles == null)
-                {
-                    ctx.Reply($"No tiles available for '{data.TileSet}'.");
-                    return;
-                }
-
-                foreach (var tile in tiles.OrderBy(kv => kv.Key))
-                {
-                    ctx.Reply($"-{tile.Key}: {tile.Value.Name}");
-                }
-            }
-            else
-            {
-                ctx.Reply("Your build data could not be found.");
-            }
-        }
-
-        [Command(name: "chooseSet", shortHand: "cs", adminOnly: false, usage: ".vb cs <tileSetName>", description: "Sets tile set to use tiles from.")]
-        public static void TileSetChoice(ChatCommandContext ctx, string choice)
-        {
-            Entity character = ctx.Event.SenderCharacterEntity;
-            ulong SteamID = ctx.Event.User.PlatformId;
-
-            string lowerCaseChoice = choice.ToLower();
-            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
-            {
-                // want to compare to lowercase version of dictionary keys
-
-                if (ModelRegistry.tilesBySet.ContainsKey(lowerCaseChoice))
-                {
-                    if (adminSets.Contains(lowerCaseChoice) && !ctx.Event.User.IsAdmin)
-                    {
-                        ctx.Reply("You must be an admin to use this set.");
-                        return;
-                    }
-
-                    data.TileSet = lowerCaseChoice;
-                    ctx.Reply($"Class set to {choice}.");
-                    Databases.SaveBuildSettings();
-                }
-                else
-                {
-                    ctx.Reply("Invalid set choice.");
-                }
-            }
-            else
-            {
-                ctx.Reply("Your build data could not be found.");
-            }
-        }
-        [Command(name: "chooseMapPrefab", shortHand: "cmp", adminOnly: true, usage: ".vb cmp <PrefabGUID>", description: "Sets map icon to prefab.")]
-
+        [Command(name: "setMapIcon", shortHand: "smi", adminOnly: true, usage: ".smi [PrefabGUID]", description: "Sets map icon to prefab.")]
         public static void SetMapIcon(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
+            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool data))
             {
                 // Assuming there's a similar check for map icons as there is for tile models
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
@@ -276,67 +206,46 @@ namespace VCreate.Core.Commands
                     if (prefabGUID.LookupName().ToLower().Contains("map"))
                     {
                         ctx.Reply($"Map icon set.");
-                        data.MapIcon = choice;
-                        Databases.SaveBuildSettings();
+                        data.SetData("MapIcon", choice);
+                        DataStructures.Save();
                     }
                     else
                     {
-                        ctx.Reply("Invalid map icon choice.");
+                        ctx.Reply("Invalid map icon.");
                     }
-
                 }
                 else
                 {
-                    ctx.Reply("Invalid map icon choice.");
+                    ctx.Reply("Couldn't find prefab.");
                 }
             }
             else
             {
-                ctx.Reply("Your build data could not be found, create some by giving yourself map icon permissions.");
+                ctx.Reply("Couldn't find omnitool data.");
             }
         }
 
-        [Command(name: "chooseModel", shortHand: "cm", adminOnly: false, usage: ".vb cm <#>", description: "Sets tile model to use, list available tiles with '.vb ls'.")]
-        public static void SetTile(ChatCommandContext ctx, int choice)
-        {
-            Entity character = ctx.Event.SenderCharacterEntity;
-            ulong SteamID = ctx.Event.User.PlatformId;
-
-            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
-            {
-                var setChoice = data.TileSet;
-                Dictionary<int, TileConstructor> tiles = GetTilesBySet(setChoice);
-
-                if (tiles != null && tiles.TryGetValue(choice, out TileConstructor tile))
-                {
-                    ctx.Reply($"Tile model set to {tile.Name}.");
-                    data.TileModel = tile.TileGUID;
-                    Databases.SaveBuildSettings();
-                }
-                else
-                {
-                    ctx.Reply("Invalid tile choice.");
-                }
-            }
-            else
-            {
-                ctx.Reply("Your build data could not be found.");
-            }
-        }
-
-        [Command(name: "setTileModelByPrefab", shortHand: "tmp", adminOnly: false, usage: ".vb tmp <PrefabGUID>", description: "Manually set tile model to use.")]
+        [Command(name: "setTileModel", shortHand: "stm", adminOnly: false, usage: ".stm [PrefabGUID]", description: "Sets tile model to prefab.")]
         public static void SetTileByPrefab(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (Databases.playerSettings.TryGetValue(SteamID, out Tools data))
+            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool data))
             {
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
                 {
-                    ctx.Reply($"Tile model set.");
-                    data.TileModel = choice;
-                    Databases.SaveBuildSettings();
+                    PrefabGUID prefabGUID = new PrefabGUID(choice);
+                    if (prefabGUID.LookupName().ToLower().Contains("tile"))
+                    {
+                        ctx.Reply($"Tile model set.");
+                        data.SetData("Tile", choice);
+                        DataStructures.Save();
+                    }
+                    else
+                    {
+                        ctx.Reply("Invalid choice for tile model.");
+                    }
                 }
                 else
                 {
@@ -345,16 +254,16 @@ namespace VCreate.Core.Commands
             }
             else
             {
-                ctx.Reply("Your build data could not be found, create some by giving yourself tile permissions.");
+                ctx.Reply("Couldn't find omnitool data.");
             }
         }
 
-        //[Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".vb undo", description: "Destroys the last tile placed (works on last 10 tiles placed).")]
-        public static void UndoLastTilePlacedCommand(ChatCommandContext ctx)
+        [Command(name: "undotile", shortHand: "undo", adminOnly: true, usage: ".undo", description: "Destroys the last entity placed, up to 10.")]
+        public static void UndoCommand(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
             User user = ctx.Event.User;
-            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools data))
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
                 string lastTileRef = data.PopEntity();
                 if (!string.IsNullOrEmpty(lastTileRef))
@@ -367,7 +276,7 @@ namespace VCreate.Core.Commands
                         {
                             SystemPatchUtil.Destroy(tileEntity);
                             ctx.Reply($"Successfully destroyed last tile placed.");
-                            Databases.SaveBuildSettings();
+                            DataStructures.Save();
                         }
                         else
                         {
@@ -381,75 +290,26 @@ namespace VCreate.Core.Commands
                 }
                 else
                 {
-                    ctx.Reply("You have not placed any tiles yet or all undos have been used.");
+                    ctx.Reply("You haven't placed any tiles yet or all undos have been used.");
                 }
             }
             else
             {
-                ctx.Reply("You have not placed any tiles yet.");
+                ctx.Reply("Couldn't find omnitool data.");
             }
         }
 
+        
 
 
-
-        [Command(name: "chooseMapIcon", shortHand: "cmi", adminOnly: true, usage: ".vb cmi <#>", description: "Choose map icon to add to tiles placed.")]
-        public static void ChooseMapIcon(ChatCommandContext ctx, int choice)
-        {
-            User user = ctx.Event.User;
-            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
-            {
-
-                if (Enablers.MapIconFunctions.mapIcons.TryGetValue(choice, out int mapIcon))
-                {
-                    settings.MapIcon = mapIcon;
-                    Databases.SaveBuildSettings();
-                    ctx.Reply($"Map icon set to {choice}.");
-                }
-                else
-                {
-                    ctx.Reply($"Invalid map icon choice, must be greater than 0 and less than {Enablers.MapIconFunctions.mapIcons.Count}.");
-
-                }
-            }
-            else
-            {
-                ctx.Reply("Your build data could not be found.");
-            }
-        }
-        [Command(name: "listMapIcons", shortHand: "lmi", adminOnly: true, usage: ".vb lmi", description: "List all available map icons.")]
-        public static void ListMapIcons(ChatCommandContext ctx)
-        {
-            // Building the list message
-            StringBuilder listMessage = new StringBuilder();
-            listMessage.AppendLine("Available Map Icons:");
-
-            foreach (var iconEntry in Enablers.MapIconFunctions.mapIcons)
-            {
-                // Assuming you have a method to get a friendly name for the map icon by its hash
-                PrefabGUID prefabGUID = new PrefabGUID(iconEntry.Value);
-                string iconName = prefabGUID.LookupName(); // Implement this method based on your needs
-                listMessage.AppendLine($"{iconEntry.Key}: {iconName}");
-            }
-
-            // Sending the compiled list as a reply in chat
-            ctx.Reply(listMessage.ToString());
-        }
-
-
-
-
-
-        [Command(name: "destroyResources", shortHand: "dr", adminOnly: true, usage: ".vb dr", description: "Destroys resources in player territories. Only use this after disabling worldbuild.")]
+        [Command(name: "destroyResources", shortHand: "destroynodes", adminOnly: true, usage: ".destroynodes", description: "Destroys resources in player territories. Only use this after disabling worldbuild.")]
         public static void DestroyResourcesCommand(ChatCommandContext ctx)
         {
             ResourceFunctions.SearchAndDestroy();
             ctx.Reply("Resource nodes in player territories destroyed. Probably.");
         }
 
-
-        [Command("destroyTiles", shortHand: "dt", adminOnly: true, description: "Destroys tiles in entered radius matching entered PrefabGUID.",
-        usage: "Usage: .vb dt [PrefabGUID] [radius]")]
+        [Command("destroy", shortHand: "", adminOnly: true, description: "Destroys tiles in entered radius matching entered PrefabGUID.", usage: "Usage: .rt [PrefabGUID] [radius]")]
         public static void DestroyTiles(ChatCommandContext ctx, string name, float radius = 25f)
         {
             // Check if a name is not provided or is empty
@@ -459,13 +319,12 @@ namespace VCreate.Core.Commands
                 return;
             }
 
-            var tiles = Enablers.ClosestTiles(ctx, radius, name);
+            var tiles = Enablers.TileFunctions.ClosestTiles(ctx, radius, name);
 
             foreach (var tile in tiles)
             {
                 SystemPatchUtil.Destroy(tile);
                 ctx.Reply(name + " destroyed!");
-
             }
 
             if (tiles.Count < 1)
@@ -493,8 +352,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Invalid feature type.");
                 return;
             }
-           
-            
+
             Entity senderUserEntity = ctx.Event.SenderUserEntity;
             Entity Character = ctx.Event.SenderCharacterEntity;
             FromCharacter fromCharacter = new FromCharacter()
@@ -505,7 +363,7 @@ namespace VCreate.Core.Commands
 
             // BuffSpawnerSystemData is assumed to be required and obtained similarly
             // This might need to be fetched or constructed based on the context or predefined data
-            
+
             BuffUtility.BuffSpawnerSystemData buffSpawnerData = new BuffUtility.BuffSpawnerSystemData()
             {
                 // Initialization based on required data
@@ -517,7 +375,7 @@ namespace VCreate.Core.Commands
             UserModel userModel = GameData.Users.GetUserByCharacterName(playerName);
             BaseEntityModel baseEntityModel = userModel.Internals;
             Unity.Entities.SystemBase systemBase = new Unity.Entities.SystemBase();
-            
+
             // Execute the UnlockVBloodFeatures function
             DebugEventsSystem.UnlockVBloodFeatures(systemBase, buffSpawnerData, fromCharacter, type);
 
@@ -537,6 +395,7 @@ namespace VCreate.Core.Commands
 
             ctx.Reply($"Player \"{name}\" reset.");
         }
+
         /*
         [Command(name: "control", shortHand: "ctrl", adminOnly: true, usage: ".v ctrl", description: "Possesses VBloods or other entities, use with care.")]
         public static void ControlCommand(ChatCommandContext ctx)
@@ -666,7 +525,6 @@ namespace VCreate.Core.Commands
                 }
             }
         }
-        
 
         [Command(name: "unlock", shortHand: "u", adminOnly: true, usage: ".v u <Player>", description: "Unlocks all the things.")]
         public void UnlockCommand(ChatCommandContext ctx, string playerName, string unlockCategory = "all")
@@ -839,8 +697,6 @@ namespace VCreate.Core.Commands
             chatCommandContext.Reply(stringAndClear);
         }
 
-
-
         [Command("ping", "p", null, "Shows your latency.", null, false)]
         public static void PingCommand(ChatCommandContext ctx, string mode = "")
         {
@@ -893,6 +749,7 @@ namespace VCreate.Core.Commands
             };
             existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
         }
+
         public static void AddItemToInventory(PrefabGUID guid, int amount, UserModel user)
         {
             unsafe

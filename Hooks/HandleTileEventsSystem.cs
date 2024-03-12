@@ -6,9 +6,11 @@ using ProjectM.Network;
 using System.Text;
 using Unity.Collections;
 using Unity.Entities;
-using VBuild.Core.Toolbox;
+using VCreate.Core.Toolbox;
+using VCreate.Core;
 using VCreate.Core.Commands;
-using Plugin = VBuild.Core.Plugin;
+using VCreate.Systems;
+using Plugin = VCreate.Core.Plugin;
 using User = ProjectM.Network.User;
 
 //WIP
@@ -25,13 +27,12 @@ namespace WorldBuild.Hooks
             //Plugin.Logger.LogInfo("PlaceTileModelSystem Prefix called...");
             EntityManager entityManager = VWorld.Server.EntityManager;
 
-
             var jobs = __instance._BuildTileQuery.ToEntityArray(Allocator.Temp);
             foreach (var job in jobs)
             {
                 if (IsCastleHeart(job))
                 {
-                    if (!CoreCommands.WorldBuildToggle.wbFlag) return;
+                    if (!CoreCommands.WorldBuildToggle.WbFlag) return;
                     CancelCastleHeartPlacement(entityManager, job);
                 }
             }
@@ -52,24 +53,20 @@ namespace WorldBuild.Hooks
                 PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
                 Entity userEntity = playerCharacter.UserEntity;
                 User user = Utilities.GetComponentData<User>(userEntity);
-
-                if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings) && settings.)
+                if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out _) && prefabGUID.Equals(VCreate.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
                 {
-                    if (prefabGUID.Equals(VBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
-                    {
-                        Plugin.Logger.LogInfo("Charm ability cast detected...");
-                        HandleAbilityCast(userEntity);
-                    }
+                    Plugin.Log.LogInfo("SiegeT02 ability cast detected...");
+                    HandleAbilityCast(userEntity);
                 }
-
             }
             jobs.Dispose();
         }
+
         public static void HandleAbilityCast(Entity userEntity)
         {
             var user = Utilities.GetComponentData<User>(userEntity);
 
-            if (!Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (!DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool settings))
             {
                 return; // or handle the case of missing settings
             }
@@ -81,10 +78,10 @@ namespace WorldBuild.Hooks
             action?.Invoke(userEntity, settings);
         }
 
-        private static System.Action<Entity, Tools> DecideAction(Tools settings)
+        private static System.Action<Entity, Omnitool> DecideAction(Omnitool settings)
         {
             // Example: Checking for a specific prefabGUID and toggle
-            Plugin.Logger.LogInfo("Deciding action based on settings...");
+            Plugin.Log.LogInfo("Deciding action based on mode...");
 
             if (settings.GetMode("InspectToggle"))
             {
@@ -98,15 +95,14 @@ namespace WorldBuild.Hooks
             {
                 return (userEntity, _) =>
                 {
-                    OnHover.KillHoveredEntity(userEntity);
+                    OnHover.DestroyAtHover(userEntity);
                 };
             }
             else if (settings.GetMode("ControlToggle"))
             {
                 return (userEntity, _) =>
                 {
-
-                    VBuild.Hooks.EmoteSystemPatch.ControlCommand(userEntity);
+                    VCreate.Hooks.EmoteSystemPatch.ControlCommand(userEntity);
                 };
             }
             else if (settings.GetMode("CopyToggle"))
@@ -137,34 +133,25 @@ namespace WorldBuild.Hooks
                     OnHover.BuffAtHover(userEntity);
                 };
             }
-            else if (settings.GetMode("EquipToggle"))
+            else if (settings.GetMode("TileToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    OnHover.SummonHelpers(userEntity);
+                    OnHover.SpawnTileModel(userEntity);
                 };
             }
             else if (settings.GetMode("LinkToggle"))
             {
                 return (userEntity, _) =>
                 {
-                    OnHover.LinkHelper(userEntity);
+                    //OnHover.LinkHelper(userEntity);
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "WIP, currently not implemented.");
                 };
             }
-
-
-
             else
             {
-                return (userEntity, _) =>
-                {
-                    Plugin.Logger.LogInfo("No specific action decided, proceeding with default...");
-                    OnHover.SpawnTileModel(userEntity);
-                };
+                return null;
             }
-
-
-
         }
 
         private static bool IsCastleHeart(Entity job)
@@ -173,6 +160,7 @@ namespace WorldBuild.Hooks
             var buildTileModelData = entityManager.GetComponentData<BuildTileModelEvent>(job);
             return buildTileModelData.PrefabGuid.Equals(CastleHeartPrefabGUID);
         }
+
 
         private static void CancelCastleHeartPlacement(EntityManager entityManager, Entity job)
         {
@@ -193,18 +181,18 @@ namespace WorldBuild.Hooks
         {
             if (!__result) return;
 
-            Plugin.Logger.LogInfo("Intercepting dismantle event...");
+            Plugin.Log.LogInfo("Verifying dismantle event...");
 
             bool canDismantle = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
             __result = canDismantle;
 
             if (!canDismantle)
             {
-                Plugin.Logger.LogInfo("Dismantling disallowed based on permissions and territory ownership.");
+                Plugin.Log.LogInfo("Disallowed based on permissions and ownership.");
             }
             else
             {
-                Plugin.Logger.LogInfo("Dismantling allowed in territory or elsewhere if user has permissions.");
+                Plugin.Log.LogInfo("Allowed if owned or user has permission.");
             }
         }
     }
@@ -216,74 +204,62 @@ namespace WorldBuild.Hooks
         {
             if (!__result) return;
 
-            Plugin.Logger.LogInfo("Intercepting move event...");
+            Plugin.Log.LogInfo("Verifying move event...");
 
             bool canMove = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
             __result = canMove;
 
             if (!canMove)
             {
-                Plugin.Logger.LogInfo("Moving disallowed based on permissions and territory ownership.");
+                Plugin.Log.LogInfo("Disallowed based on permissions and ownership.");
             }
             else
             {
-                Plugin.Logger.LogInfo("Moving allowed in territory or elsewhere if user has permissions.");
+                Plugin.Log.LogInfo("Allowed if owned or user has permission.");
             }
         }
     }
-}
 
-public static class TileOperationUtility
-{
-    public static bool CanPerformOperation(EntityManager entityManager, Entity tileModelEntity)
+
+    public static class TileOperationUtility
     {
-        if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
+        public static bool CanPerformOperation(EntityManager entityManager, Entity tileModelEntity)
         {
-            Plugin.Logger.LogInfo("Unable to verify user entity but allowing by default.");
+            if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
+            {
+                Plugin.Log.LogInfo("Unable to verify user entity for tile operation, disallowing.");
+                return false;
+            }
+
+            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
+            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
+
+            return CanEditTiles(user) || IsTileOwnedByUser(user, tileModelEntity);
+        }
+
+        private static bool CanEditTiles(User user)
+        {
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
+            {
+                return data.Permissions;
+            }
             return false;
         }
 
-        var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
-        var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
-
-        return CanEditTiles(user) || IsTileInUserTerritory(user, tileModelEntity);
-    }
-
-    private static bool CanEditTiles(User user)
-    {
-        if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools data))
+        private static bool IsTileOwnedByUser(User user, Entity tileModelEntity)
         {
-            return data.GetMode("CanEditTiles");
-        }
-        return false;
-    }
-
-    private static bool IsTileInUserTerritory(User user, Entity tileModelEntity)
-    {
-        if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity))
-        {
-
-            CastleTerritory castleTerritory = Utilities.GetComponentData<CastleTerritory>(territoryEntity);
-            Entity castleHeart = castleTerritory.CastleHeart;
-            NetworkedEntity territoryOwner = Utilities.GetComponentData<UserOwner>(castleHeart).Owner;
-            User territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
-            return user.PlatformId.Equals(territoryUser.PlatformId);
-        }
-        else
-        {
-            Plugin.Logger.LogInfo("Unable to verify territory, checking via UserOwner...");
+            
             if (tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId.Equals(user.PlatformId))
             {
-                Plugin.Logger.LogInfo("Tile is owned by user, allowing.");
+                Plugin.Log.LogInfo("Object owned by user, allowing.");
                 return true;
             }
             else
             {
-                Plugin.Logger.LogInfo("PlatformID did not match, not allowing.");
+                Plugin.Log.LogInfo("Object not owned by user, disallowing.");
                 return false;
             }
-
+            
         }
-
     }
 }

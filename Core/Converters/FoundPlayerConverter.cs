@@ -1,7 +1,7 @@
 ﻿using VampireCommandFramework;
-using VBuild.Core.Services;
+using VCreate.Core.Services;
 
-namespace VBuild.Core.Converters
+namespace VCreate.Core.Converters
 {
     public record FoundPlayer(PlayerService.Player Value);
     public class FoundPlayerConverter : CommandArgumentConverter<FoundPlayer>

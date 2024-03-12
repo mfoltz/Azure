@@ -6,9 +6,9 @@ using ProjectM.Shared;
 using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
-using static VBuild.Core.Services.PlayerService;
+using static VCreate.Core.Services.PlayerService;
 
-namespace VBuild.Core.Toolbox
+namespace VCreate.Core.Toolbox
 {
     public static class Utilities
     {

@@ -7,8 +7,8 @@ using System.Reflection;
 using System.Text.Json;
 using Unity.Entities;
 using VampireCommandFramework;
-using VBuild.Core.Services;
-using VBuild.Core.Toolbox;
+using VCreate.Core.Toolbox;
+using VCreate.Hooks;
 using VCreate.Systems;
 
 namespace VCreate.Core
@@ -59,7 +59,7 @@ namespace VCreate.Core
         {
             Config.Clear();
             _harmony.UnpatchSelf();
-            VCreate.Core.DataStructures.SaveSettings();
+            VCreate.Core.DataStructures.Save();
             return true;
         }
 

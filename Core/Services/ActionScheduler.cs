@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using ProjectM;
 
-namespace VBuild.Core.Services;
+namespace VCreate.Core.Services;
 [HarmonyPatch(typeof(ServerTimeSystem_Server), nameof(ServerTimeSystem_Server.OnUpdate))]
 public static class ActionScheduler
 {

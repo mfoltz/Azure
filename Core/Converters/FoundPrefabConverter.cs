@@ -1,8 +1,8 @@
 ﻿using ProjectM;
 using VampireCommandFramework;
-using VBuild.Core.Toolbox;
+using VCreate.Core.Toolbox;
 
-namespace VBuild.Core.Converters
+namespace VCreate.Core.Converters
 {
     public record struct FoundPrefabGuid(PrefabGUID Value);
     public class FoundPrefabConverter : CommandArgumentConverter<FoundPrefabGuid>

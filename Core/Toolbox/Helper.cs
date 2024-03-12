@@ -10,11 +10,11 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using VBuild.Core.Services;
-using VBuild.Data;
+using VCreate.Core.Services;
+using VCreate.Data;
 using Buff = ProjectM.Buff;
 
-namespace VBuild.Core.Toolbox;
+namespace VCreate.Core.Toolbox;
 
 public static class Helper
 {

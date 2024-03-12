@@ -1,4 +1,4 @@
-﻿namespace VBuild.Core.Toolbox
+﻿namespace VCreate.Core.Toolbox
 {
     internal class FontColors
     {

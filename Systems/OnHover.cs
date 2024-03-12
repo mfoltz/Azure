@@ -2,21 +2,21 @@
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using VBuild.Core.Services;
-using VBuild.Core.Toolbox;
 using VCreate.Core;
+using VCreate.Core.Services;
+using VCreate.Core.Toolbox;
 using User = ProjectM.Network.User;
 
 namespace VCreate.Systems
 {
     public class OnHover
     {
-        public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 10f }; // grid sizes to cycle through
-        public static unsafe void InspectHoveredEntity(Entity userEntity)
+        public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 7.5f }; // grid sizes to cycle through
+
+        public static void InspectHoveredEntity(Entity userEntity)
         {
             User user = Utilities.GetComponentData<User>(userEntity);
 
@@ -44,7 +44,7 @@ namespace VCreate.Systems
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
                     data.SetData("Unit", prefabGUID.GuidHash);
 
-                    DataStructures.SaveSettings();
+                    DataStructures.Save();
                     string copySuccess = $"Inspected hovered entity for components, check log: '{entityString}', {prefabGUID.LookupName()}";
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, copySuccess);
                 }
@@ -198,7 +198,7 @@ namespace VCreate.Systems
             int index = user.Index;
             Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
             PrefabCollectionSystem prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
-            PrefabGUID paladin = VBuild.Data.Prefabs.CHAR_ChurchOfLight_Paladin_Servant;
+            PrefabGUID paladin = VCreate.Data.Prefabs.CHAR_ChurchOfLight_Paladin_Servant;
             EntityManager entityManager = VWorld.Server.EntityManager;
             //spawncharmeable on the pet
             //VWorld.Server.EntityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
@@ -214,7 +214,6 @@ namespace VCreate.Systems
             DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEventEquipment, entityCommandBuffer, ref fromCharacter);
 
-            
             // this will be following the player and will fire the follower hook
         }
 
@@ -235,7 +234,7 @@ namespace VCreate.Systems
                     {
                         foreach (var buff in buffs)
                         {
-                            if (buff.PrefabGuid.Equals(VBuild.Data.Buff.AB_Charm_Active_Human_Buff))
+                            if (buff.PrefabGuid.Equals(VCreate.Data.Buff.AB_Charm_Active_Human_Buff))
                             {
                                 Entity entityToFollow = Entity.Null;
                                 // want to link this follower to the follower with a follower buffer
@@ -273,7 +272,7 @@ namespace VCreate.Systems
                         }
                         Plugin.Logger.LogInfo("Modifying buffs...");
                         DebuffNonPlayer(hoveredEntity);
-                        BuffNonPlayer(hoveredEntity, userEntity, VBuild.Data.Buff.Admin_Observe_Invisible_Buff);
+                        BuffNonPlayer(hoveredEntity, userEntity, VCreate.Data.Buff.Admin_Observe_Invisible_Buff);
                         //BuffNonPlayer(hoveredEntity, userEntity, VBuild.Data.Buff.AB_InvisibilityAndImmaterial_Buff);
                     }
                 }
@@ -302,7 +301,7 @@ namespace VCreate.Systems
 
             Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modifiableEntity, ModeModifiable = modifiableInt });
             Utilities.SetComponentData(hoveredEntity, teamReference);
- 
+
             entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
         }
@@ -357,22 +356,23 @@ namespace VCreate.Systems
                 return;
             }
 
-            HandleBuildSettings(data, aimPosition, userEntity, user);
+            HandleBuild(data, aimPosition, userEntity, user);
         }
 
-        private static void HandleBuildSettings(Omnitool data, Nullable_Unboxed<float3> aimPosition, Entity userEntity, User user)
+        private static void HandleBuild(Omnitool data, Nullable_Unboxed<float3> aimPosition, Entity userEntity, User user)
         {
-            var prefabEntity = GetPrefabEntity(data.GetData("Tile"));
+            var prefabEntity = GetPrefabEntity(data);
             if (prefabEntity == Entity.Null)
             {
+                Plugin.Log.LogInfo("Prefab entity is null, returning...");
                 return;
             }
 
-            Entity tileEntity = InstantiateTilePrefab(prefabEntity, aimPosition, data, userEntity, user);
+            Entity tileEntity = DefaultInstantiateBehavior(prefabEntity, aimPosition, data);
 
             if (tileEntity == Entity.Null)
             {
-                Plugin.Log.LogInfo("Tile entity is null in handle build settings, returning...");
+                Plugin.Log.LogInfo("Tile entity is null, returning...");
                 return;
             }
             string entityString = $"{tileEntity.Index}, {tileEntity.Version}";
@@ -386,37 +386,6 @@ namespace VCreate.Systems
             PrefabGUID prefabGUID = new(data.GetData("Tile"));
 
             return VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap.TryGetValue(prefabGUID, out Entity entity) ? entity : Entity.Null;
-        }
-
-        private static readonly Dictionary<string, System.Func<Entity, Entity>> specialWordHandlers = new Dictionary<string, System.Func<Entity, Entity>>()
-            {
-                {"char", (entity) => HandleCharPrefab(entity)},
-                // Other special words and their handlers can be added here
-            };
-
-        private static Entity InstantiateTilePrefab(Entity prefabEntity, Nullable_Unboxed<float3> aimPosition, Omnitool data, Entity userEntity, User user)
-        {
-            PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(prefabEntity);
-            string prefabName = prefabGUID.LookupName().ToLower();
-
-            foreach (var handler in specialWordHandlers)
-            {
-                if (prefabName.Contains(handler.Key))
-                {
-                    Plugin.Log.LogInfo("Character spawn attempted...");
-                    //return handler.Value(prefabEntity);
-                }
-            }
-
-            // Default behavior if no special words are found
-            return DefaultInstantiateBehavior(prefabEntity, aimPosition, data);
-        }
-
-        // Example handler method
-        private static Entity HandleCharPrefab(Entity prefabEntity)
-        {
-            // Specific handling for character prefabs
-            return prefabEntity;
         }
 
         private static void ApplyTileSettings(Entity tileEntity, Nullable_Unboxed<float3> aimPosition, Omnitool data, Entity userEntity, User user)
@@ -434,7 +403,7 @@ namespace VCreate.Systems
             Entity tileEntity = VWorld.Server.EntityManager.Instantiate(prefabEntity);
             Utilities.SetComponentData(tileEntity, new Translation { Value = aimPosition.Value });
 
-            SetTileRotation(tileEntity, data.TileRotation);
+            SetTileRotation(tileEntity, data.GetData("Rotation"));
             return tileEntity;
         }
 
@@ -457,13 +426,13 @@ namespace VCreate.Systems
         {
             if (data.GetMode("MapIconToggle"))
             {
-                if (data.MapIcon == 0)
+                if (data.GetData("MapIcon") == 0)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "No map icon selected.");
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "No map icon set.");
                     return;
                 }
 
-                var prefabGUID = new PrefabGUID(data.MapIcon);
+                var prefabGUID = new PrefabGUID(data.GetData("MapIcon"));
                 if (!VWorld.Server.EntityManager.HasComponent<AttachMapIconsToEntity>(tileEntity))
                 {
                     VWorld.Server.EntityManager.AddBuffer<AttachMapIconsToEntity>(tileEntity);
@@ -536,7 +505,5 @@ namespace VCreate.Systems
                 }
             }
         }
-
-        
     }
 }

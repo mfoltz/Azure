@@ -1,7 +1,7 @@
 using ProjectM;
 using VampireCommandFramework;
-using VBuild.Core.Converters;
-using VBuild.Core.Toolbox;
+using VCreate.Core.Converters;
+using VCreate.Core.Toolbox;
 using Buff = ProjectM.Buff;
 
 namespace VCreate.Core.Commands

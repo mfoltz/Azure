@@ -4,10 +4,11 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using VCreate.Core;
+using VCreate.Systems;
 
 namespace WorldBuild.Hooks
 {
-
     [HarmonyPatch(typeof(ReplaceAbilityOnSlotSystem), "OnUpdate")]
     public class ReplaceAbilityOnSlotSystem_Patch
     {
@@ -17,63 +18,38 @@ namespace WorldBuild.Hooks
             {
                 EntityManager entityManager = VWorld.Server.EntityManager;
                 NativeArray<Entity> entityArray = __instance.__Spawn_entityQuery.ToEntityArray(Allocator.Temp);
-                Plugin.Logger.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
+                Plugin.Log.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
 
                 foreach (Entity entity in entityArray)
                 {
                     Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
-                    if (!entityManager.HasComponent<PlayerCharacter>(owner))
-                    {
-                        continue; // Use continue instead of return to proceed with the next entity
-                    }
+
+                    if (!entityManager.HasComponent<PlayerCharacter>(owner)) continue;
+
                     Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                     User user = entityManager.GetComponentData<User>(userEntity);
 
+                    if (!DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data) || data.EquipSkills.Equals(false)) continue;
 
                     DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
-                    if (buffer[0].NewGroupId == VBuild.Data.Prefabs.AB_Vampire_Unarmed_Primary_MeleeAttack_AbilityGroup)
+                    if (buffer[0].NewGroupId == VCreate.Data.Prefabs.AB_Vampire_Unarmed_Primary_MeleeAttack_AbilityGroup)
                     {
-
-                        // Assuming you want to modify abilities when in build mode without checking the initial ability
-                        PrefabGUID spell1 = VBuild.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup; // Assigning build ability
-                        PrefabGUID spell2 = VBuild.Data.Prefabs.AB_Debug_NukeAll_Group; // Assigning nuke ability
-                        /*
-                        if (Utilities.HasComponent<AbilityBar_Shared>(entity))
-                        {
-                            AbilityBar_Shared abilityBar_Shared = Utilities.GetComponentData<AbilityBar_Shared>(entity);
-                            if (abilityBar_Shared.CastGroupPrefabGuid.Equals(spell1))
-                            {
-                                ModifiableFloat modifiableFloat = new ModifiableFloat{ Value=10f };
-                                abilityBar_Shared. = modifiableFloat;
-                                Utilities.SetComponentData(userEntity, abilityBar_Shared);
-                            }
-                        }
-                        */
-                        // Replacing or adding abilities directly without checking buffer length
-
-
-
+                        PrefabGUID spell1 = VCreate.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup; // Assigning build ability
+                        PrefabGUID spell2 = VCreate.Data.Prefabs.AB_Debug_NukeAll_Group; // Assigning nuke ability
 
                         ReplaceAbilityOnSlotBuff buildAbility = new ReplaceAbilityOnSlotBuff { Slot = 1, NewGroupId = spell1 };
                         ReplaceAbilityOnSlotBuff nukeAbility = new ReplaceAbilityOnSlotBuff { Slot = 4, NewGroupId = spell2 };
 
-                        //buffer.Clear(); // Clear the buffer if you want to reset abilities
                         buffer.Add(buildAbility);
                         buffer.Add(nukeAbility);
-                        Plugin.Logger.LogInfo("Modification complete.");
+                        Plugin.Log.LogInfo("Modification complete.");
                     }
-                    else
-                    {
-                        continue;
-                    }
-
-
                 }
                 entityArray.Dispose();
             }
             catch (System.Exception ex)
             {
-                Plugin.Logger.LogInfo($"Error in ReplaceAbilityOnSlotSystem Prefix: {ex.Message}");
+                Plugin.Log.LogInfo($"Error in ReplaceAbilityOnSlotSystem Prefix: {ex.Message}");
             }
         }
     }

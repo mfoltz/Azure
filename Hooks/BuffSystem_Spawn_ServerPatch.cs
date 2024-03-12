@@ -2,7 +2,7 @@ using HarmonyLib;
 using ProjectM;
 using Unity.Collections;
 using Unity.Entities;
-using VBuild.Core.Toolbox;
+using VCreate.Core.Toolbox;
 using VCreate.Core.Commands;
 
 [HarmonyPatch(typeof(BuffSystem_Spawn_Server), nameof(BuffSystem_Spawn_Server.OnUpdate))]
@@ -283,7 +283,7 @@ public static class BuffSystem_Spawn_ServerPatch
             PrefabGUID GUID = entity.Read<PrefabGUID>();
             Entity Owner = entity.Read<EntityOwner>().Owner;
             if (!Owner.Has<PlayerCharacter>()) continue;
-            if (GUID == VBuild.Data.Buff.CustomBuff)
+            if (GUID == VCreate.Data.Buff.CustomBuff)
             {
                 var Buffer = entityManager.AddBuffer<ModifyUnitStatBuff_DOTS>(entity);
                 Buffer.Clear();
@@ -353,11 +353,11 @@ public static class BuffSystem_Spawn_ServerPatch
                     }
                 }
             }
-            else if (GUID == VBuild.Data.Buff.Buff_InCombat_PvPVampire)
+            else if (GUID == VCreate.Data.Buff.Buff_InCombat_PvPVampire)
             {
                 if (GodCommands.isBuffEnabled(Owner, "immortal") || GodCommands.isBuffEnabled(Owner, "immortal"))
                 {
-                    Helper.UnbuffCharacter(Owner, VBuild.Data.Buff.Buff_InCombat_PvPVampire);
+                    Helper.UnbuffCharacter(Owner, VCreate.Data.Buff.Buff_InCombat_PvPVampire);
                 }
             }
         }

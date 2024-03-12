@@ -1,7 +1,7 @@
 ﻿
 using ProjectM;
 
-namespace VBuild.Data
+namespace VCreate.Data
 {
     public static class Buff
     {

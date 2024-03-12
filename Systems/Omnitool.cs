@@ -8,6 +8,7 @@
 
         public bool Permissions { get; set; }
         public bool Emotes { get; set; }
+        public bool EquipSkills { get; set; }
         public Stack<string> LastPlaced { get; set; } = new Stack<string>();
         public string OriginalBody { get; set; }
 
