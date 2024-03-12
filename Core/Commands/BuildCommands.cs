@@ -49,7 +49,7 @@ namespace VCreate.Core.Commands
                 DataStructures.Save();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Edit tiles outside of territories: {(emotes ? disabledColor : enabledColor)}");
+                ctx.Reply($"EmoteToggles: {(emotes ? disabledColor : enabledColor)}");
             }
             else
             {
@@ -79,7 +79,29 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "setTileRotation", shortHand: "str", adminOnly: true, usage: ".str [0/90/180/270]", description: "Sets rotation for spawned tiles.")]
+        [Command(name: "toggleSnapping", shortHand: "snap", adminOnly: true, usage: ".snap", description: "Toggles snapping.")]
+        public static void SnapToggleCommand(ChatCommandContext ctx)
+        {
+            Entity character = ctx.Event.SenderCharacterEntity;
+            ulong SteamID = ctx.Event.User.PlatformId;
+
+            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool data))
+            {
+                data.SetMode("SnappingToggle", !data.GetMode("SnappingToggle"));
+                DataStructures.Save();
+                string enabledColor = FontColors.Green("enabled");
+                string disabledColor = FontColors.Red("disabled");
+                ctx.Reply($"Snapping: {(data.GetMode("SnappingToggle") ? enabledColor : disabledColor)}");
+
+
+            }
+            else
+            {
+                ctx.Reply("Couldn't find omnitool data.");
+            }
+        }
+
+        [Command(name: "setTileRotation", shortHand: "rot", adminOnly: true, usage: ".rot [0/90/180/270]", description: "Sets rotation for spawned tiles.")]
         public static void SetTileRotationCommand(ChatCommandContext ctx, int rotation)
         {
             if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)
@@ -96,6 +118,25 @@ namespace VCreate.Core.Commands
                 ctx.Reply($"Tile rotation set to: {rotation} degrees.");
             }
         }
+
+        [Command(name: "setSnapLevel", shortHand: "sl", adminOnly: true, usage: ".sl [1/2/3]", description: "Sets snap level for spawned tiles.")]
+        public static void SetSnappingLevelCommand(ChatCommandContext ctx, int level)
+        {
+            if (level != 1 && level != 2 && level != 3)
+            {
+                ctx.Reply("Options are 1 for 2.5u, 2 for 5u, and 3 for 7.5u.");
+                return;
+            }
+
+            User user = ctx.Event.User;
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool settings))
+            {
+                settings.SetData("GridSize", level);
+                DataStructures.Save();
+                ctx.Reply($"Tile snapping set to: {level}u");
+            }
+        }
+
         [Command(name: "setCharacterUnit", shortHand: "char", adminOnly: true, usage: ".char [PrefabGUID]", description: "Sets cloned unit prefab.")]
         public static void SetUnit(ChatCommandContext ctx, int choice)
         {
@@ -197,7 +238,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "setTileModel", shortHand: "stm", adminOnly: true, usage: ".tm [PrefabGUID]", description: "Sets tile model to prefab.")]
+        [Command(name: "setTileModel", shortHand: "tm", adminOnly: true, usage: ".tm [PrefabGUID]", description: "Sets tile model to prefab.")]
         public static void SetTileByPrefab(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -229,6 +270,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
+        
 
         [Command(name: "undolast", shortHand: "undo", adminOnly: true, usage: ".undo", description: "Destroys the last entity placed, up to 10.")]
         public static void UndoCommand(ChatCommandContext ctx)

@@ -13,7 +13,6 @@ using VCreate.Systems;
 using Plugin = VCreate.Core.Plugin;
 using User = ProjectM.Network.User;
 
-//WIP
 
 namespace WorldBuild.Hooks
 {
@@ -24,7 +23,6 @@ namespace WorldBuild.Hooks
 
         public static void Prefix(PlaceTileModelSystem __instance)
         {
-            //Plugin.Logger.LogInfo("PlaceTileModelSystem Prefix called...");
             EntityManager entityManager = VWorld.Server.EntityManager;
 
             var jobs = __instance._BuildTileQuery.ToEntityArray(Allocator.Temp);
@@ -116,7 +114,7 @@ namespace WorldBuild.Hooks
             {
                 return (userEntity, _) =>
                 {
-                    OnHover.DebuffTileModel(userEntity);
+                    OnHover.DebuffAtHover(userEntity);
                 };
             }
             else if (settings.GetMode("ConvertToggle"))
@@ -148,6 +146,7 @@ namespace WorldBuild.Hooks
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "WIP, currently not implemented.");
                 };
             }
+
             else
             {
                 return null;

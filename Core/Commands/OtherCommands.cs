@@ -12,7 +12,6 @@ using UnityEngine;
 
 namespace VCreate.Core.Commands
 {
- 
     internal class GiveItemCommands
     {
         [Command(name: "give", shortHand: "gv", adminOnly: true, usage: ".gv [ItemName] [Quantity]", description: "Gives the specified item w/quantity.")]
@@ -21,7 +20,7 @@ namespace VCreate.Core.Commands
             if (Helper.AddItemToInventory(ctx.Event.SenderCharacterEntity, item.Value, quantity, out var entity))
             {
                 var prefabSys = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
-                prefabSys.PrefabGuidToNameDictionary.TryGetValue(item.Value, out var name); 
+                prefabSys.PrefabGuidToNameDictionary.TryGetValue(item.Value, out var name);
                 ctx.Reply($"Gave {quantity} {name}");
             }
         }
@@ -39,12 +38,10 @@ namespace VCreate.Core.Commands
             }
         }
     }
+
     internal class ReviveCommands
     {
-        public static Dictionary<Entity, bool> AutoReviveDictionary = new Dictionary<Entity, bool>();
-        public static Dictionary<Entity, Entity> AutoReviveCharactersToUsers = new Dictionary<Entity, Entity>();
-
-        [Command("revive", adminOnly: true)]
+        [Command(name: "revive", shortHand: "rev", adminOnly: true, usage: ".rev [PlayerName]", description: "Revives self or player.")]
         public void ReviveCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
@@ -54,80 +51,10 @@ namespace VCreate.Core.Commands
 
             ctx.Reply("Revived");
         }
-
-        [Command("autorevive", adminOnly: true)]
-        public void AutoReviveCommand(ChatCommandContext ctx, FoundPlayer player = null)
-        {
-            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
-            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
-
-            if (AutoReviveDictionary.ContainsKey(Character))
-            {
-                AutoReviveDictionary[Character] = !AutoReviveDictionary[Character];
-                if (AutoReviveDictionary[Character])
-                {
-                    Helper.ReviveCharacter(Character, User);
-                    ctx.Reply($"Enabled autorevive for {player?.Value.Name ?? "you"}.");
-                }
-                else
-                {
-                    ctx.Reply($"Disabled autorevive for {player?.Value.Name ?? "you"}.");
-                }
-            }
-            else
-            {
-                Helper.ReviveCharacter(Character, User);
-                AutoReviveDictionary[Character] = true;
-                AutoReviveCharactersToUsers[Character] = User;
-                ctx.Reply($"Enabled autorevive for {player?.Value.Name ?? "you"}.");
-            }
-        }
     }
 
     internal class CommandsCommands
     {
-        private static void MakePlayerImmaterial(Entity User, Entity Character)
-        {
-            Helper.BuffPlayer(Character, User, Data.Buffs.AB_Blood_BloodRite_Immaterial, Helper.NO_DURATION, true);
-            if (BuffUtility.TryGetBuff(VWorld.Server.EntityManager, Character, Prefabs.AB_Blood_BloodRite_Immaterial, out Entity buffEntity))
-            {
-                var modifyMovementSpeedBuff = buffEntity.Read<ModifyMovementSpeedBuff>();
-                modifyMovementSpeedBuff.MoveSpeed = 1; //bloodrite makes you accelerate forever, disable this
-                buffEntity.Write(modifyMovementSpeedBuff);
-            }
-        }
-
-        private static void MakePlayerMaterial(Entity Character)
-        {
-            Helper.UnbuffCharacter(Character, Data.Buffs.AB_Blood_BloodRite_Immaterial);
-        }
-
-        private static bool ToggleImmaterial(Entity User, Entity Character)
-        {
-            if (!BuffUtility.HasBuff(VWorld.Server.EntityManager, Character, Data.Buffs.AB_Blood_BloodRite_Immaterial))
-            {
-                MakePlayerImmaterial(User, Character);
-            }
-            else
-            {
-                MakePlayerMaterial(Character);
-            }
-            return false;
-        }
-
-        [Command(name: "demigod", shortHand: "deus", adminOnly: true, usage: ".deus", description: "Minor godhood. The bare essentials, if you will :P")]
-        public void DemigodCommand(ChatCommandContext ctx, FoundPlayer player = null)
-        {
-            var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
-            var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
-
-            MakePlayerImmaterial(User, Character);
-            Helper.BuffPlayer(Character, User, Prefabs.EquipBuff_ShroudOfTheForest, -1, true);
-            ctx.Reply("Granted you the powers of a (minor) god! Use debuffMode to return to normal.");
-        }
-
-
-
         [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks all the things.")]
         public void UnlockCommand(ChatCommandContext ctx, string playerName, string unlockCategory = "all")
         {

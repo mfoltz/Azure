@@ -449,7 +449,7 @@ namespace VCreate.Systems
                 float3 mousePosition = aimPosition.Value;
                 // Assuming TileSnap is an int representing the grid size index
                 // If TileSnap now refers directly to the size, adjust accordingly
-                float gridSize = OnHover.gridSizes[data.GetData("GridSize")]; // Adjust this line if the way you access grid sizes has changed
+                float gridSize = OnHover.gridSizes[data.GetData("GridSize")-1]; // Adjust this line if the way you access grid sizes has changed
                 mousePosition = new float3(
                     math.round(mousePosition.x / gridSize) * gridSize,
                     mousePosition.y,
@@ -482,7 +482,7 @@ namespace VCreate.Systems
             Plugin.Log.LogInfo($"Tile placed: {entityString}");
         }
 
-        public static void DebuffTileModel(Entity userEntity)
+        public static void DebuffAtHover(Entity userEntity)
         {
             //var Position = userEntity.Read<EntityInput>().AimPosition;
             Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
@@ -492,6 +492,10 @@ namespace VCreate.Systems
                 {
                     SystemPatchUtil.Destroy(buffer[i].Entity);
                 }
+            }
+            else
+            {
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No buffs found to remove.");
             }
         }
 
