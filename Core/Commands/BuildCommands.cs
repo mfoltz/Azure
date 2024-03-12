@@ -56,7 +56,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "MoveDismantlePermissions", shortHand: "perms", adminOnly: true, usage: ".perms [Name]", description: "Toggles tile permissions for a player (allows moving or dismantling objects they don't own if it is something that otherwise could be moved or dismantled by the player).")]
+        [Command(name: "moveDismantlePermissions", shortHand: "perms", adminOnly: true, usage: ".perms [Name]", description: "Toggles tile permissions for a player (allows moving or dismantling objects they don't own if it is something that otherwise could be moved or dismantled by the player).")]
         public static void TogglePlayerPermissions(ChatCommandContext ctx, string name)
         {
             User setter = ctx.Event.User;
