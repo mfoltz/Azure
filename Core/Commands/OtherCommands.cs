@@ -225,7 +225,7 @@ namespace VCreate.Core.Commands
         }
 
         [Command("ping", "!", null, "Shows your latency.", null, false)]
-        public static void PingCommand(ChatCommandContext ctx, string mode = "")
+        public static void PingCommand(ChatCommandContext ctx)
         {
             var ping = (int)(ctx.Event.SenderCharacterEntity.Read<Latency>().Value * 1000);
             ctx.Reply($"Your latency is <color=#ffff00>{ping}</color>ms");

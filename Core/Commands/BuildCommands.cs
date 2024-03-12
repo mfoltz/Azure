@@ -8,17 +8,16 @@ using VCreate.Core.Toolbox;
 using VCreate.Data;
 using static VCreate.Core.Services.PlayerService;
 using static VCreate.Systems.Enablers;
-using static ProjectM.VoiceMapping;
 
 namespace VCreate.Core.Commands
 {
     public class CoreCommands
     {
-        [Command(name: "equipUnarmedSkills", shortHand: ".equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
-        public static void ToggleSkillEquip(ChatCommandContext ctx, string name)
+        [Command(name: "equipUnarmedSkills", shortHand: "equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
+        public static void ToggleSkillEquip(ChatCommandContext ctx)
         {
             User setter = ctx.Event.User;
-            TryGetUserFromName(name, out Entity userEntity);
+            Entity userEntity = ctx.Event.SenderUserEntity;
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
@@ -35,11 +34,11 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "toggleEmotes", shortHand: ".emotes", adminOnly: true, usage: ".emotes", description: "Toggles using the emote wheel to change action on Q when extra skills for unarmed are equipped.")]
-        public static void ToggleEmoteActions(ChatCommandContext ctx, string name)
+        [Command(name: "toggleEmotes", shortHand: "emotes", adminOnly: true, usage: ".emotes", description: "Toggles using the emote wheel to change action on Q when extra skills for unarmed are equipped.")]
+        public static void ToggleEmoteActions(ChatCommandContext ctx)
         {
             User setter = ctx.Event.User;
-            TryGetUserFromName(name, out Entity userEntity);
+            Entity userEntity = ctx.Event.SenderUserEntity;
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
