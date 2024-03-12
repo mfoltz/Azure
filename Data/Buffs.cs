@@ -3,7 +3,7 @@ using ProjectM;
 
 namespace VCreate.Data
 {
-    public static class Buff
+    public static class Buffs
     {
         public static readonly PrefabGUID AllowJumpFromCliffsBuff = new PrefabGUID(-701914966);
         public static readonly PrefabGUID DeathBuff = new PrefabGUID(-410069552);
@@ -1132,6 +1132,6 @@ namespace VCreate.Data
         public static readonly PrefabGUID SpellMod_BloodFountain_SecondImpactSpeedBuff = new PrefabGUID(-303453222);
         public static readonly PrefabGUID AB_Blood_BloodRite_Immaterial = new PrefabGUID(-259674366);
         public static readonly PrefabGUID AB_Vampire_VeilOfFrost_Immaterial = new PrefabGUID(-969825650);
-        public static readonly PrefabGUID CustomBuff = Buff.Buff_Monster_GloomrotMilitary_Cooldown;
+        public static readonly PrefabGUID CustomBuff = Buffs.Buff_Monster_GloomrotMilitary_Cooldown;
     }
 }

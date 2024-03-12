@@ -12,7 +12,7 @@ namespace VCreate.Core.Converters
             PrefabGUID prefabGUID;
             if (Helper.TryGetPrefabGUIDFromString(input, out prefabGUID))
                 return new FoundPrefabGuid(prefabGUID);
-            throw ctx.Error("Could not find buff: " + input);
+            throw ctx.Error("Could not find matching PrefabGUID: " + input);
         }
     }
 }

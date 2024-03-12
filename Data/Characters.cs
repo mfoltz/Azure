@@ -2,7 +2,7 @@ using ProjectM;
 using System.Collections.ObjectModel;
 
 namespace VCreate.Data;
-internal static class Character
+internal static class Characters
 {
     public static ReadOnlyDictionary<string, PrefabGUID> Named = new(new Dictionary<string, PrefabGUID>(StringComparer.OrdinalIgnoreCase)
     {

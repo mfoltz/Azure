@@ -32,7 +32,7 @@ namespace WorldBuild.Hooks
             {
                 if (IsCastleHeart(job))
                 {
-                    if (!CoreCommands.WorldBuildToggle.WbFlag) return;
+                    if (!WorldBuildToggle.WbFlag) return;
                     CancelCastleHeartPlacement(entityManager, job);
                 }
             }

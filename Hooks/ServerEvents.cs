@@ -111,7 +111,7 @@ namespace VCreate.Hooks
                 }
                 else
                 {
-                    // find player's original body if entity reference no longer valid, need to implement
+                    // find player's original body if entity reference no longer valid, need to implement but hopefully the above prevents the need for it anyway
                 }
             }
         }

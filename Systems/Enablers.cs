@@ -49,7 +49,7 @@ internal static class Enablers
                 foreach (var tile in tiles)
                 {
                     // filter for tile models to make this slightly more user-friendly
-                    if (!tileGUID.LookupName().ToLower().Contains("tile")) continue;
+                    if (!tileGUID.LookupName().ToLower().Contains("tm")) continue;
                     var position = VWorld.Server.EntityManager.GetComponentData<LocalToWorld>(tile).Position;
                     var distance = UnityEngine.Vector3.Distance(origin, position);
                     var em = VWorld.Server.EntityManager;
@@ -139,30 +139,6 @@ internal static class Enablers
     public class HorseFunctions
     {
         internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
-
-        [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
-        public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
-        {
-            var position = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
-            var prefabGuid = spectral ? Prefabs.CHAR_Mount_Horse_Spectral : Prefabs.CHAR_Mount_Horse;
-
-            for (int i = 0; i < num; i++)
-            {
-                UnitSpawnerService.UnitSpawner.SpawnWithCallback(ctx.Event.SenderUserEntity, prefabGuid, position.xz, -1f, horse =>
-                {
-                    var mountable = horse.Read<Mountable>() with
-                    {
-                        MaxSpeed = speed,
-                        Acceleration = acceleration,
-                        RotationSpeed = rotation * 10f
-                    };
-                    horse.Write(mountable);
-                });
-            }
-
-            var horseType = spectral ? "spectral" : "";
-            ctx.Reply($"Spawned {num} {horseType} horse{(num > 1 ? "s" : "")} (with speed: {speed}, accel: {acceleration}, and rotate: {rotation}) near you.");
-        }
 
         [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
         public static void DisableGhosts(ChatCommandContext ctx)

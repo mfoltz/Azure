@@ -32,6 +32,17 @@ public static class Prefabs
             return false; // No match found
         }
     }
+    public enum BloodType
+    {
+        mutant = -2017994753,
+        warrior = -1094467405,
+        frailed = -899826404,
+        scholar = -586506765,
+        worker = -540707191,
+        creature = -77658840,
+        brute = 581377887,
+        rogue = 793735874,
+    }
     public static readonly PrefabGUID Chain_BossBarrel = new PrefabGUID(-601059406);
 
     public static readonly PrefabGUID BP_Castle_Chain_Base = new PrefabGUID(-1188781940);

@@ -27,8 +27,8 @@ public static class RepairDoubleVBloodSpawnedSystemPatch
 public static class FollowerSystemPatch
 {
     // proxies for pets
-    private static readonly PrefabGUID invulnerable = VCreate.Data.Buff.Admin_Invulnerable_Buff;
-    private static readonly PrefabGUID invisible = VCreate.Data.Buff.Admin_Observe_Invisible_Buff;
+    private static readonly PrefabGUID invulnerable = VCreate.Data.Buffs.Admin_Invulnerable_Buff;
+    private static readonly PrefabGUID invisible = VCreate.Data.Buffs.Admin_Observe_Invisible_Buff;
     private static readonly PrefabGUID servant = VCreate.Data.Prefabs.CHAR_ChurchOfLight_Paladin_Servant;
     private static readonly PrefabGUID horse = VCreate.Data.Prefabs.CHAR_Mount_Horse;
     private static readonly PrefabGUID trader = VCreate.Data.Prefabs.CHAR_Trader_Farbane_Knowledge_T01;

@@ -14,7 +14,7 @@ namespace VCreate.Systems
 {
     public class OnHover
     {
-        public static readonly float[] gridSizes = new float[] { 2.5f, 5f, 7.5f }; // grid sizes to cycle through
+        public static readonly float[] gridSizes = [2.5f, 5f, 7.5f]; // grid sizes to cycle through
 
         public static void InspectHoveredEntity(Entity userEntity)
         {
@@ -234,7 +234,7 @@ namespace VCreate.Systems
                     {
                         foreach (var buff in buffs)
                         {
-                            if (buff.PrefabGuid.Equals(VCreate.Data.Buff.AB_Charm_Active_Human_Buff))
+                            if (buff.PrefabGuid.Equals(VCreate.Data.Buffs.AB_Charm_Active_Human_Buff))
                             {
                                 Entity entityToFollow = Entity.Null;
                                 // want to link this follower to the follower with a follower buffer
@@ -270,9 +270,9 @@ namespace VCreate.Systems
                                 }
                             }
                         }
-                        Plugin.Logger.LogInfo("Modifying buffs...");
+                        Plugin.Log.LogInfo("Modifying buffs...");
                         DebuffNonPlayer(hoveredEntity);
-                        BuffNonPlayer(hoveredEntity, userEntity, VCreate.Data.Buff.Admin_Observe_Invisible_Buff);
+                        BuffNonPlayer(hoveredEntity, userEntity, VCreate.Data.Buffs.Admin_Observe_Invisible_Buff);
                         //BuffNonPlayer(hoveredEntity, userEntity, VBuild.Data.Buff.AB_InvisibilityAndImmaterial_Buff);
                     }
                 }
