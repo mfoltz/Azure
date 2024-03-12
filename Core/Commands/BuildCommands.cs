@@ -8,11 +8,29 @@ using VCreate.Core.Toolbox;
 using VCreate.Data;
 using static VCreate.Core.Services.PlayerService;
 using static VCreate.Systems.Enablers;
+using VCreate.Hooks;
 
 namespace VCreate.Core.Commands
 {
     public class CoreCommands
     {
+        [Command(name: "Demigod", shortHand: "deus", adminOnly: true, usage: ".deus", description: "Activates demigod mode. Use debuff mode to clear from self.")]
+        public static void DemigodCommand(ChatCommandContext ctx)
+        {
+            Entity character = ctx.Event.SenderCharacterEntity;
+            ulong SteamID = ctx.Event.User.PlatformId;
+
+            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool _))
+            {
+                Helper.BuffCharacter(character, VCreate.Data.Buffs.Admin_Invulnerable_Buff, -1, false);
+                Helper.BuffCharacter(character, VCreate.Data.Buffs.AB_Vampire_VeilOfFrost_Immaterial, -1, false);
+                ctx.Reply("You're now invulnerable. Use debuff mode to return to normal.");
+            }
+            else
+            {
+                ctx.Reply("Couldn't find omnitool data.");
+            }
+        }
         [Command(name: "equipUnarmedSkills", shortHand: "equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
         public static void ToggleSkillEquip(ChatCommandContext ctx)
         {
@@ -21,12 +39,14 @@ namespace VCreate.Core.Commands
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
-                bool skills = !data.EquipSkills;
+                data.EquipSkills = !data.EquipSkills;
 
                 DataStructures.Save();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($" {(skills ? disabledColor : enabledColor)}");
+                ctx.Reply($"EquipUnarmedSkills: |{(data.EquipSkills ? enabledColor : disabledColor)}|");
+                if (!data.EquipSkills) return;
+                ctx.Reply("Extra skills will be equipped when switching to unarmed. Turn this off and switch again to clear.");
             }
             else
             {
@@ -43,16 +63,28 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
                 // Toggle the CanEditTiles value
-                bool emotes = !data.Emotes;
+                data.Emotes = !data.Emotes;
 
                 DataStructures.Save();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"EmoteToggles: {(emotes ? disabledColor : enabledColor)}");
+                ctx.Reply($"EmoteToggles: |{(data.Emotes ? enabledColor : disabledColor)}|");
             }
             else
             {
                 ctx.Reply("Couldn't find omnitool data.");
+            }
+        }
+
+        [Command(name: "listToggles", shortHand: "list", adminOnly: true, usage: ".list", description: "Displays what modes emotes will toggle if applicable.")]
+        public static void ListEmoteActions(ChatCommandContext ctx)
+        {
+            User setter = ctx.Event.User;
+            Entity userEntity = ctx.Event.SenderUserEntity;
+            foreach(var toggle in EmoteSystemPatch.emoteActions.Keys)
+            {
+                PrefabGUID prefabGUID = new(toggle);
+                ctx.Reply($"{prefabGUID.LookupName()} | {EmoteSystemPatch.emoteActions[toggle].Method.Name}");
             }
         }
 
@@ -65,12 +97,12 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
                 // Toggle the CanEditTiles value
-                bool currentCanEditTiles = !data.Permissions;
+                data.Permissions = !data.Permissions;
 
                 DataStructures.Save();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Edit tiles outside of territories: {(currentCanEditTiles ? disabledColor : enabledColor)}");
+                ctx.Reply($"Permissions {(data.Permissions ? enabledColor : disabledColor)} for {name}.");
             }
             else
             {
@@ -90,7 +122,7 @@ namespace VCreate.Core.Commands
                 DataStructures.Save();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Snapping: {(data.GetMode("SnappingToggle") ? enabledColor : disabledColor)}");
+                ctx.Reply($"Snapping: |{(data.GetMode("SnappingToggle") ? enabledColor : disabledColor)}|");
 
 
             }
@@ -132,7 +164,7 @@ namespace VCreate.Core.Commands
             {
                 settings.SetData("GridSize", level);
                 DataStructures.Save();
-                ctx.Reply($"Tile snapping set to: {level}u");
+                ctx.Reply($"Tile snapping set to: {OnHover.gridSizes[settings.GetData("GridSize")]-1}u");
             }
         }
 
@@ -248,7 +280,7 @@ namespace VCreate.Core.Commands
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
                 {
                     PrefabGUID prefabGUID = new PrefabGUID(choice);
-                    if (prefabGUID.LookupName().ToLower().Contains("tile"))
+                    if (prefabGUID.LookupName().ToLower().Contains("tm"))
                     {
                         ctx.Reply($"Tile model set.");
                         data.SetData("Tile", choice);
@@ -271,7 +303,7 @@ namespace VCreate.Core.Commands
         }
         
 
-        [Command(name: "undolast", shortHand: "undo", adminOnly: true, usage: ".undo", description: "Destroys the last entity placed, up to 10.")]
+        [Command(name: "undolast", shortHand: "undo", adminOnly: true, usage: ".undo", description: "Destroys the last tile entity placed, up to 10.")]
         public static void UndoCommand(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;

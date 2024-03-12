@@ -4,9 +4,9 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
-using VCreate.Core;
 using VCreate.Systems;
 using static VCreate.Core.Services.PlayerService;
 using User = ProjectM.Network.User;
@@ -19,7 +19,7 @@ internal class EmoteSystemPatch
     private static readonly string enabledColor = VCreate.Core.Toolbox.FontColors.Green("enabled");
     private static readonly string disabledColor = VCreate.Core.Toolbox.FontColors.Red("disabled");
 
-    private static readonly Dictionary<int, Action<Player, ulong>> emoteActions = new Dictionary<int, Action<Player, ulong>>()
+    public static readonly Dictionary<int, Action<Player, ulong>> emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
             { -658066984, ToggleTileMode }, // Beckon
             { -1462274656, ToggleTileRotation }, // Bow
@@ -27,9 +27,9 @@ internal class EmoteSystemPatch
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleCopyMode }, // Salute
-            { -578764388, UndoLastTilePlacement }, // Shrug
+            { -578764388, ToggleImmortalTiles }, // Shrug
             { 808904257, ToggleBuffMode }, // Sit
-            { -1064533554, ToggleLinkMode}, // Surrender
+            { -1064533554, ToggleMapIconPlacement}, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
             { -1525577000, ToggleControlMode } // Yes
@@ -45,9 +45,9 @@ internal class EmoteSystemPatch
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleKillMode }, // No
             { -370061286, ToggleCopyMode }, // Salute
-            { -578764388, UndoLastTilePlacement }, // Shrug
+            { -578764388, ToggleImmortalTiles }, // Shrug
             { 808904257, ToggleBuffMode }, // Sit
-            { -1064533554, ToggleLinkMode}, // Surrender
+            { -1064533554, ToggleMapIconPlacement}, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
             { -1525577000, ToggleControlMode } // Yes
@@ -323,7 +323,7 @@ internal class EmoteSystemPatch
                     existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
                     PrefabGUID prefabGUID = hoveredEntity.Read<PrefabGUID>();
                     string colorString = VCreate.Core.Toolbox.FontColors.Cyan(prefabGUID.LookupName().ToString());
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), $"Controlling: {colorString})");
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), $"Controlling: {colorString}");
                     settings.OriginalBody = Character.Index + ", " + Character.Version;
                     DataStructures.Save();
                     return;
@@ -401,7 +401,7 @@ internal class EmoteSystemPatch
 
         if (DataStructures.PlayerSettings.TryGetValue(playerId, out Omnitool settings))
         {
-            if (settings.OriginalBody.Length > 0)
+            if (settings.OriginalBody != null)
             {
                 string[] parts = settings.OriginalBody.Split(", ");
                 if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
@@ -424,10 +424,6 @@ internal class EmoteSystemPatch
                     }
                 }
             }
-            else if (!player.Character.Read<PrefabGUID>().Equals(VCreate.Data.Prefabs.CHAR_VampireMale))
-            {
-                // return to body if not a vampire
-            }
             else
             {
                 bool currentValue = settings.GetMode("ControlToggle");
@@ -435,7 +431,6 @@ internal class EmoteSystemPatch
                 DataStructures.Save();
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ControlMode: |{stateMessage}|");
             }
-            // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
         }
     }
 

@@ -43,7 +43,7 @@ namespace VCreate.Hooks
                 // reset all horses to enabled state
                 EnableHorsesOnQuit();
                 // return all players to their original bodies
-                ReturnSoulsOnQuit();
+                //ReturnSoulsOnQuit();
             }
         }
 
@@ -52,7 +52,7 @@ namespace VCreate.Hooks
         {
             public static void Prefix()
             {
-                DataStructures.Save();
+                //DataStructures.Save();
             }
         }
 

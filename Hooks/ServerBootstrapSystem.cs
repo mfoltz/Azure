@@ -8,6 +8,9 @@ using VCreate.Core;
 using Unity.Transforms;
 using VCreate.Core.Toolbox;
 using System.Reflection.Metadata.Ecma335;
+using Bloodstone.API;
+using ProjectM.Tiles;
+using Unity.Collections;
 
 namespace VCreate.Hooks
 {
@@ -25,16 +28,47 @@ namespace VCreate.Hooks
             Entity playerEntity = user.LocalCharacter.GetEntityOnServer();
             ulong steamId = user.PlatformId;
 
-            if (!VCreate.Core.DataStructures.PlayerSettings.ContainsKey(steamId))
+            if (!VCreate.Core.DataStructures.PlayerSettings.TryGetValue(steamId, out Omnitool data))
             {
-                Omnitool data = new();
+                Omnitool newdata = new();
                 VCreate.Core.DataStructures.PlayerSettings.Add(steamId, data);
                 DataStructures.Save();
             }
             SetFollowers(__instance, netConnectionId);
-        }
+            // will need to update entity reference here to return to body
+            if (data.OriginalBody != null)
+            {
+                //ServerEvents.ReturnSoul(data);
+                var bodyQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                {
+                    All = new[]
+                {
+                ComponentType.ReadOnly<LocalToWorld>(),
+                ComponentType.ReadOnly<PrefabGUID>(),
+                ComponentType.ReadOnly<VampireTag>()
+            },
+                    //None = new[] { ComponentType.ReadOnly<Dead>(), ComponentType.ReadOnly<DestroyTag>() }
+                });
+                NativeArray<Entity> bodies = bodyQuery.ToEntityArray(Allocator.Temp);
+                foreach (var body in bodies)
+                {
+                    // looking for original character entity
+                    if (Utilities.HasComponent<PlayerCharacter>(body))
+                    {
+                        if (!body.Read<PlayerCharacter>().Name.Equals(user.CharacterName)) continue;
+                        else
+                        {
+                            data.OriginalBody = body.Index + ", " + body.Version;
+                            DataStructures.Save();
+                            //ServerEvents.ReturnSoul(data); break;
+                        }
+                    }
+                }
 
-        [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserDisconnected))]
+            }
+        }
+        /*
+        [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.))]
         [HarmonyPrefix]
         private static void OnUserDisconnectedPrefix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
@@ -51,6 +85,7 @@ namespace VCreate.Hooks
                 ServerEvents.ReturnSoul(data);
             }
         }
+        */
 
         private static void SetFollowers(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
@@ -63,19 +98,11 @@ namespace VCreate.Hooks
 
             try
             {
+                if (!userData.LocalCharacter._Entity.Has<FollowerBuffer>()) return;
                 var buffer = userData.LocalCharacter._Entity.ReadBuffer<FollowerBuffer>();
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    LocalToWorld localToWorld = userEntity.Read<LocalToWorld>();
-                    var follower = buffer[i];
-                    if (follower.Entity._Entity.Has<LastTranslation>())
-                    {
-                        follower.Entity._Entity.Write<LastTranslation>(new LastTranslation { Value = localToWorld.Position });
-                    }
-                    if (follower.Entity._Entity.Has<Translation>())
-                    {
-                        follower.Entity._Entity.Write<Translation>(new Translation { Value = localToWorld.Position });
-                    }
+                    //
                 }
             }
             catch (Exception e)

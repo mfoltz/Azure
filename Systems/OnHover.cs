@@ -295,13 +295,17 @@ namespace VCreate.Systems
 
             Utilities.SetComponentData(hoveredEntity, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
 
-            ModifiableEntity modifiableEntity = new ModifiableEntity { Value = character };
+            ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(character);
             ModifiableInt modifiableInt = Utilities.GetComponentData<Follower>(hoveredEntity).ModeModifiable;
             modifiableInt._Value = (int)FollowMode.Patrol;
 
             Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modifiableEntity, ModeModifiable = modifiableInt });
             Utilities.SetComponentData(hoveredEntity, teamReference);
-
+            GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.BuffTarget };
+            //hoveredEntity.Write<Translation>(new Translation { Value = new(-218.4665f, 15, -556.69354f) });
+            //hoveredEntity.Write<LastTranslation>(new LastTranslation { Value = new(-218.4665f, 15, -556.69354f) });
+            OffsetTranslationOnSpawnBlockerSettings offsetTranslationOnSpawnBlockerSettings = new OffsetTranslationOnSpawnBlockerSettings { Filter = ProjectM.Physics.CollisionFilterFlags.All };
+            Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
             entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
         }
@@ -321,7 +325,7 @@ namespace VCreate.Systems
                 EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
                 EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
 
-                PrefabGUID prefab = new(data.GetData("Tile"));
+                PrefabGUID prefab = new(data.GetData("Unit"));
                 var debugEvent = new SpawnCharmeableDebugEvent
                 {
                     PrefabGuid = prefab,
@@ -416,7 +420,7 @@ namespace VCreate.Systems
 
         private static void ApplyImmortalTilesSetting(Entity tileEntity, Omnitool data)
         {
-            if (data.GetMode("ImmortalTiles"))
+            if (data.GetMode("ImmortalToggle"))
             {
                 Utilities.AddComponentData(tileEntity, new Immortal { IsImmortal = true });
             }

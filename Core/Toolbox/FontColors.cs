@@ -14,7 +14,7 @@
 
         public static string Cyan(string text)
         {
-            return Color("##00FFFF", text);
+            return Color("#00FFFF", text);
         }
 
         public static string Blue(string text)

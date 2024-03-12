@@ -53,7 +53,7 @@ namespace VCreate.Core.Commands
         }
     }
 
-    internal class CommandsCommands
+    internal class MiscCommands
     {
         [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks all the things.")]
         public void UnlockCommand(ChatCommandContext ctx, string playerName, string unlockCategory = "all")
@@ -168,24 +168,7 @@ namespace VCreate.Core.Commands
                         chatCommandContext4.Reply(str8);
                         break;
 
-                    case "dlc":
-                        Helper.UnlockContent(fromCharacter);
-                        ChatCommandContext chatCommandContext5 = ctx;
-                        string str9;
-                        if ((object)player == null)
-                        {
-                            str9 = null;
-                        }
-                        else
-                        {
-                            player1 = player;
-                            str9 = player1.Name;
-                        }
-                        if (str9 == null)
-                            str9 = "you";
-                        string str10 = "Unlocked dlc for " + str9 + ".";
-                        chatCommandContext5.Reply(str10);
-                        break;
+                    
 
                     default:
                         ctx.Reply("Invalid unlock type specified.");
@@ -198,7 +181,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command("bloodmerlot", "bm", ".bm [Type] [quantity] [quality]", "Provides a blood merlot as ordered.", null, true)]
+        [Command("bloodmerlot", "bm", ".bm [Type] [Quantity] [Quality]", "Provides a blood merlot as ordered.", null, true)]
         public static void GiveBloodPotionCommand(ChatCommandContext ctx, VCreate.Data.Prefabs.BloodType type = VCreate.Data.Prefabs.BloodType.frailed, int quantity = 1, float quality = 100f)
         {
             quality = Mathf.Clamp(quality, 0, 100);

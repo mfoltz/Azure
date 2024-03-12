@@ -44,8 +44,8 @@ public static class FollowerSystemPatch
             //Plugin.Logger.LogInfo("FollowerSystem Prefix called...");
             if (entityManager.TryGetBuffer<FollowerBuffer>(entity, out var followers))
             {
-                Plugin.Log.LogInfo("FollowerSystem Prefix: has buffer, setting helper positions");
-                entity.Write<LastTranslation>(new LastTranslation { Value = entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position });
+                //Plugin.Log.LogInfo("FollowerSystem Prefix: has buffer, setting helper positions");
+                //GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
                 NativeArray<FollowerBuffer> followerEntities = followers.ToNativeArray(Unity.Collections.Allocator.Temp);
                 for (int i = 0; i < followerEntities.Length; i++)
                 {
@@ -56,15 +56,7 @@ public static class FollowerSystemPatch
                 }
                 followerEntities.Dispose();
             }
-            else if (entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>())
-            {
-
-                Plugin.Log.LogInfo("FollowerSystem Prefix: no buffer, following player");
-                //entity.Write<LastTranslation>(new LastTranslation { Value = entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position });
-                //entity.Write<Translation>(new Translation { Value = entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position });
-                OffsetTranslationOnSpawn offsetTranslationOnSpawn = new OffsetTranslationOnSpawn { Offset = entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position };
-                Utilities.AddComponentData(entity, offsetTranslationOnSpawn);
-            }
+            
 
         }
         entities.Dispose();
