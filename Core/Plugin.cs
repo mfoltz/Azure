@@ -4,16 +4,11 @@ using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
 using System.Reflection;
-using Unity.Entities;
-using UnityEngine;
-using VampireCommandFramework;
-using UnityEngine.SceneManagement;
 using System.Text.Json;
-using VBuild;
+using Unity.Entities;
+using VampireCommandFramework;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
-using VBuild.BuildingSystem;
-using VBuild.Data;
 using VCreate.Systems;
 
 namespace VCreate.Core
@@ -83,17 +78,17 @@ namespace VCreate.Core
             }
 
             string json = File.ReadAllText(Plugin.PlayerSettingsJSON);
-            Plugin.Logger.LogWarning($"BuildSettings found: {json}");
+            Plugin.Logger.LogWarning($"PlayerSettings found: {json}");
             try
             {
                 VCreate.Core.DataStructures.PlayerSettings = JsonSerializer.Deserialize<Dictionary<ulong, Omnitool>>(json);
-                Plugin.Logger.LogWarning("BuildSettings Populated");
+                Plugin.Logger.LogWarning("PlayerSettings Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
                 VCreate.Core.DataStructures.PlayerSettings = [];
-                Plugin.Logger.LogWarning("BuildSettings Created");
+                Plugin.Logger.LogWarning("PlayerSettings Created");
             }
         }
     }

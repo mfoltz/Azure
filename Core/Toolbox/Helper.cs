@@ -1,9 +1,4 @@
-﻿
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Bloodstone.API;
+﻿using Bloodstone.API;
 using Il2CppInterop.Runtime;
 using Il2CppSystem;
 using ProjectM;

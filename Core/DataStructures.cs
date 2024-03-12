@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using VBuild.Core;
 using VCreate.Systems;
 namespace VCreate.Core
 {
@@ -18,7 +17,7 @@ namespace VCreate.Core
             IncludeFields = true
         };
 
-        private static Dictionary<ulong, Omnitool> playerSettings = [];
+        private static Dictionary<ulong, Omnitool> playerSettings = new Dictionary<ulong, Omnitool>();
 
 
 

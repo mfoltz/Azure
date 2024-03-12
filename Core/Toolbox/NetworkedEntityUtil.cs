@@ -5,11 +5,13 @@ using Unity.Entities;
 namespace VBuild.Core.Toolbox;
 
 
-public static class NetworkedEntityUtil {
+public static class NetworkedEntityUtil
+{
 
-    private static NetworkIdSystem _NetworkIdSystem = VWorld.Server.GetExistingSystem<NetworkIdSystem>();
+    private static readonly NetworkIdSystem _NetworkIdSystem = VWorld.Server.GetExistingSystem<NetworkIdSystem>();
 
-    public static bool TryFindEntity(NetworkId networkId, out Entity entity) {
+    public static bool TryFindEntity(NetworkId networkId, out Entity entity)
+    {
         return _NetworkIdSystem._NetworkIdToEntityMap.TryGetValue(networkId, out entity);
     }
 

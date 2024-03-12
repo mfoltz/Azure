@@ -1,36 +1,15 @@
 ﻿using Bloodstone.API;
-using FMOD.Studio;
 using HarmonyLib;
-using Il2CppSystem;
 using ProjectM;
-using ProjectM.Behaviours;
 using ProjectM.CastleBuilding;
-using ProjectM.CastleBuilding.Placement;
-using ProjectM.Gameplay.Systems;
 using ProjectM.Network;
-using ProjectM.Scripting;
-using System.Runtime.InteropServices;
 using System.Text;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Physics;
-using UnityEngine.TextCore;
-using static ProjectM.CastleBuilding.Placement.GetPlacementResult;
-using static ProjectM.Network.SetTimeOfDayEvent;
-using static VCF.Core.Basics.RoleCommands;
-using Exception = System.Exception;
+using VBuild.Core.Toolbox;
+using VCreate.Core.Commands;
 using Plugin = VBuild.Core.Plugin;
 using User = ProjectM.Network.User;
-using VBuild.BuildingSystem;
-using VBuild.Core.Toolbox;
-using VBuild.Data;
-using ProjectM.Gameplay.Scripting;
-using ProjectM.Tiles;
-using ProjectM.Gameplay;
-using ProjectM.Shared.Systems;
-using VBuild.Core.Services;
-using VCreate.Core.Commands;
 
 //WIP
 
@@ -46,7 +25,7 @@ namespace WorldBuild.Hooks
             //Plugin.Logger.LogInfo("PlaceTileModelSystem Prefix called...");
             EntityManager entityManager = VWorld.Server.EntityManager;
 
-        
+
             var jobs = __instance._BuildTileQuery.ToEntityArray(Allocator.Temp);
             foreach (var job in jobs)
             {
@@ -62,7 +41,7 @@ namespace WorldBuild.Hooks
             foreach (var job in jobs)
             {
                 if (!Utilities.HasComponent<AbilityPreCastFinishedEvent>(job)) continue;
-                
+
                 AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
                 Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
                 PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
@@ -82,7 +61,7 @@ namespace WorldBuild.Hooks
                         HandleAbilityCast(userEntity);
                     }
                 }
-                
+
             }
             jobs.Dispose();
         }
@@ -106,7 +85,7 @@ namespace WorldBuild.Hooks
         {
             // Example: Checking for a specific prefabGUID and toggle
             Plugin.Logger.LogInfo("Deciding action based on settings...");
-            
+
             if (settings.GetMode("InspectToggle"))
             {
                 return (userEntity, _) =>
@@ -172,7 +151,7 @@ namespace WorldBuild.Hooks
                     OnHover.LinkHelper(userEntity);
                 };
             }
-            
+
 
 
             else
@@ -183,9 +162,9 @@ namespace WorldBuild.Hooks
                     OnHover.SpawnTileModel(userEntity);
                 };
             }
-            
 
-            
+
+
         }
 
         private static bool IsCastleHeart(Entity job)
@@ -303,8 +282,8 @@ public static class TileOperationUtility
                 Plugin.Logger.LogInfo("PlatformID did not match, not allowing.");
                 return false;
             }
-            
+
         }
-        
+
     }
 }

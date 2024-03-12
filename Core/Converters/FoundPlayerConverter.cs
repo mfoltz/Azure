@@ -1,5 +1,4 @@
-﻿using VBuild.Core.Converters;
-using VampireCommandFramework;
+﻿using VampireCommandFramework;
 using VBuild.Core.Services;
 
 namespace VBuild.Core.Converters

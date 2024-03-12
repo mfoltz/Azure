@@ -5,7 +5,6 @@ using ProjectM;
 using Unity.Collections;
 using Unity.Entities;
 using VBuild.Core.Toolbox;
-using VBuild.Data;
 
 namespace VBuild.Core.Services
 {

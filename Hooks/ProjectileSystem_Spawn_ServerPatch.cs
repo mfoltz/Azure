@@ -4,7 +4,6 @@ using ProjectM;
 using ProjectM.Gameplay.Scripting;
 using Unity.Collections;
 using Unity.Entities;
-using VBuild.Core.Commands;
 using VBuild.Core.Toolbox;
 using VCreate.Core.Commands;
 

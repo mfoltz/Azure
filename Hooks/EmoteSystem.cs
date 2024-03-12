@@ -1,26 +1,12 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
 using ProjectM;
-using ProjectM.Gameplay.Systems;
 using ProjectM.Network;
-using System;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
-using UnityEngine;
-using VampireCommandFramework;
-using VBuild.BuildingSystem;
-using VBuild.Core;
-using VBuild.Core.Converters;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
-using VBuild.Data;
-using VRising.GameData;
-using VRising.GameData.Models;
 using static VBuild.Core.Services.PlayerService;
-using static VBuild.Core.Services.UnitSpawnerService;
-using static VCF.Core.Basics.RoleCommands;
 using User = ProjectM.Network.User;
 
 namespace VBuild.Hooks;
@@ -31,9 +17,9 @@ internal class EmoteSystemPatch
     private static readonly string enabledColor = VBuild.Core.Toolbox.FontColors.Green("enabled");
     private static readonly string disabledColor = VBuild.Core.Toolbox.FontColors.Red("disabled");
 
-    
 
-   
+
+
 
     private static readonly Dictionary<int, Action<Player, ulong>> emoteActions = new Dictionary<int, Action<Player, ulong>>()
         {
@@ -75,7 +61,7 @@ internal class EmoteSystemPatch
     public static void OnUpdate_Emote(ProjectM.EmoteSystem __instance)
     {
         var _entities = __instance.__UseEmoteJob_entityQuery.ToEntityArray(Allocator.Temp);
-        
+
         foreach (var _entity in _entities)
         {
             var _event = _entity.Read<UseEmoteEvent>();
@@ -103,7 +89,7 @@ internal class EmoteSystemPatch
             //bool currentValue = settings.GetToggle("CopyToggle");
             //settings.SetToggle("CopyToggle", !currentValue);
             // Update the player's build settings in the database
-        
+
             string stateMessage = settings.GetMode("CopyToggle") ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"CopyMode: |{stateMessage}|");
         }
@@ -219,7 +205,7 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ConvertMode: |{stateMessage}|");
         }
     }
-   
+
 
     private static void ToggleImmortalTiles(Player player, ulong playerId)
     {
@@ -376,14 +362,14 @@ internal class EmoteSystemPatch
         {
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), "Couldn't find create settings.");
         }
-            
-    
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
+
     }
     private static void ResetToggles(Player player, ulong playerId)
     {
@@ -474,7 +460,7 @@ internal class EmoteSystemPatch
                         settings.OriginalBody = "";
                         Databases.SaveBuildSettings();
                         ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "Returned to original body.");
-                        
+
                         return;
                     }
                 }
@@ -487,7 +473,7 @@ internal class EmoteSystemPatch
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ControlMode: |{stateMessage}|");
             }
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
-            
+
         }
 
     }
@@ -516,7 +502,7 @@ internal class EmoteSystemPatch
                     {
                         try
                         {
-                            Entity tile = new Entity { Index = index, Version = version+1 };
+                            Entity tile = new Entity { Index = index, Version = version + 1 };
                             if (entityManager.Exists(tileEntity))
                             {
                                 SystemPatchUtil.Destroy(tileEntity);
@@ -524,7 +510,7 @@ internal class EmoteSystemPatch
                                 Databases.SaveBuildSettings();
                             }
                         }
-                        catch 
+                        catch
                         {
                             try
                             {
@@ -560,5 +546,5 @@ internal class EmoteSystemPatch
         }
     }
 
-    
+
 }

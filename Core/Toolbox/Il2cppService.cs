@@ -1,6 +1,5 @@
 using Bloodstone.API;
 using Il2CppInterop.Runtime;
-using Il2CppSystem;
 using Unity.Collections;
 using Unity.Entities;
 using Type = Il2CppSystem.Type;
@@ -10,7 +9,7 @@ namespace VBuild.Core.Toolbox;
 public static class Il2cppService
 {
     private static Type GetType<T>() => Il2CppType.Of<T>();
-    
+
     public static unsafe T GetComponentDataAOT<T>(this EntityManager entityManager, Entity entity) where T : unmanaged
     {
         var type = TypeManager.GetTypeIndex(GetType<T>());
@@ -25,8 +24,8 @@ public static class Il2cppService
 
         EntityQueryDesc queryDesc = new EntityQueryDesc
         {
-            All = new ComponentType[] { 
-                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite) 
+            All = new ComponentType[] {
+                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite)
             },
             Options = options
         };
@@ -43,9 +42,9 @@ public static class Il2cppService
 
         EntityQueryDesc queryDesc = new EntityQueryDesc
         {
-            All = new ComponentType[] { 
-                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite), 
-                new ComponentType(Il2CppType.Of<T2>(), ComponentType.AccessMode.ReadWrite) 
+            All = new ComponentType[] {
+                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite),
+                new ComponentType(Il2CppType.Of<T2>(), ComponentType.AccessMode.ReadWrite)
             },
             Options = options
         };
@@ -62,10 +61,10 @@ public static class Il2cppService
 
         EntityQueryDesc queryDesc = new EntityQueryDesc
         {
-            All = new ComponentType[] { 
-                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite), 
-                new ComponentType(Il2CppType.Of<T2>(), ComponentType.AccessMode.ReadWrite), 
-                new ComponentType(Il2CppType.Of<T3>(), ComponentType.AccessMode.ReadWrite) 
+            All = new ComponentType[] {
+                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite),
+                new ComponentType(Il2CppType.Of<T2>(), ComponentType.AccessMode.ReadWrite),
+                new ComponentType(Il2CppType.Of<T3>(), ComponentType.AccessMode.ReadWrite)
             },
             Options = options
         };

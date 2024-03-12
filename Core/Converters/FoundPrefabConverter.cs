@@ -1,6 +1,4 @@
 ﻿using ProjectM;
-using VBuild.Core;
-using VBuild.Data;
 using VampireCommandFramework;
 using VBuild.Core.Toolbox;
 

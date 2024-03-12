@@ -2,7 +2,6 @@ using HarmonyLib;
 using ProjectM;
 using Unity.Collections;
 using Unity.Entities;
-using VBuild.Core.Commands;
 using VBuild.Core.Toolbox;
 using VCreate.Core.Commands;
 

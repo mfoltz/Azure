@@ -1,35 +1,28 @@
 ﻿using Bloodstone.API;
-using VBuild.Data;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSystem;
 using ProjectM;
 using ProjectM.Network;
+using System.Runtime.CompilerServices;
+using System.Text;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using VampireCommandFramework;
-using Il2CppSystem;
-using static VBuild.BuildingSystem.OnHover;
 using VBuild.BuildingSystem;
+using VBuild.Core.Converters;
 using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
-using VBuild.Core.Converters;
-using static VCreate.Core.Converters.CommandParser;
-using System.Runtime.CompilerServices;
+using VBuild.Data;
+using VCreate.Systems;
 using VRising.GameData;
-using Exception = System.Exception;
-using VRising.GameData.Models;
 using VRising.GameData.Methods;
-using UnityEngine.Rendering;
-using System.Text;
-using static ProjectM.DebugEventsSystem;
-using Enum = System.Enum;
-using ProjectM.Terrain;
-using Unity.Collections;
-using StringSplitOptions = System.StringSplitOptions;
-using VRising.GameData.Models.Internals;
+using VRising.GameData.Models;
 using static VBuild.Core.Services.PlayerService;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using Unity.Transforms;
-using VCreate.Core.Converters;
+using static VCreate.Core.Converters.CommandParser;
+using Exception = System.Exception;
 
 namespace VCreate.Core.Commands
 {
@@ -155,32 +148,17 @@ namespace VCreate.Core.Commands
             }
         }
 
-        /*
-        [Command(name: "toggleDismantleMode", shortHand: "dm", adminOnly: true, usage: ".vb dm", description: "Toggles dismantle mode (destroys any tile that takes damage from you, including immortal tiles).")]
-        public static void DismantleModeCommand(ChatCommandContext ctx)
-        {
-            User user = ctx.Event.User;
-            if (Databases.playerBuildSettings.TryGetValue(user.PlatformId, out BuildSettings settings))
-            {
-                settings.DismantleMode = !settings.DismantleMode;
 
-                string enabledColor = FontColors.Green("enabled");
-                string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Dismantle mode: {(settings.DismantleMode ? enabledColor : disabledColor)}");
-                Databases.SaveBuildSettings();
-            }
-        }
-        */
         [Command(name: "tilePermissions", shortHand: "perms", adminOnly: true, usage: ".vb perms <Name>", description: "Toggles tile permissions for a player (allows moving or dismantling things outside of their territory if it is something that can be moved or disabled).")]
         public static void ToggleEditTilesCommand(ChatCommandContext ctx, string name)
         {
             User setter = ctx.Event.User;
             TryGetUserFromName(name, out Entity userEntity);
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
-            if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
                 // Toggle the CanEditTiles value
-                bool currentCanEditTiles = settings.GetMode("CanEditTiles");
+                bool currentCanEditTiles = data.GetMode("CanEditTiles");
                 settings.SetMode("CanEditTiles", !currentCanEditTiles);
 
                 Databases.SaveBuildSettings();
@@ -191,8 +169,8 @@ namespace VCreate.Core.Commands
             else
             {
                 // Create new settings for user
-                Tools newSettings = new();
-                newSettings.SetMode("CanEditTiles", true);
+                Omnitool newSettings = new();
+                newSettings.("CanEditTiles", true);
 
                 // Assuming you have a method to add or update settings in your Databases object
                 Databases.playerSettings.Add(user.PlatformId, newSettings);
@@ -422,7 +400,7 @@ namespace VCreate.Core.Commands
             if (Databases.playerSettings.TryGetValue(user.PlatformId, out Tools settings))
             {
 
-                if (TileUtils.MapIconFunctions.mapIcons.TryGetValue(choice, out int mapIcon))
+                if (Enablers.MapIconFunctions.mapIcons.TryGetValue(choice, out int mapIcon))
                 {
                     settings.MapIcon = mapIcon;
                     Databases.SaveBuildSettings();
@@ -430,7 +408,7 @@ namespace VCreate.Core.Commands
                 }
                 else
                 {
-                    ctx.Reply($"Invalid map icon choice, must be greater than 0 and less than {TileUtils.MapIconFunctions.mapIcons.Count}.");
+                    ctx.Reply($"Invalid map icon choice, must be greater than 0 and less than {Enablers.MapIconFunctions.mapIcons.Count}.");
 
                 }
             }
@@ -446,7 +424,7 @@ namespace VCreate.Core.Commands
             StringBuilder listMessage = new StringBuilder();
             listMessage.AppendLine("Available Map Icons:");
 
-            foreach (var iconEntry in TileUtils.MapIconFunctions.mapIcons)
+            foreach (var iconEntry in Enablers.MapIconFunctions.mapIcons)
             {
                 // Assuming you have a method to get a friendly name for the map icon by its hash
                 PrefabGUID prefabGUID = new PrefabGUID(iconEntry.Value);
@@ -481,7 +459,7 @@ namespace VCreate.Core.Commands
                 return;
             }
 
-            var tiles = TileUtils.ClosestTiles(ctx, radius, name);
+            var tiles = Enablers.ClosestTiles(ctx, radius, name);
 
             foreach (var tile in tiles)
             {
@@ -688,102 +666,7 @@ namespace VCreate.Core.Commands
                 }
             }
         }
-        public class HorseFunctions
-        {
-            internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
-
-            [Command("spawnhorse", shortHand: "sh", description: "Spawns a horse with specified stats.", usage: ".sh <Speed> <Acceleration> <Rotation> <isSpectral> <#>", adminOnly: true)]
-            public static void SpawnHorse(ChatCommandContext ctx, float speed, float acceleration, float rotation, bool spectral = false, int num = 1)
-            {
-                var position = Utilities.GetComponentData<LocalToWorld>(ctx.Event.SenderCharacterEntity).Position;
-                var prefabGuid = spectral ? Prefabs.CHAR_Mount_Horse_Spectral : Prefabs.CHAR_Mount_Horse;
-
-                for (int i = 0; i < num; i++)
-                {
-                    UnitSpawnerService.UnitSpawner.SpawnWithCallback(ctx.Event.SenderUserEntity, prefabGuid, position.xz, -1f, horse =>
-                    {
-                        var mountable = horse.Read<Mountable>() with
-                        {
-                            MaxSpeed = speed,
-                            Acceleration = acceleration,
-                            RotationSpeed = rotation * 10f
-                        };
-                        horse.Write(mountable);
-                    });
-                }
-
-                var horseType = spectral ? "spectral" : "";
-                ctx.Reply($"Spawned {num} {horseType} horse{(num > 1 ? "s" : "")} (with speed: {speed}, accel: {acceleration}, and rotate: {rotation}) near you.");
-            }
-
-            [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
-            public static void DisableGhosts(ChatCommandContext ctx)
-            {
-                var entityManager = VWorld.Server.EntityManager;
-                NativeArray<Entity> entityArray = entityManager.CreateEntityQuery(new EntityQueryDesc()
-                {
-                    All = (Il2CppStructArray<ComponentType>)new ComponentType[4]
-                    {
-            ComponentType.ReadWrite<Immortal>(),
-            ComponentType.ReadWrite<Mountable>(),
-            ComponentType.ReadWrite<BuffBuffer>(),
-            ComponentType.ReadWrite<PrefabGUID>()
-                    }
-                }).ToEntityArray(Allocator.TempJob);
-
-                foreach (var entity in entityArray)
-                {
-                    DynamicBuffer<BuffBuffer> buffer;
-                    VWorld.Server.EntityManager.TryGetBuffer(entity, out buffer);
-                    for (int index = 0; index < buffer.Length; ++index)
-                    {
-                        if (buffer[index].PrefabGuid.GuidHash == Prefabs.Buff_General_VampireMount_Dead.GuidHash && Utilities.HasComponent<EntityOwner>(entity))
-                        {
-                            Entity owner = Utilities.GetComponentData<EntityOwner>(entity).Owner;
-                            if (Utilities.HasComponent<PlayerCharacter>(owner))
-                            {
-                                User componentData = Utilities.GetComponentData<User>(Utilities.GetComponentData<PlayerCharacter>(owner).UserEntity);
-                                ctx.Reply("Found dead horse owner, disabling...");
-                                ulong platformId = componentData.PlatformId;
-                                PlayerHorseStasisMap[platformId] = new HorseStasisState(entity, true);
-                                SystemPatchUtil.Disable(entity);
-                            }
-                        }
-                    }
-                }
-                entityArray.Dispose();
-                ctx.Reply("Placed dead player ghost horses in stasis. They can still be resummoned.");
-            }
-
-            [Command("enablehorse", "eh", description: "Reactivates the player's horse.", adminOnly: false)]
-            public static void ReactivateHorse(ChatCommandContext ctx)
-            {
-                ulong platformId = ctx.User.PlatformId;
-                if (PlayerHorseStasisMap.TryGetValue(platformId, out HorseStasisState horseStasisState) && horseStasisState.IsInStasis)
-                {
-                    SystemPatchUtil.Enable(horseStasisState.HorseEntity);
-                    horseStasisState.IsInStasis = false;
-                    PlayerHorseStasisMap[platformId] = horseStasisState;
-                    ctx.Reply("Your horse has been reactivated.");
-                }
-                else
-                {
-                    ctx.Reply("No horse in stasis found to reactivate.");
-                }
-            }
-
-            internal struct HorseStasisState
-            {
-                public Entity HorseEntity;
-                public bool IsInStasis;
-
-                public HorseStasisState(Entity horseEntity, bool isInStasis)
-                {
-                    HorseEntity = horseEntity;
-                    IsInStasis = isInStasis;
-                }
-            }
-        }
+        
 
         [Command(name: "unlock", shortHand: "u", adminOnly: true, usage: ".v u <Player>", description: "Unlocks all the things.")]
         public void UnlockCommand(ChatCommandContext ctx, string playerName, string unlockCategory = "all")

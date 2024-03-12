@@ -2,14 +2,14 @@
 {
     public class Omnitool
     {
-        public static readonly Dictionary<string, bool> modes = [];
+        public readonly Dictionary<string, bool> modes = [];
 
-        public static readonly Dictionary<string, int> data = [];
+        public readonly Dictionary<string, int> data = [];
 
-        public static bool Permissions { get; set; }
-        public static bool Emotes { get; set; }
-        public static Stack<string> LastPlaced { get; set; } = new Stack<string>();
-        public static string OriginalBody { get; set; }
+        public bool Permissions { get; set; }
+        public bool Emotes { get; set; }
+        public Stack<string> LastPlaced { get; set; } = new Stack<string>();
+        public string OriginalBody { get; set; }
 
         // Constructor
         public Omnitool()
@@ -38,12 +38,12 @@
         }
 
         // Methods for mode dictionary
-        public static void SetMode(string key, bool value)
+        public void SetMode(string key, bool value)
         {
             modes[key] = value; // This automatically handles add or update
         }
 
-        public static bool GetMode(string key)
+        public bool GetMode(string key)
         {
             if (modes.TryGetValue(key, out bool value))
             {
@@ -52,12 +52,12 @@
             return false; // Consider handling this case more explicitly
         }
 
-        public static void SetData(string key, int value)
+        public void SetData(string key, int value)
         {
             data[key] = value; // This automatically handles add or update
         }
 
-        public static int GetData(string key, int defaultValue = 0)
+        public int GetData(string key, int defaultValue = 0)
         {
             if (data.TryGetValue(key, out int value))
             {
@@ -67,7 +67,7 @@
         }
 
         // Methods for undo functionality
-        public static void AddEntity(string tileRef)
+        public void AddEntity(string tileRef)
         {
             if (LastPlaced.Count >= 10)
             {
@@ -76,7 +76,7 @@
             LastPlaced.Push(tileRef);
         }
 
-        public static string PopEntity()
+        public string PopEntity()
         {
             return LastPlaced.Count > 0 ? LastPlaced.Pop() : null;
         }

@@ -4,11 +4,6 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine.Analytics;
-using VBuild.BuildingSystem;
-using VBuild.Core;
-using VBuild.Core.Toolbox;
-using VBuild.Data;
 
 namespace WorldBuild.Hooks
 {
@@ -34,7 +29,7 @@ namespace WorldBuild.Hooks
                     Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
                     User user = entityManager.GetComponentData<User>(userEntity);
 
-                    
+
                     DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer = entityManager.GetBuffer<ReplaceAbilityOnSlotBuff>(entity);
                     if (buffer[0].NewGroupId == VBuild.Data.Prefabs.AB_Vampire_Unarmed_Primary_MeleeAttack_AbilityGroup)
                     {
@@ -56,7 +51,7 @@ namespace WorldBuild.Hooks
                         */
                         // Replacing or adding abilities directly without checking buffer length
 
-                                                        
+
 
 
                         ReplaceAbilityOnSlotBuff buildAbility = new ReplaceAbilityOnSlotBuff { Slot = 1, NewGroupId = spell1 };
@@ -71,8 +66,8 @@ namespace WorldBuild.Hooks
                     {
                         continue;
                     }
-                        
-                    
+
+
                 }
                 entityArray.Dispose();
             }

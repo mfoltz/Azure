@@ -2,11 +2,11 @@
 using ProjectM;
 using Unity.Entities;
 using Unity.Transforms;
-using VBuild.Core.Services;
-using VBuild.Data;
 using VampireCommandFramework;
-using VBuild.Core.Toolbox;
 using VBuild.Core.Converters;
+using VBuild.Core.Services;
+using VBuild.Core.Toolbox;
+using VBuild.Data;
 
 namespace VCreate.Core.Commands
 {

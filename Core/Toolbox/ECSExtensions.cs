@@ -1,9 +1,8 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Bloodstone.API;
+﻿using Bloodstone.API;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using ProjectM;
+using System.Runtime.InteropServices;
 using Unity;
 using Unity.Collections;
 using Unity.Entities;
@@ -75,7 +74,7 @@ public static class ECSExtensions
         }
 
         Debug.Log("===");
-   
+
     }
     public static List<ComponentType> GetComponentTypes(this Entity entity)
     {

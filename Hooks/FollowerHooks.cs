@@ -1,27 +1,12 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
 using ProjectM;
-using ProjectM.Behaviours;
-using ProjectM.Gameplay;
-using ProjectM.Gameplay.Scripting;
 using ProjectM.Network;
-using ProjectM.Scripting;
 using ProjectM.Shared.Systems;
-using ProjectM.UI;
-using Steamworks;
 using Stunlock.Network;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
-using VBuild.BuildingSystem;
-using VBuild.Core;
-using VBuild.Core.Services;
 using VBuild.Core.Toolbox;
 
 
@@ -63,7 +48,7 @@ public static class FollowerSystemPatch
                 NativeArray<FollowerBuffer> followerEntities = followers.ToNativeArray(Unity.Collections.Allocator.Temp);
                 for (int i = 0; i < followerEntities.Length; i++)
                 {
-                    
+
                     //followers[i].Entity._Entity.Write<Translation>(new Translation { Value = entity.Read<LocalToWorld>().Position });
                     //followers[i].Entity._Entity.Write<LastTranslation>(new LastTranslation { Value = entity.Read<LocalToWorld>().Position });
                     followers[i].Entity._Entity.Write<LocalToWorld>(new LocalToWorld { Value = entity.Read<LocalToWorld>().Value });
@@ -72,14 +57,14 @@ public static class FollowerSystemPatch
             }
             else if (entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>())
             {
-                
+
                 Plugin.Logger.LogInfo("FollowerSystem Prefix: no buffer, following player");
                 //entity.Write<LastTranslation>(new LastTranslation { Value = entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position });
                 //entity.Write<Translation>(new Translation { Value = entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position });
                 OffsetTranslationOnSpawn offsetTranslationOnSpawn = new OffsetTranslationOnSpawn { Offset = entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position };
                 Utilities.AddComponentData(entity, offsetTranslationOnSpawn);
             }
-            
+
         }
         entities.Dispose();
     }
@@ -98,7 +83,7 @@ public static class ServerBootstrapSystem_Patch
         var userEntity = serverClient.UserEntity;
         var userData = __instance.EntityManager.GetComponentData<User>(userEntity);
 
-        
+
         try
         {
             var buffer = userData.LocalCharacter._Entity.ReadBuffer<FollowerBuffer>();
@@ -108,15 +93,15 @@ public static class ServerBootstrapSystem_Patch
                 var follower = buffer[i];
                 if (follower.Entity._Entity.Has<LastTranslation>())
                 {
-                    
+
                     follower.Entity._Entity.Write<LastTranslation>(new LastTranslation { Value = localToWorld.Position });
                 }
                 if (follower.Entity._Entity.Has<Translation>())
                 {
                     follower.Entity._Entity.Write<Translation>(new Translation { Value = localToWorld.Position });
                 }
-                
-                
+
+
 
             }
         }
@@ -124,7 +109,7 @@ public static class ServerBootstrapSystem_Patch
         {
             Plugin.Logger.LogError(e.Message);
         }
-        
+
     }
 }
 
