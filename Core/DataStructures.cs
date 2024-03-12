@@ -32,18 +32,18 @@ namespace VCreate.Core
         {
             try
             {
-                string json = JsonSerializer.Serialize(playerSettings, prettyJsonOptions); // Consider using prettyJsonOptions if you want the output to be indented.
-                File.WriteAllText(Plugin.PlayerSettingsJSON, json);
+                //string json = JsonSerializer.Serialize(playerSettings, prettyJsonOptions); // Consider using prettyJsonOptions if you want the output to be indented.
+                File.WriteAllText(Plugin.PlayerSettingsJson, JsonSerializer.Serialize(DataStructures.PlayerSettings));
             }
             catch (IOException ex)
             {
                 // Handle file write exceptions
-                Console.WriteLine($"An error occurred saving player settings: {ex.Message}");
+                Plugin.Log.LogInfo($"An error occurred saving player settings: {ex.Message}");
             }
             catch (JsonException ex)
             {
                 // Handle JSON serialization exceptions
-                Console.WriteLine($"An error occurred during JSON serialization: {ex.Message}");
+                Plugin.Log.LogInfo($"An error occurred during JSON serialization: {ex.Message}");
             }
         }
     }

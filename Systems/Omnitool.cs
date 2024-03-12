@@ -2,9 +2,9 @@
 {
     public class Omnitool
     {
-        public readonly Dictionary<string, bool> modes = [];
+        public readonly Dictionary<string, bool> modes = new Dictionary<string, bool>();
 
-        public readonly Dictionary<string, int> data = [];
+        public readonly Dictionary<string, int> data = new Dictionary<string, int>();
 
         public bool Permissions { get; set; }
         public bool Emotes { get; set; }
@@ -58,13 +58,13 @@
             data[key] = value; // This automatically handles add or update
         }
 
-        public int GetData(string key, int defaultValue = 0)
+        public int GetData(string key)
         {
             if (data.TryGetValue(key, out int value))
             {
                 return value;
             }
-            return defaultValue; // Consider handling this case more explicitly
+            return 0; // Consider handling this case more explicitly
         }
 
         // Methods for undo functionality

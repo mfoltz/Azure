@@ -25,12 +25,12 @@ namespace VCreate.Core
         public static new ManualLogSource Log => Logger;
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
-        public static readonly string PlayerSettingsJSON = Path.Combine(Plugin.ConfigPath, "playerSettings.json");
+        public static readonly string PlayerSettingsJson = Path.Combine(Plugin.ConfigPath, "player_settings.json");
 
         public override void Load()
         {
             Instance = this;
-            Logger = Log;
+            Logger = base.Log;
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             CommandRegistry.RegisterAll();
@@ -42,10 +42,10 @@ namespace VCreate.Core
 
         private void GameDataOnInitialize(World world)
         {
-
+            
         }
 
-        private static void InitConfig()
+        private void InitConfig()
         {
             // Initialize configuration settings
 
@@ -66,28 +66,30 @@ namespace VCreate.Core
         public void OnGameInitialized()
         {
             CastleTerritoryCache.Initialize();
+
             Plugin.Logger.LogInfo("TerritoryCache loaded");
         }
 
         public static void LoadData()
         {
-            if (!File.Exists(Plugin.PlayerSettingsJSON))
+            if (!File.Exists(Plugin.PlayerSettingsJson))
             {
-                var stream = File.Create(Plugin.PlayerSettingsJSON);
+                var stream = File.Create(Plugin.PlayerSettingsJson);
                 stream.Dispose();
             }
 
-            string json = File.ReadAllText(Plugin.PlayerSettingsJSON);
+            string json = File.ReadAllText(Plugin.PlayerSettingsJson);
             Plugin.Logger.LogWarning($"PlayerSettings found: {json}");
             try
             {
-                VCreate.Core.DataStructures.PlayerSettings = JsonSerializer.Deserialize<Dictionary<ulong, Omnitool>>(json);
+                var settings = JsonSerializer.Deserialize<Dictionary<ulong, Omnitool>>(json);
+                VCreate.Core.DataStructures.PlayerSettings = settings ?? new Dictionary<ulong, Omnitool>();
                 Plugin.Logger.LogWarning("PlayerSettings Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogError($"Error deserializing data: {ex}");
-                VCreate.Core.DataStructures.PlayerSettings = [];
+                VCreate.Core.DataStructures.PlayerSettings = new Dictionary<ulong, Omnitool>();
                 Plugin.Logger.LogWarning("PlayerSettings Created");
             }
         }

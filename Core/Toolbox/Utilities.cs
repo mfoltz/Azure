@@ -2,8 +2,10 @@
 using Il2CppInterop.Runtime;
 using ProjectM;
 using ProjectM.CastleBuilding;
+using ProjectM.Network;
 using ProjectM.Shared;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using static VCreate.Core.Services.PlayerService;
@@ -131,6 +133,76 @@ namespace VCreate.Core.Toolbox
         }
     }
 
+    public static class Il2cppService
+    {
+        private static Il2CppSystem.Type GetType<T>() => Il2CppType.Of<T>();
+
+        public static unsafe T GetComponentDataAOT<T>(this EntityManager entityManager, Entity entity) where T : unmanaged
+        {
+            var type = TypeManager.GetTypeIndex(GetType<T>());
+            var result = (T*)entityManager.GetComponentDataRawRW(entity, type);
+
+            return *result;
+        }
+
+        public static NativeArray<Entity> GetEntitiesByComponentTypes<T1>(bool includeAll = false)
+        {
+            EntityQueryOptions options = includeAll ? EntityQueryOptions.IncludeAll : EntityQueryOptions.Default;
+
+            EntityQueryDesc queryDesc = new EntityQueryDesc
+            {
+                All = new ComponentType[] {
+                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite)
+            },
+                Options = options
+            };
+
+            var query = VWorld.Server.EntityManager.CreateEntityQuery(queryDesc);
+            var entities = query.ToEntityArray(Allocator.Temp);
+
+            return entities;
+        }
+
+        public static NativeArray<Entity> GetEntitiesByComponentTypes<T1, T2>(bool includeAll = false)
+        {
+            EntityQueryOptions options = includeAll ? EntityQueryOptions.IncludeAll : EntityQueryOptions.Default;
+
+            EntityQueryDesc queryDesc = new EntityQueryDesc
+            {
+                All = new ComponentType[] {
+                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite),
+                new ComponentType(Il2CppType.Of<T2>(), ComponentType.AccessMode.ReadWrite)
+            },
+                Options = options
+            };
+
+            var query = VWorld.Server.EntityManager.CreateEntityQuery(queryDesc);
+            var entities = query.ToEntityArray(Allocator.Temp);
+
+            return entities;
+        }
+
+        public static NativeArray<Entity> GetEntitiesByComponentTypes<T1, T2, T3>(bool includeAll = false)
+        {
+            EntityQueryOptions options = includeAll ? EntityQueryOptions.IncludeAll : EntityQueryOptions.Default;
+
+            EntityQueryDesc queryDesc = new EntityQueryDesc
+            {
+                All = new ComponentType[] {
+                new ComponentType(Il2CppType.Of<T1>(), ComponentType.AccessMode.ReadWrite),
+                new ComponentType(Il2CppType.Of<T2>(), ComponentType.AccessMode.ReadWrite),
+                new ComponentType(Il2CppType.Of<T3>(), ComponentType.AccessMode.ReadWrite)
+            },
+                Options = options
+            };
+
+            var query = VWorld.Server.EntityManager.CreateEntityQuery(queryDesc);
+            var entities = query.ToEntityArray(Allocator.Temp);
+
+            return entities;
+        }
+    }
+
     public static class SystemPatchUtil
     {
         public static void Destroy(Entity entity)
@@ -149,6 +221,16 @@ namespace VCreate.Core.Toolbox
         {
             VWorld.Server.EntityManager.RemoveComponent<Disabled>(entity);
             //DestroyUtility.CreateDestroyEvent(VWorld.Server.EntityManager, entity, DestroyReason.Default, DestroyDebugReason.ByScript);
+        }
+    }
+
+    public static class NetworkedEntityUtil
+    {
+        private static readonly NetworkIdSystem _NetworkIdSystem = VWorld.Server.GetExistingSystem<NetworkIdSystem>();
+
+        public static bool TryFindEntity(NetworkId networkId, out Entity entity)
+        {
+            return _NetworkIdSystem._NetworkIdToEntityMap.TryGetValue(networkId, out entity);
         }
     }
 }
