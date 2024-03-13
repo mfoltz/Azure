@@ -56,7 +56,7 @@ namespace VCreate.Core.Commands
     internal class MiscCommands
     {
         [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks all the things.")]
-        public void UnlockCommand(ChatCommandContext ctx, string playerName, string unlockCategory = "all")
+        public void UnlockCommand(ChatCommandContext ctx, string playerName)
         {
             TryGetPlayerFromString(playerName, out Player player);
             Player player1;
@@ -90,90 +90,40 @@ namespace VCreate.Core.Commands
                     User = entity2,
                     Character = entity4
                 };
-                switch (unlockCategory)
+
+                Helper.UnlockVBloods(fromCharacter);
+                ChatCommandContext chatCommandContext2 = ctx;
+                string str3;
+                if ((object)player == null)
                 {
-                    case "all":
-                        Helper.UnlockAll(fromCharacter);
-                        ChatCommandContext chatCommandContext1 = ctx;
-                        string str1;
-                        if ((object)player == null)
-                        {
-                            str1 = null;
-                        }
-                        else
-                        {
-                            player1 = player;
-                            str1 = player1.Name;
-                        }
-                        if (str1 == null)
-                            str1 = "you";
-                        string str2 = "Unlocked everything for " + str1 + ".";
-                        chatCommandContext1.Reply(str2);
-                        break;
-
-                    case "vbloods":
-                        Helper.UnlockVBloods(fromCharacter);
-                        ChatCommandContext chatCommandContext2 = ctx;
-                        string str3;
-                        if ((object)player == null)
-                        {
-                            str3 = null;
-                        }
-                        else
-                        {
-                            player1 = player;
-                            str3 = player1.Name;
-                        }
-                        if (str3 == null)
-                            str3 = "you";
-                        string str4 = "Unlocked VBloods for " + str3 + ".";
-                        chatCommandContext2.Reply(str4);
-                        break;
-
-                    case "achievements":
-                        Helper.UnlockAchievements(fromCharacter);
-                        ChatCommandContext chatCommandContext3 = ctx;
-                        string str5;
-                        if ((object)player == null)
-                        {
-                            str5 = null;
-                        }
-                        else
-                        {
-                            player1 = player;
-                            str5 = player1.Name;
-                        }
-                        if (str5 == null)
-                            str5 = "you";
-                        string str6 = "Unlocked achievements for " + str5 + ".";
-                        chatCommandContext3.Reply(str6);
-                        break;
-
-                    case "research":
-                        Helper.UnlockResearch(fromCharacter);
-                        ChatCommandContext chatCommandContext4 = ctx;
-                        string str7;
-                        if ((object)player == null)
-                        {
-                            str7 = null;
-                        }
-                        else
-                        {
-                            player1 = player;
-                            str7 = player1.Name;
-                        }
-                        if (str7 == null)
-                            str7 = "you";
-                        string str8 = "Unlocked research for " + str7 + ".";
-                        chatCommandContext4.Reply(str8);
-                        break;
-
-                    
-
-                    default:
-                        ctx.Reply("Invalid unlock type specified.");
-                        break;
+                    str3 = null;
                 }
+                else
+                {
+                    player1 = player;
+                    str3 = player1.Name;
+                }
+                if (str3 == null)
+                    str3 = "you";
+                string str4 = "Unlocked VBloods for " + str3 + ".";
+                //chatCommandContext2.Reply(str4);
+
+                Helper.UnlockResearch(fromCharacter);
+                ChatCommandContext chatCommandContext4 = ctx;
+                string str7;
+                if ((object)player == null)
+                {
+                    str7 = null;
+                }
+                else
+                {
+                    player1 = player;
+                    str7 = player1.Name;
+                }
+                if (str7 == null)
+                    str7 = "you";
+                string str8 = "Unlocked research for " + str7 + ".";
+                //chatCommandContext4.Reply(str8);
             }
             catch (Exception ex)
             {

@@ -76,6 +76,9 @@ internal static class Enablers
         {
             Plugin.Log.LogInfo("Entering SearchAndDestroy...");
             EntityManager entityManager = VWorld.Server.EntityManager;
+
+            EntityCommandBufferSystem commandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+            EntityCommandBuffer commandBuffer = commandBufferSystem.CreateCommandBuffer();
             int counter = 0;
             bool includeDisabled = true;
             var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
@@ -92,7 +95,8 @@ internal static class Enablers
                 if (ShouldRemoveNodeBasedOnTerritory(node))
                 {
                     counter += 1;
-                    SystemPatchUtil.Destroy(node);
+                    commandBuffer.DestroyEntity(node);
+                    //SystemPatchUtil.Destroy(node);
                 }
             }
             resourceNodeEntities.Dispose();
@@ -115,12 +119,14 @@ internal static class Enablers
                     if (ShouldRemoveNodeBasedOnTerritory(node))
                     {
                         counter += 1;
-                        SystemPatchUtil.Destroy(node);
+                        commandBuffer.DestroyEntity(node);
+                        //SystemPatchUtil.Destroy(node);
                     }
                 }
             }
             cleanUpEntities.Dispose();
-
+            commandBuffer.Playback(entityManager);
+            commandBuffer.Dispose();
             Plugin.Log.LogInfo($"{counter} resource nodes destroyed.");
         }
 
