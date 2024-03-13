@@ -23,7 +23,7 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool _))
             {
                 Helper.BuffCharacter(character, VCreate.Data.Buffs.Admin_Invulnerable_Buff, -1, false);
-                Helper.BuffCharacter(character, VCreate.Data.Buffs.AB_Vampire_VeilOfFrost_Immaterial, -1, false);
+                Helper.BuffCharacter(character, VCreate.Data.Buffs.Buff_General_VBlood_Ghost_Timer, -1, false);
                 ctx.Reply("You're now invulnerable. Use debuff mode to return to normal.");
             }
             else
@@ -31,6 +31,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
+        
         [Command(name: "equipUnarmedSkills", shortHand: "equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
         public static void ToggleSkillEquip(ChatCommandContext ctx)
         {
@@ -96,7 +97,6 @@ namespace VCreate.Core.Commands
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
-                // Toggle the CanEditTiles value
                 data.Permissions = !data.Permissions;
 
                 DataStructures.Save();

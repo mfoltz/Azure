@@ -181,7 +181,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command("bloodmerlot", "bm", ".bm [Type] [Quantity] [Quality]", "Provides a blood merlot as ordered.", null, true)]
+        [Command("bloodMerlot", "bm", ".bm [Type] [Quantity] [Quality]", "Provides a blood merlot as ordered.", null, true)]
         public static void GiveBloodPotionCommand(ChatCommandContext ctx, VCreate.Data.Prefabs.BloodType type = VCreate.Data.Prefabs.BloodType.frailed, int quantity = 1, float quality = 100f)
         {
             quality = Mathf.Clamp(quality, 0, 100);

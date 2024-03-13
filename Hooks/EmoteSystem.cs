@@ -4,6 +4,7 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using VampireCommandFramework;
 using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
@@ -298,7 +299,12 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"TileRotation: {rotation}°");
         }
     }
-
+    [Command(name: "returnToBody", shortHand: "return", adminOnly: true, usage: ".return", description: "Backup method to return to body on hover.")]
+    public static void ReturnCommand(ChatCommandContext ctx)
+    {
+        Entity senderUser = ctx.Event.SenderUserEntity;
+        ControlCommand(senderUser);
+    }
     public static void ControlCommand(Entity senderUserEntity)
     {
         PlayerService.TryGetCharacterFromName(senderUserEntity.Read<User>().CharacterName.ToString(), out Entity Character);
@@ -328,6 +334,10 @@ internal class EmoteSystemPatch
                     DataStructures.Save();
                     return;
                 }
+            }
+            else
+            {
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), "No entity to control.");
             }
         }
         else
@@ -409,18 +419,27 @@ internal class EmoteSystemPatch
                     Entity originalBody = new Entity { Index = index, Version = version };
                     if (VWorld.Server.EntityManager.Exists(originalBody))
                     {
-                        ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                        try
                         {
-                            EntityTarget = originalBody,
-                            Target = originalBody.Read<NetworkId>()
-                        };
-                        DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-                        existingSystem.ControlUnit(new FromCharacter() { User = player.User, Character = player.Character }, controlDebugEvent);
-                        settings.OriginalBody = "";
-                        DataStructures.Save();
-                        ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "Returned to original body.");
+                            ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
+                            {
+                                EntityTarget = originalBody,
+                                Target = originalBody.Read<NetworkId>()
+                            };
+                            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                            existingSystem.ControlUnit(new FromCharacter() { User = player.User, Character = player.Character }, controlDebugEvent);
+                            settings.OriginalBody = "";
+                            DataStructures.Save();
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "Returned to original body.");
 
-                        return;
+                          
+
+                        }
+                        catch (Exception e)
+                        {
+                            Plugin.Log.LogInfo(e);
+                        }
+                        
                     }
                 }
             }

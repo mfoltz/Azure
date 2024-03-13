@@ -29,7 +29,6 @@
             SetMode("LinkToggle", false); // toggles LinkMode (WIP, don't use... yet)
             SetMode("TileToggle", false); // toggles TileMode (spawn tile, uses last tile set)
 
-
             SetData("Rotation", 0); // rotation for spawned structures
             SetData("Unit", 0); // unit prefab for CopyMode
             SetData("Tile", 0); // tile prefab for TileMode

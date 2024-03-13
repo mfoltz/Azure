@@ -38,7 +38,7 @@ namespace VCreate.Core.Commands
             Value = false
         };
 
-        [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".twb", description: "Toggles worldbuilding debug settings for no-cost building anywhere.")]
+        [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".twb", description: "Toggles worldbuilding debug settings for no-cost building anywhere by anyone.")]
         public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -46,7 +46,7 @@ namespace VCreate.Core.Commands
             DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             if (!wbFlag)
             {
-                // want to disable resource nodes in active player territories here to avoid overgrowth
+                // want to destroy resource nodes in active player territories here to remove overgrowth
 
                 //ResourceFunctions.SearchAndDestroy();
                 wbFlag = true;
@@ -92,7 +92,7 @@ namespace VCreate.Core.Commands
             Value = false
         };
 
-        [Command(name: "toggleBuildingCosts", shortHand: "tbc", adminOnly: true, usage: ".tbc", description: "Toggles building costs for no-cost building.")]
+        [Command(name: "toggleBuildingCosts", shortHand: "tbc", adminOnly: true, usage: ".tbc", description: "Toggles building costs for no-cost building, useful for setting up a castle linked to your heart easily.")]
         public static void ToggleBuildingCostsCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -119,7 +119,7 @@ namespace VCreate.Core.Commands
             Value = false
         };
 
-        [Command(name: "toggleCastleHeartConnectionRequirement", shortHand: "tch", adminOnly: true, usage: ".tch", description: "Toggles the Castle Heart connection requirement for structures.")]
+        [Command(name: "toggleCastleHeartConnectionRequirement", shortHand: "tch", adminOnly: true, usage: ".tch", description: "Toggles the Castle Heart connection requirement for structures. Handy for testing.")]
         public static void ToggleCastleHeartConnectionCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;

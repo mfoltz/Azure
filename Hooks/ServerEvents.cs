@@ -42,8 +42,7 @@ namespace VCreate.Hooks
                 DataStructures.Save();
                 // reset all horses to enabled state
                 EnableHorsesOnQuit();
-                // return all players to their original bodies
-                //ReturnSoulsOnQuit();
+                
             }
         }
 
@@ -77,7 +76,7 @@ namespace VCreate.Hooks
             }
             entityArray.Dispose();
         }
-
+        // WIP
         public static void ReturnSoulsOnQuit()
         {
             var souls = DataStructures.PlayerSettings;
@@ -85,7 +84,7 @@ namespace VCreate.Hooks
             {
                 if (souls.TryGetValue(soul.Key, out Omnitool data) && !data.OriginalBody.Equals(null))
                 {
-                    ReturnSoul(data);
+                    //ReturnSoul(data);
                 }
             }
         }

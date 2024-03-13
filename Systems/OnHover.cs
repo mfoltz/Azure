@@ -1,7 +1,14 @@
 ﻿using Bloodstone.API;
 using Il2CppSystem;
 using ProjectM;
+using ProjectM.Behaviours;
+using ProjectM.Gameplay;
+using ProjectM.Gameplay.Scripting;
+using ProjectM.Gameplay.Systems;
 using ProjectM.Network;
+using ProjectM.Pathfinding;
+using ProjectM.Scripting;
+using Stunlock.Sequencer.SequencerPrefab;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -296,16 +303,13 @@ namespace VCreate.Systems
             Utilities.SetComponentData(hoveredEntity, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
 
             ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(character);
-            ModifiableInt modifiableInt = Utilities.GetComponentData<Follower>(hoveredEntity).ModeModifiable;
-            modifiableInt._Value = (int)FollowMode.Patrol;
-
-            Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modifiableEntity, ModeModifiable = modifiableInt });
+            Follower follower = hoveredEntity.Read<Follower>();
+            follower.Followed = modifiableEntity;
+            Utilities.SetComponentData(hoveredEntity, follower);
             Utilities.SetComponentData(hoveredEntity, teamReference);
-            GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.BuffTarget };
-            //hoveredEntity.Write<Translation>(new Translation { Value = new(-218.4665f, 15, -556.69354f) });
-            //hoveredEntity.Write<LastTranslation>(new LastTranslation { Value = new(-218.4665f, 15, -556.69354f) });
-            OffsetTranslationOnSpawnBlockerSettings offsetTranslationOnSpawnBlockerSettings = new OffsetTranslationOnSpawnBlockerSettings { Filter = ProjectM.Physics.CollisionFilterFlags.All };
-            Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
+            //UseBossCenterPositionAsPreCombatPosition useBossCenterPositionAsPreCombatPosition = hoveredEntity.Read<UseBossCenterPositionAsPreCombatPosition>();
+            //useBossCenterPositionAsPreCombatPosition.RangeSq = 0f;
+            //hoveredEntity.Write(useBossCenterPositionAsPreCombatPosition);
             entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
         }
