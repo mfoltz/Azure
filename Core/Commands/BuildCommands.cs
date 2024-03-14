@@ -9,6 +9,10 @@ using VCreate.Data;
 using static VCreate.Core.Services.PlayerService;
 using static VCreate.Systems.Enablers;
 using VCreate.Hooks;
+using Il2CppSystem;
+using Unity.Mathematics;
+using VCreate.Core.Converters;
+using VCreate.Core.Services;
 
 namespace VCreate.Core.Commands
 {
@@ -362,7 +366,46 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Tiles have been destroyed!");
             }
         }
+        public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
+        {
+            PlayerService.Player player1;
+            Entity entity1;
+            if ((object)player == null)
+            {
+                entity1 = ctx.Event.SenderUserEntity;
+            }
+            else
+            {
+                player1 = player.Value;
+                entity1 = player1.User;
+            }
+            Entity entity2 = entity1;
+            Entity entity3;
+            if ((object)player == null)
+            {
+                entity3 = ctx.Event.SenderCharacterEntity;
+            }
+            else
+            {
+                player1 = player.Value;
+                entity3 = player1.Character;
+            }
+            Entity entity4 = entity3;
+            FromCharacter fromCharacter = new FromCharacter()
+            {
+                User = entity2,
+                Character = entity4
+            };
+            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            CastAbilityServerDebugEvent serverDebugEvent = new CastAbilityServerDebugEvent()
+            {
+                AbilityGroup = prefabGuid.Value,
+                AimPosition = new Nullable_Unboxed<float3>(entity2.Read<EntityInput>().AimPosition),
+                Who = entity4.Read<NetworkId>()
+            };
+            existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
+        }
 
-        
+
     }
 }
