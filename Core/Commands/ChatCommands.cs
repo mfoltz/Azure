@@ -1,29 +1,19 @@
 ﻿using Bloodstone.API;
 using ProjectM;
 using ProjectM.Network;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VPlus.Augments;
 using VPlus.Augments.Rank;
-using VPlus.Core;
-using VBuild.Data;
-using VPlus.Data;
 using VampireCommandFramework;
 using VRising.GameData;
 using VRising.GameData.Models;
-using VPlus.Augments;
 using VPlus.Core.Toolbox;
-using VBuild.Core.Toolbox;
 using Databases = VPlus.Data.Databases;
 using V.Augments;
-using VBuild.Core.Services;
 using System.Text;
-using System.Linq;
-using static VBuild.Core.Services.PlayerService;
 
 namespace VPlus.Core.Commands
 {

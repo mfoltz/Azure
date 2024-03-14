@@ -1,33 +1,13 @@
 ﻿using HarmonyLib;
 using ProjectM;
-using ProjectM.Hybrid;
 using ProjectM.Network;
-using RPGMods;
 using Stunlock.Network;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Entities;
 using V.Augments;
-using VBuild.Data;
 using VPlus.Augments.Rank;
 using VPlus.Core.Commands;
 using VPlus.Augments;
 using Bloodstone.API;
-using Unity.Scenes;
-using VivoxUnity;
-using UnityEngine.SceneManagement;
-using UnityEngine;
-using VBuild.Core.Toolbox;
-using static ProjectM.CustomWorldSpawning;
-using ProjectM.UI;
-using VRising.GameData.Utils;
-using Il2CppSystem.ComponentModel;
-using Il2CppSystem;
-using WeakReference = Il2CppSystem.WeakReference;
-using IntPtr = Il2CppSystem.IntPtr;
 
 namespace VPlus.Hooks
 {
