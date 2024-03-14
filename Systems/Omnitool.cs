@@ -35,6 +35,7 @@
             SetData("GridSize", 0); // grid size for snapping spawned structures
             SetData("MapIcon", 0); // map icon prefab for spawned structures
             SetData("Buff", 0); // buff prefab for BuffMode
+            SetData("Debuff", 0); // debuff prefab for DebuffMode
         }
 
         // Methods for mode dictionary

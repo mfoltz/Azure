@@ -492,18 +492,40 @@ namespace VCreate.Systems
 
         public static void DebuffAtHover(Entity userEntity)
         {
+            bool success = false;
             //var Position = userEntity.Read<EntityInput>().AimPosition;
             Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
             if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out DynamicBuffer<BuffBuffer> buffer))
             {
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    buffer.RemoveAt(i);
+                    //buffer.RemoveAt(i);
+                    if (DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out Omnitool data))
+                    {
+                        PrefabGUID debuff = new(data.GetData("Debuff"));
+                        if (buffer[i].PrefabGuid.GuidHash.Equals(debuff.GuidHash))
+                        {
+                            SystemPatchUtil.Destroy(buffer[i].Entity);
+                            //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Removed buff.");
+                            success = true;
+                            break;
+                        }
+                    }
+
                 }
+                if (success)
+                {
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Removed buff.");
+                }
+                else
+                {
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No matching buff found.");
+                }
+                
             }
             else
             {
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No buff buffer found to clear.");
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No buff buffer found.");
             }
         }
 

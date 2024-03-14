@@ -18,8 +18,6 @@ namespace VCreate.Core.Commands
 {
     public class CoreCommands
     {
-        
-        
         [Command(name: "equipUnarmedSkills", shortHand: "equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
         public static void ToggleSkillEquip(ChatCommandContext ctx)
         {
@@ -70,7 +68,7 @@ namespace VCreate.Core.Commands
         {
             User setter = ctx.Event.User;
             Entity userEntity = ctx.Event.SenderUserEntity;
-            foreach(var toggle in EmoteSystemPatch.emoteActions.Keys)
+            foreach (var toggle in EmoteSystemPatch.emoteActions.Keys)
             {
                 PrefabGUID prefabGUID = new(toggle);
                 ctx.Reply($"{prefabGUID.LookupName()} | {EmoteSystemPatch.emoteActions[toggle].Method.Name}");
@@ -111,8 +109,6 @@ namespace VCreate.Core.Commands
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"Snapping: |{(data.GetMode("SnappingToggle") ? enabledColor : disabledColor)}|");
-
-
             }
             else
             {
@@ -152,7 +148,7 @@ namespace VCreate.Core.Commands
             {
                 settings.SetData("GridSize", level);
                 DataStructures.Save();
-                ctx.Reply($"Tile snapping set to: {OnHover.gridSizes[settings.GetData("GridSize")]-1}u");
+                ctx.Reply($"Tile snapping set to: {OnHover.gridSizes[settings.GetData("GridSize")] - 1}u");
             }
         }
 
@@ -189,6 +185,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
+
         [Command(name: "setBuff", shortHand: "sb", adminOnly: true, usage: ".sb [PrefabGUID]", description: "Sets buff for buff mode.")]
         public static void SetBuff(ChatCommandContext ctx, int choice)
         {
@@ -211,6 +208,34 @@ namespace VCreate.Core.Commands
                     {
                         ctx.Reply("Invalid buff.");
                     }
+                }
+                else
+                {
+                    ctx.Reply("Couldn't find prefab.");
+                }
+            }
+            else
+            {
+                ctx.Reply("Couldn't find omnitool data.");
+            }
+        }
+        [Command(name: "setDebuff", shortHand: "sd", adminOnly: true, usage: ".sd [PrefabGUID]", description: "Sets buff for debuff mode.")]
+        public static void SetDebuff(ChatCommandContext ctx, int choice)
+        {
+            Entity character = ctx.Event.SenderCharacterEntity;
+            ulong SteamID = ctx.Event.User.PlatformId;
+
+            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool data))
+            {
+                // Assuming there's a similar check for map icons as there is for tile models
+                if (Prefabs.FindPrefab.CheckForMatch(choice))
+                {
+                    
+                    ctx.Reply($"Debuff set.");
+                    data.SetData("Debuff", choice);
+                    DataStructures.Save();
+                    
+                    
                 }
                 else
                 {
@@ -289,7 +314,6 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
-        
 
         [Command(name: "undolast", shortHand: "undo", adminOnly: true, usage: ".undo", description: "Destroys the last tile entity placed, up to 10.")]
         public static void UndoCommand(ChatCommandContext ctx)
@@ -366,6 +390,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Tiles have been destroyed!");
             }
         }
+
         public static void CastCommand(ChatCommandContext ctx, FoundPrefabGuid prefabGuid, FoundPlayer player = null)
         {
             PlayerService.Player player1;
@@ -405,7 +430,5 @@ namespace VCreate.Core.Commands
             };
             existingSystem.CastAbilityServerDebugEvent(entity2.Read<User>().Index, ref serverDebugEvent, ref fromCharacter);
         }
-
-
     }
 }

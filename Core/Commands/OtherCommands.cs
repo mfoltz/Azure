@@ -62,10 +62,11 @@ namespace VCreate.Core.Commands
             Entity character = ctx.Event.SenderCharacterEntity;
             ulong SteamID = ctx.Event.User.PlatformId;
 
-            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool _))
+            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool data))
             {
                 Helper.BuffCharacter(character, VCreate.Data.Buffs.Admin_Invulnerable_Buff, -1, false);
-                OnHover.BuffNonPlayer(ctx.Event.SenderCharacterEntity, VCreate.Data.Buffs.Buff_General_VBlood_Ghost_Timer);
+                //OnHover.BuffNonPlayer(ctx.Event.SenderCharacterEntity, VCreate.Data.Buffs.Buff_General_VBlood_Ghost_Timer);
+                data.SetData("Debuff", VCreate.Data.Buffs.Admin_Invulnerable_Buff.GuidHash);
                 ctx.Reply("You're now invulnerable. Use debuff mode to return to normal.");
             }
             else

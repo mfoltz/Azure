@@ -31,12 +31,12 @@ namespace VCreate.Hooks
             if (!VCreate.Core.DataStructures.PlayerSettings.TryGetValue(steamId, out Omnitool data))
             {
                 Omnitool newdata = new();
-                VCreate.Core.DataStructures.PlayerSettings.Add(steamId, data);
+                VCreate.Core.DataStructures.PlayerSettings.Add(steamId, newdata);
                 DataStructures.Save();
             }
             //SetFollowers(__instance, netConnectionId);
             // will need to update entity reference here to return to body
-            
+            /*
             if (data.OriginalBody != null)
             {
                 var bodyQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
@@ -67,6 +67,7 @@ namespace VCreate.Hooks
                 bodies.Dispose();
 
             }
+            */
             
         }
 

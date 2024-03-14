@@ -69,6 +69,8 @@ internal class EmoteSystemPatch
             Player _player = new Player(_from.User);
             ulong _playerId = _player.SteamID;
             if (!_player.IsAdmin) continue;
+            if (DataStructures.PlayerSettings.TryGetValue(_playerId, out Omnitool data) && !data.Emotes) continue;
+            
             if (emoteActions.TryGetValue(_event.Action.GuidHash, out var action))
             {
                 // Execute the associated action

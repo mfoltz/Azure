@@ -68,7 +68,10 @@ namespace WorldBuild.Hooks
             {
                 return; // or handle the case of missing settings
             }
-
+            if (!settings.Emotes)
+            {
+                return;
+            }
             // Assuming a method that decides the action based on the ability and settings
             var action = DecideAction(settings);
 
