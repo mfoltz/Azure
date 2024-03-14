@@ -11,6 +11,7 @@ using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
 using VCreate.Data;
 using VCreate.Core;
+using ProjectM.Shared;
 
 namespace VCreate.Systems;
 
@@ -95,8 +96,8 @@ internal static class Enablers
                 if (ShouldRemoveNodeBasedOnTerritory(node))
                 {
                     counter += 1;
-                    commandBuffer.DestroyEntity(node);
                     //SystemPatchUtil.Destroy(node);
+                    DestroyUtility.CreateDestroyEvent(commandBuffer, node, DestroyReason.Default, DestroyDebugReason.None);
                 }
             }
             resourceNodeEntities.Dispose();
@@ -119,13 +120,12 @@ internal static class Enablers
                     if (ShouldRemoveNodeBasedOnTerritory(node))
                     {
                         counter += 1;
-                        commandBuffer.DestroyEntity(node);
-                        //SystemPatchUtil.Destroy(node);
+                        DestroyUtility.CreateDestroyEvent(commandBuffer, node, DestroyReason.Default, DestroyDebugReason.None);
                     }
                 }
             }
             cleanUpEntities.Dispose();
-            commandBuffer.Playback(entityManager);
+            //commandBuffer.Playback(entityManager);
             commandBuffer.Dispose();
             Plugin.Log.LogInfo($"{counter} resource nodes destroyed.");
         }

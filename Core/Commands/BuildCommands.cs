@@ -14,23 +14,7 @@ namespace VCreate.Core.Commands
 {
     public class CoreCommands
     {
-        [Command(name: "Demigod", shortHand: "deus", adminOnly: true, usage: ".deus", description: "Activates demigod mode. Use debuff mode to clear from self.")]
-        public static void DemigodCommand(ChatCommandContext ctx)
-        {
-            Entity character = ctx.Event.SenderCharacterEntity;
-            ulong SteamID = ctx.Event.User.PlatformId;
-
-            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool _))
-            {
-                Helper.BuffCharacter(character, VCreate.Data.Buffs.Admin_Invulnerable_Buff, -1, false);
-                Helper.BuffCharacter(character, VCreate.Data.Buffs.Buff_General_VBlood_Ghost_Timer, -1, false);
-                ctx.Reply("You're now invulnerable. Use debuff mode to return to normal.");
-            }
-            else
-            {
-                ctx.Reply("Couldn't find omnitool data.");
-            }
-        }
+        
         
         [Command(name: "equipUnarmedSkills", shortHand: "equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
         public static void ToggleSkillEquip(ChatCommandContext ctx)

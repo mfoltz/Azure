@@ -36,10 +36,9 @@ namespace VCreate.Hooks
             }
             //SetFollowers(__instance, netConnectionId);
             // will need to update entity reference here to return to body
-            /*
+            
             if (data.OriginalBody != null)
             {
-                //ServerEvents.ReturnSoul(data);
                 var bodyQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
                 {
                     All = new[]
@@ -61,13 +60,14 @@ namespace VCreate.Hooks
                         {
                             data.OriginalBody = body.Index + ", " + body.Version;
                             DataStructures.Save();
-                            //ServerEvents.ReturnSoul(data); break;
+                            ServerEvents.ReturnSoul(data, userEntity); break;
                         }
                     }
                 }
+                bodies.Dispose();
 
             }
-            */
+            
         }
 
         // This created an infinite loop since the server wasn't expecting a debug event from a disconnected user -_-
@@ -89,7 +89,7 @@ namespace VCreate.Hooks
                 ServerEvents.ReturnSoul(data);
             }
         }
-        */
+        
 
         //This might not be needed but leaving here for now, doesn't get called currently
         private static void SetFollowers(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
@@ -115,5 +115,6 @@ namespace VCreate.Hooks
                 Plugin.Log.LogError(e.Message);
             }
         }
+        */
     }
 }

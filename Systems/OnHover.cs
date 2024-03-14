@@ -121,19 +121,19 @@ namespace VCreate.Systems
             }
         }
 
-        public static void BuffNonPlayer(Entity unitEntity, Entity userEntity, PrefabGUID prefabGUID)
+        public static void BuffNonPlayer(Entity characterEntity, PrefabGUID prefabGUID)
         {
             //PlayerService.TryGetCharacterFromName(userEntity.Read<User>().CharacterName.ToString(), out Entity character);
-            FromCharacter fromCharacter = new() { Character = unitEntity, User = unitEntity };
+            FromCharacter fromCharacter = new() { Character = characterEntity, User = characterEntity };
             DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             var debugEvent = new ApplyBuffDebugEvent
             {
                 BuffPrefabGUID = prefabGUID,
             };
-            if (!BuffUtility.TryGetBuff(VWorld.Server.EntityManager, unitEntity, prefabGUID, out Entity buffEntity))
+            if (!BuffUtility.TryGetBuff(VWorld.Server.EntityManager, characterEntity, prefabGUID, out Entity buffEntity))
             {
                 debugEventsSystem.ApplyBuff(fromCharacter, debugEvent);
-                if (BuffUtility.TryGetBuff(VWorld.Server.EntityManager, unitEntity, prefabGUID, out buffEntity))
+                if (BuffUtility.TryGetBuff(VWorld.Server.EntityManager, characterEntity, prefabGUID, out buffEntity))
                 {
                     if (buffEntity.Has<CreateGameplayEventsOnSpawn>())
                     {
@@ -216,7 +216,7 @@ namespace VCreate.Systems
             var debugEventEquipment = new SpawnCharmeableDebugEvent
             {
                 PrefabGuid = paladin,
-                Position = hoveredEntity.Read<LocalToWorld>().Position,
+                Position = hoveredEntity.Read<Translation>().Value,
             };
             DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEventEquipment, entityCommandBuffer, ref fromCharacter);
@@ -279,7 +279,7 @@ namespace VCreate.Systems
                         }
                         Plugin.Log.LogInfo("Modifying buffs...");
                         DebuffNonPlayer(hoveredEntity);
-                        BuffNonPlayer(hoveredEntity, userEntity, VCreate.Data.Buffs.Admin_Observe_Invisible_Buff);
+                        BuffNonPlayer(hoveredEntity, VCreate.Data.Buffs.Admin_Observe_Invisible_Buff);
                         //BuffNonPlayer(hoveredEntity, userEntity, VBuild.Data.Buff.AB_InvisibilityAndImmaterial_Buff);
                     }
                 }
@@ -498,12 +498,12 @@ namespace VCreate.Systems
             {
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    SystemPatchUtil.Destroy(buffer[i].Entity);
+                    buffer.RemoveAt(i);
                 }
             }
             else
             {
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No buffs found to remove.");
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No buff buffer found to clear.");
             }
         }
 

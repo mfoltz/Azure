@@ -76,20 +76,10 @@ namespace VCreate.Hooks
             }
             entityArray.Dispose();
         }
-        // WIP
-        public static void ReturnSoulsOnQuit()
-        {
-            var souls = DataStructures.PlayerSettings;
-            foreach (var soul in souls)
-            {
-                if (souls.TryGetValue(soul.Key, out Omnitool data) && !data.OriginalBody.Equals(null))
-                {
-                    //ReturnSoul(data);
-                }
-            }
-        }
+    
+        
 
-        public static void ReturnSoul(Omnitool soul)
+        public static void ReturnSoul(Omnitool soul, Entity userEntity)
         {
             string[] parts = soul.OriginalBody.Split(", ");
             if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
@@ -100,18 +90,16 @@ namespace VCreate.Hooks
                     ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
                     {
                         EntityTarget = originalBody,
-                        Target = originalBody.Read<NetworkId>()
+                        Target = userEntity.Read<NetworkId>()
                     };
                     DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-                    existingSystem.ControlUnit(new FromCharacter() { User = originalBody, Character = originalBody.Read<User>().LocalCharacter._Entity }, controlDebugEvent);
+                    // might need to change originalBody to the character user is occupying when this runs, we shall see
+                    existingSystem.ControlUnit(new FromCharacter() { User = userEntity, Character = originalBody }, controlDebugEvent);
                     soul.OriginalBody = "";
                     DataStructures.Save();
                     //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, soul.Value.User.Read<User>(), "Returned to original body.");
                 }
-                else
-                {
-                    // find player's original body if entity reference no longer valid, need to implement but hopefully the above prevents the need for it anyway
-                }
+                
             }
         }
     }

@@ -9,6 +9,7 @@ using VCreate.Core.Toolbox;
 using static VCreate.Core.Services.PlayerService;
 using VCreate.Data;
 using UnityEngine;
+using VCreate.Systems;
 
 namespace VCreate.Core.Commands
 {
@@ -55,6 +56,23 @@ namespace VCreate.Core.Commands
 
     internal class MiscCommands
     {
+        [Command(name: "Demigod", shortHand: "deus", adminOnly: true, usage: ".deus", description: "Activates demigod mode. Use debuff mode to clear from self.")]
+        public static void DemigodCommand(ChatCommandContext ctx)
+        {
+            Entity character = ctx.Event.SenderCharacterEntity;
+            ulong SteamID = ctx.Event.User.PlatformId;
+
+            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool _))
+            {
+                Helper.BuffCharacter(character, VCreate.Data.Buffs.Admin_Invulnerable_Buff, -1, false);
+                OnHover.BuffNonPlayer(ctx.Event.SenderCharacterEntity, VCreate.Data.Buffs.Buff_General_VBlood_Ghost_Timer);
+                ctx.Reply("You're now invulnerable. Use debuff mode to return to normal.");
+            }
+            else
+            {
+                ctx.Reply("Couldn't find omnitool data.");
+            }
+        }
         [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks all the things.")]
         public void UnlockCommand(ChatCommandContext ctx, string playerName)
         {
