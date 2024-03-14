@@ -34,8 +34,8 @@
     <Reference Include="RPGMods">
       <HintPath>..\..\..\Downloads\RPGMods (2).dll</HintPath>
     </Reference>
-    <Reference Include="VBuild">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRising\VRising_Server\BepInEx\plugins\VBuild.dll</HintPath>
+    <Reference Include="VCreate">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRising\VRising_Server\BepInEx\plugins\VCreate.dll</HintPath>
     </Reference>
     <Reference Include="VRising.GameData">
       <HintPath>VRising.GameData.dll</HintPath>
