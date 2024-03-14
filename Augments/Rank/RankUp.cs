@@ -136,11 +136,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("HolySpinners", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolySpinners_AbilityGroup.GuidHash, 5) },
-                    { 4, new RankSpellConstructor("DivineRays", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup.GuidHash, 4) },
-                    { 3, new RankSpellConstructor("HolyFlackCannon", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyFlackCannon_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("ChargedSwing", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_ChargedSwing_AbilityGroup.GuidHash, 2) },
-                    { 1, new RankSpellConstructor("EmpoweredMelee", VBuild.Data.Prefabs.AB_ChurchOfLight_Paladin_EmpoweredMelee_AbilityGroup.GuidHash, 1) },
+                    { 5, new RankSpellConstructor("HolySpinners", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_HolySpinners_AbilityGroup.GuidHash, 5) },
+                    { 4, new RankSpellConstructor("DivineRays", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup.GuidHash, 4) },
+                    { 3, new RankSpellConstructor("HolyFlackCannon", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_HolyFlackCannon_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("ChargedSwing", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_ChargedSwing_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("EmpoweredMelee", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_EmpoweredMelee_AbilityGroup.GuidHash, 1) },
                 };
             }
 
