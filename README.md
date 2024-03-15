@@ -150,6 +150,4 @@ Resets modes and toggles.
 
 ## Other
 
----
-
 Borrowed the README format from LeadAHorseToWater (https://github.com/decaprime/LeadAHorseToWater). Code examples from decaprime, willis, cheesasaurus, trodi, backxtar, and other members of the V Rising modding community were all very helpful in putting this together. https://discord.com/invite/QG2FmueAG9
