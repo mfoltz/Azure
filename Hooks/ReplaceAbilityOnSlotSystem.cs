@@ -94,19 +94,23 @@ namespace VPlus.Hooks
             }
             else if (bufferLength == 3)
             {
+
                 // I think the buffer here refers to the abilities possessed by the weapon (primary auto, weapon skill 1, and weapon skill 2)
+                // if necro want to return here
+                
                 EquipIronOrHigherWeapon(entityManager, entity, owner, buffer);
             }
         }
 
         private static void EquipIronOrHigherWeapon(EntityManager entityManager, Entity entity, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {
-            Plugin.Logger.LogInfo("Player equipping iron<= weapon, adding rank spell to shift...");
+            Plugin.Logger.LogInfo("Player equipping iron<= weapon, adding rank spell to shift if not necrodagger...");
+            if (buffer[0].NewGroupId.GuidHash == VCreate.Data.Prefabs.AB_NecromancyDagger_Primary_AbilityGroup.GuidHash) return; //necro already OP, no shift spell for necro
             ReplaceAbilityOnSlotBuff newItem = buffer[2]; // Assuming iron or higher weapon adds to the third slot
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
             ulong steamID = user.PlatformId;
-
+            
             if (Databases.playerRanks.TryGetValue(steamID, out RankData data) && data.RankSpell != 0)
             {
                 PrefabGUID prefabGUID = new PrefabGUID(data.RankSpell);

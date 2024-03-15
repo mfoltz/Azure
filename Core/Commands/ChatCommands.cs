@@ -20,12 +20,11 @@ using VCreate.Core.Services;
 
 namespace VPlus.Core.Commands
 {
-    [CommandGroup(name: "VPlus", shortHand: "v")]
     public class ChatCommands
     {
         private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
 
-        [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".v redeem", description: "Redeems all VTokens for the crystal equivalent, drops if inventory full.")]
+        [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".redeem", description: "Redeems all VTokens for the crystal equivalent, drops if inventory full.")]
         public static void RedeemPoints(ChatCommandContext ctx)
         {
             if (!Plugin.VTokens)
@@ -70,7 +69,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "wipeplayerranks", shortHand: "wpr", adminOnly: true, usage: ".v wpr <Player>", description: "Resets a player's rank count.")]
+        [Command(name: "wipePlayerRank", shortHand: "wpr", adminOnly: true, usage: ".wpr [Player]", description: "Resets a player's rank count.")]
         public static void WipeRanksCommand(ChatCommandContext ctx, string playerName)
         {
             if (!Plugin.PlayerRankUp)
@@ -114,7 +113,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "setrankpoints", shortHand: "srp", adminOnly: true, usage: ".v srp <Player> <Points>", description: "Sets the rank points for a specified player.")]
+        [Command(name: "setRankPoints", shortHand: "srp", adminOnly: true, usage: ".srp [Player] [Points]", description: "Sets the rank points for a player.")]
         public static void SetRankPointsCommand(ChatCommandContext ctx, string playerName, int points)
         {
             if (!Plugin.PlayerRankUp)
@@ -175,7 +174,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "setplayerrank", shortHand: "spr", adminOnly: true, usage: ".v spr <Player> <#>", description: "Sets the rank for a specified player.")]
+        [Command(name: "setPlayerRank", shortHand: "spr", adminOnly: true, usage: ".spr [Player] [#]", description: "Sets the rank for a player if they don't have any data.")]
         public static void SetRankCommand(ChatCommandContext ctx, string playerName, int rank)
         {
             if (Plugin.PlayerRankUp == false)
@@ -264,7 +263,7 @@ namespace VPlus.Core.Commands
                         Databases.playerRanks.Add(SteamID, rankData);
 
                         SavePlayerRanks();
-                        ctx.Reply($"Rank for player {playerName} has been set to {rank}, they can use .rpg bs to apply their buffs.");
+                        ctx.Reply($"Rank for player {playerName} has been set to {rank}, they can use .sync to apply their buffs.");
                     }
                 }
             }
@@ -275,7 +274,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "rankup", shortHand: "ru", adminOnly: false, usage: ".v ru", description: "Resets your rank points and increases your rank, granting a buff if applicable.")]
+        [Command(name: "rankUp", shortHand: "rankup", adminOnly: false, usage: ".rankup", description: "Resets your rank points and increases your rank, granting any applicable rewards.")]
         public static void RankUpCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerRankUp == false)
@@ -286,13 +285,12 @@ namespace VPlus.Core.Commands
             var user = ctx.Event.User;
             string name = user.CharacterName.ToString();
             var SteamID = user.PlatformId;
-            string StringID = SteamID.ToString();
 
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
                 if (data.Rank >= Plugin.MaxRanks)
                 {
-                    ctx.Reply("You have reached the maximum rank.");
+                    ctx.Reply($"You have reached the maximum rank. ({Plugin.MaxRanks})");
                     return;
                 }
                 if (data.Points >= data.Rank * 1000 + 1000)
@@ -315,7 +313,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "buffsync", shortHand: "bs", adminOnly: false, usage: ".v bs", description: "Checks which buffs you should have from rank and apply them if you don't have them.")]
+        [Command(name: "syncRankBuffs", shortHand: "sync", adminOnly: false, usage: ".sync", description: "Syncs your buffs to your rank and shows you which buffs you should have.")]
         public static void BuffSyncCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerRankUp == false)
@@ -332,6 +330,7 @@ namespace VPlus.Core.Commands
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
             {
                 //
+                
                 try
                 {
                     var playerBuffs = data.Buffs;
@@ -340,8 +339,11 @@ namespace VPlus.Core.Commands
                         PrefabGUID buffguid = new(buff);
 
                         Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
+                        string colorString = FontColors.Cyan(buffguid.LookupName());
+                        ctx.Reply($"Applying {colorString} if not already present...");
                     }
                     ctx.Reply("Rank buffs synced.");
+                    
                 }
                 catch (Exception ex)
                 {
@@ -354,7 +356,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "getrank", shortHand: "gr", adminOnly: false, usage: ".v gr", description: "Displays your current rank points and progress towards the next rank along with current rank.")]
+        [Command(name: "getRank", shortHand: "getrank", adminOnly: false, usage: ".getrank", description: "Displays your current rank points and progress towards the next rank along with current rank.")]
         public static void GetRankCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerRankUp == false)
@@ -378,7 +380,8 @@ namespace VPlus.Core.Commands
                     ctx.Reply($"You have reached {colorString1} rank.");
                     return;
                 }
-                ctx.Reply($"You have {colorPoints1} out of the {colorPoints2} points required to increase your rank. ({colorString}%)");
+                string color = FontColors.Purple(data.Rank.ToString());
+                ctx.Reply($"You are rank {color} and have {colorPoints1} out of the {colorPoints2} points required to increase your rank. ({colorString}%)");
             }
             else
             {
@@ -386,7 +389,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "getplayerrank", shortHand: "gpr", adminOnly: true, usage: ".v gpr <Player>", description: "Helps admins check player rank data.")]
+        [Command(name: "getPlayerRank", shortHand: "getPlayerRank", adminOnly: true, usage: ".gpr [Player]", description: "Helps admins check player rank data.")]
         public static void GetPlayerRankCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerRankUp == false)
@@ -419,7 +422,7 @@ namespace VPlus.Core.Commands
         }
 
         // prestige commands for players and admins should all be in this block unless otherwise mentioned
-        [Command(name: "visualbuff", shortHand: "vb", adminOnly: false, usage: ".v vb <#>", description: "Applies a visual buff you've earned through prestige.")]
+        [Command(name: "visualBuff", shortHand: "visual", adminOnly: false, usage: ".visual [#]", description: "Applies a visual buff you've earned through prestige.")]
         public static void VisualBuffCommand(ChatCommandContext ctx, int buff)
         {
             if (Plugin.BuffRewardsPrestige == false)
@@ -443,7 +446,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "prestige", shortHand: "pr", adminOnly: false, usage: ".v pr", description: "Resets your level to 1 after reaching max level, offering extra perks.")]
+        [Command(name: "playerPrestige", shortHand: "prestige", adminOnly: false, usage: ".prestige", description: "Resets your level to 1 after reaching max, offering extra perks.")]
         public static void PrestigeCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerPrestige == false)
@@ -459,7 +462,7 @@ namespace VPlus.Core.Commands
             PrestigeSystem.PrestigeCheck(ctx, name, SteamID);
         }
 
-        [Command(name: "getprestige", shortHand: "gp", adminOnly: false, usage: ".v gp", description: "Displays the number of times you've prestiged.")]
+        [Command(name: "getPrestige", shortHand: "getprestige", adminOnly: false, usage: ".getprestige", description: "Displays the number of times you've prestiged.")]
         public static void GetPrestigeCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerPrestige == false)
@@ -480,7 +483,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "wipeplayerprestige", shortHand: "wpp", adminOnly: true, usage: ".v wpp <Player>", description: "Resets a player's prestige count.")]
+        [Command(name: "wipePlayerPrestige", shortHand: "wpp", adminOnly: true, usage: ".wpp [Player]", description: "Resets a player's prestige data.")]
         public static void WipePrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerPrestige == false)
@@ -502,7 +505,7 @@ namespace VPlus.Core.Commands
                         Databases.playerPrestige[SteamID] = new PrestigeData(0, 0);
                         SavePlayerPrestige();
 
-                        ctx.Reply($"Prestige data for player {playerName} has been reset.");
+                        ctx.Reply($"Prestige data for {playerName} has been reset.");
                     }
                     else
                     {
@@ -517,12 +520,12 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "gettopplayers", shortHand: "gtp", adminOnly: false, usage: ".v gtp", description: "Shows the top 10 players by rank.")]
+        [Command(name: "getTopPlayers", shortHand: "getranks", adminOnly: false, usage: ".getranks", description: "Shows the top 10 players by PvE rank and points.")]
         public static void GetTopPlayersCommand(ChatCommandContext ctx)
         {
             // Assuming there's a way to access all RankData instances, for example, a List<RankData> allRanks
             // This might be stored in a static class or passed in some way to this method
-            List<RankData> allRanks = Databases.playerRanks.Values.ToList(); // Placeholder method, you'll need to implement based on your data storage
+            List<RankData> allRanks = [.. Databases.playerRanks.Values]; // Placeholder method, you'll need to implement based on your data storage
 
             if (allRanks == null || allRanks.Count == 0)
             {
@@ -533,7 +536,7 @@ namespace VPlus.Core.Commands
             // Sorting by rank in ascending order and taking the top 10
             var topRanks = allRanks.OrderBy(rankData => rankData.Rank).Take(10);
 
-            StringBuilder replyMessage = new StringBuilder("Top 10 Players by Rank:\n");
+            StringBuilder replyMessage = new("Top 10 Players by Rank:\n");
             foreach (var rankInfo in topRanks)
             {
                 // Assuming there's a way to get the player's name from RankData or through another system
@@ -544,14 +547,14 @@ namespace VPlus.Core.Commands
 
             ctx.Reply(replyMessage.ToString());
         }
+
         public static string GetPlayerNameFromRankData(RankData rankData)
         {
-            // Since we don't have direct access to player names in RankData, and assuming playerRanks is accessible,
             // we find the player's unique identifier (ulong) that matches the given RankData
             var playerID = Databases.playerRanks.FirstOrDefault(x => x.Value == rankData).Key;
 
             // Assuming a method that can translate playerID to playerName exists
-            string playerName = GetPlayerNameById(playerID); 
+            string playerName = GetPlayerNameById(playerID);
 
             return playerName;
         }
@@ -578,7 +581,7 @@ namespace VPlus.Core.Commands
             return "Unknown Player";
         }
 
-        [Command(name: "getplayerprestige", shortHand: "gpp", adminOnly: true, usage: ".v gpp <Player>", description: "Retrieves the prestige count and buffs for a specified player.")]
+        [Command(name: "getPlayerPrestige", shortHand: "gpp", adminOnly: true, usage: ".gpp [Player]", description: "Retrieves the prestige count and buffs for a specified player.")]
         public static void GetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerPrestige == false)
@@ -610,7 +613,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "setplayerprestige", shortHand: "spp", adminOnly: true, usage: ".v spp <Player> <#>", description: "Sets player prestige level for specified player.")]
+        [Command(name: "setPlayerPrestige", shortHand: "spp", adminOnly: true, usage: ".spp [Player] [#]", description: "Sets player prestige level for specified player.")]
         public static void SetPlayerPrestigeCommand(ChatCommandContext ctx, string playerName, int count)
         {
             if (Plugin.PlayerPrestige == false)
@@ -660,8 +663,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        
-        [Command(name: "playerascend", shortHand: "asc", adminOnly: false, usage: ".v asc", description: "Ascends player if requirements are met.")]
+        [Command(name: "playerAscend", shortHand: "asc", adminOnly: false, usage: ".v asc", description: "Ascends player if requirements are met.")]
         public static void PlayerAscendCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerAscension == false)
@@ -670,7 +672,7 @@ namespace VPlus.Core.Commands
                 return;
             }
             var user = ctx.Event.User;
-            
+
             string name = user.CharacterName.ToString();
             ulong SteamID = user.PlatformId;
             string StringID = SteamID.ToString();
@@ -678,7 +680,6 @@ namespace VPlus.Core.Commands
             {
                 Ascension.AscensionCheck(ctx, name, SteamID, data);
             }
-            
         }
 
         [Command(name: "resetdivinity", shortHand: "rd", adminOnly: true, usage: ".v rd <PlayerName>", description: "Resets player divinity data.")]
@@ -702,10 +703,6 @@ namespace VPlus.Core.Commands
                 ctx.Reply($"Player {playerName} not found or no divinity data to wipe.");
             }
         }
-        
-
-
-
 
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
