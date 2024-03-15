@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
+using ProjectM;
 using System.Reflection;
 using System.Text.Json;
 using Unity.Entities;
@@ -69,7 +70,7 @@ namespace VCreate.Core
 
             Plugin.Logger.LogInfo("TerritoryCache loaded");
         }
-
+        
         public static void LoadData()
         {
             if (!File.Exists(Plugin.PlayerSettingsJson))

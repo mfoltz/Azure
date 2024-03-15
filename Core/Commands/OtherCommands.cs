@@ -43,7 +43,7 @@ namespace VCreate.Core.Commands
     internal class ReviveCommands
     {
         [Command(name: "revive", shortHand: "rev", adminOnly: true, usage: ".rev [PlayerName]", description: "Revives self or player.")]
-        public void ReviveCommand(ChatCommandContext ctx, FoundPlayer player = null)
+        public static void ReviveCommand(ChatCommandContext ctx, FoundPlayer player = null)
         {
             var Character = player?.Value.Character ?? ctx.Event.SenderCharacterEntity;
             var User = player?.Value.User ?? ctx.Event.SenderUserEntity;
@@ -56,7 +56,7 @@ namespace VCreate.Core.Commands
 
     internal class MiscCommands
     {
-        [Command(name: "Demigod", shortHand: "deus", adminOnly: true, usage: ".deus", description: "Activates demigod mode. Use debuff mode to clear from self.")]
+        [Command(name: "demigod", shortHand: "deus", adminOnly: true, usage: ".deus", description: "Activates demigod mode. Use debuff mode to clear from self.")]
         public static void DemigodCommand(ChatCommandContext ctx)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -65,7 +65,6 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool data))
             {
                 Helper.BuffCharacter(character, VCreate.Data.Buffs.Admin_Invulnerable_Buff, -1, false);
-                //OnHover.BuffNonPlayer(ctx.Event.SenderCharacterEntity, VCreate.Data.Buffs.Buff_General_VBlood_Ghost_Timer);
                 data.SetData("Debuff", VCreate.Data.Buffs.Admin_Invulnerable_Buff.GuidHash);
                 ctx.Reply("You're now invulnerable. Use debuff mode to return to normal.");
             }
@@ -75,7 +74,7 @@ namespace VCreate.Core.Commands
             }
         }
         [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks all the things.")]
-        public void UnlockCommand(ChatCommandContext ctx, string playerName)
+        public static void UnlockCommand(ChatCommandContext ctx, string playerName)
         {
             TryGetPlayerFromString(playerName, out Player player);
             Player player1;
@@ -150,7 +149,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command("bloodMerlot", "bm", ".bm [Type] [Quantity] [Quality]", "Provides a blood merlot as ordered.", null, true)]
+        [Command(name: "bloodMerlot", shortHand: "bm", adminOnly: true, usage: ".bm [Type] [Quantity] [Quality]", description: "Provides a blood merlot as ordered.")]
         public static void GiveBloodPotionCommand(ChatCommandContext ctx, VCreate.Data.Prefabs.BloodType type = VCreate.Data.Prefabs.BloodType.frailed, int quantity = 1, float quality = 100f)
         {
             quality = Mathf.Clamp(quality, 0, 100);
@@ -175,8 +174,7 @@ namespace VCreate.Core.Commands
 
             ctx.Reply($"Got {i} Blood Potion(s) Type <color=#ff0>{type}</color> with <color=#ff0>{quality}</color>% quality");
         }
-
-        [Command("ping", "!", null, "Shows your latency.", null, false)]
+        [Command(name: "ping", shortHand: "!", adminOnly: false, usage: ".!", description: "Displays user ping.")]
         public static void PingCommand(ChatCommandContext ctx)
         {
             var ping = (int)(ctx.Event.SenderCharacterEntity.Read<Latency>().Value * 1000);
