@@ -126,7 +126,7 @@ internal static class Enablers
             }
             cleanUpEntities.Dispose();
             //commandBuffer.Playback(entityManager);
-            commandBuffer.Dispose();
+            //commandBuffer.Dispose();
             Plugin.Log.LogInfo($"{counter} resource nodes destroyed.");
         }
 
