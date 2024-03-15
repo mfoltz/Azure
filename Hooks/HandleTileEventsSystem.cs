@@ -99,13 +99,7 @@ namespace WorldBuild.Hooks
                     OnHover.DestroyAtHover(userEntity);
                 };
             }
-            else if (settings.GetMode("ControlToggle"))
-            {
-                return (userEntity, _) =>
-                {
-                    VCreate.Hooks.EmoteSystemPatch.ControlCommand(userEntity);
-                };
-            }
+            
             else if (settings.GetMode("CopyToggle"))
             {
                 return (userEntity, _) =>

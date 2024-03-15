@@ -33,7 +33,7 @@ internal class EmoteSystemPatch
             { -1064533554, ToggleMapIconPlacement}, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
-            { -1525577000, ToggleControlMode } // Yes
+            { -1525577000, ToggleSnapping } // Yes
         };
 
     static EmoteSystemPatch()
@@ -51,7 +51,7 @@ internal class EmoteSystemPatch
             { -1064533554, ToggleMapIconPlacement}, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
-            { -1525577000, ToggleControlMode } // Yes
+            { -1525577000, ToggleSnapping } // Yes
     };
     }
 
@@ -301,59 +301,14 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"TileRotation: {rotation}°");
         }
     }
-    [Command(name: "returnToBody", shortHand: "return", adminOnly: true, usage: ".return", description: "Backup method to return to body on hover.")]
-    public static void ReturnCommand(ChatCommandContext ctx)
-    {
-        Entity senderUser = ctx.Event.SenderUserEntity;
-        ControlCommand(senderUser);
-    }
-    public static void ControlCommand(Entity senderUserEntity)
-    {
-        PlayerService.TryGetCharacterFromName(senderUserEntity.Read<User>().CharacterName.ToString(), out Entity Character);
-        FromCharacter fromCharacter = new FromCharacter()
-        {
-            User = senderUserEntity,
-            Character = Character
-        };
-        DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-        if (DataStructures.PlayerSettings.TryGetValue(senderUserEntity.Read<User>().PlatformId, out var settings))
-        {
-            if (Character.Read<EntityInput>().HoveredEntity.Index > 0)
-            {
-                Entity hoveredEntity = senderUserEntity.Read<EntityInput>().HoveredEntity;
-                if (!hoveredEntity.Has<PlayerCharacter>())
-                {
-                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
-                    {
-                        EntityTarget = hoveredEntity,
-                        Target = senderUserEntity.Read<EntityInput>().HoveredEntityNetworkId
-                    };
-                    existingSystem.ControlUnit(fromCharacter, controlDebugEvent);
-                    PrefabGUID prefabGUID = hoveredEntity.Read<PrefabGUID>();
-                    string colorString = VCreate.Core.Toolbox.FontColors.Cyan(prefabGUID.LookupName().ToString());
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), $"Controlling: {colorString}");
-                    settings.OriginalBody = Character.Index + ", " + Character.Version;
-                    DataStructures.Save();
-                    return;
-                }
-            }
-            else
-            {
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), "No entity to control.");
-            }
-        }
-        else
-        {
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, senderUserEntity.Read<User>(), "Couldn't find omnitool data.");
-        }
-    }
+    //[Command(name: "returnToBody", shortHand: "return", adminOnly: true, usage: ".return", description: "Backup method to return to body on hover.")]
+    
 
     private static void ResetToggles(Player player, ulong playerId)
     {
         if (DataStructures.PlayerSettings.TryGetValue(playerId, out var settings))
         {
             // Default all toggles to false
-            settings.SetMode("ControlToggle", false);
             settings.SetMode("KillToggle", false);
             settings.SetMode("TileToggle", false);
             settings.SetMode("InspectToggle", false);
@@ -364,7 +319,7 @@ internal class EmoteSystemPatch
             settings.SetMode("DebuffToggle", false);
             settings.SetMode("ConvertToggle", false);
             settings.SetMode("BuffToggle", false);
-            settings.SetMode("LinkToggle", false);
+
 
             // Enable the exceptToggle, if specified
 
@@ -380,7 +335,6 @@ internal class EmoteSystemPatch
         if (DataStructures.PlayerSettings.TryGetValue(playerId, out var settings))
         {
             // Default all toggles to false
-            settings.SetMode("ControlToggle", false);
             settings.SetMode("KillToggle", false);
             settings.SetMode("TileToggle", false);
             settings.SetMode("InspectToggle", false);
@@ -391,7 +345,6 @@ internal class EmoteSystemPatch
             settings.SetMode("DebuffToggle", false);
             settings.SetMode("ConvertToggle", false);
             settings.SetMode("BuffToggle", false);
-            settings.SetMode("LinkToggle", false);
 
             // Enable the exceptToggle, if specified
             if (!string.IsNullOrEmpty(exceptToggle))
@@ -405,55 +358,7 @@ internal class EmoteSystemPatch
         }
     }
 
-    // Example of modifying the ToggleControlMode to use the new method
-    private static void ToggleControlMode(Player player, ulong playerId)
-    {
-        // First, reset all toggles except the one being toggled
-        ResetAllToggles(playerId, "ControlToggle");
-
-        if (DataStructures.PlayerSettings.TryGetValue(playerId, out Omnitool settings))
-        {
-            if (settings.OriginalBody != null)
-            {
-                string[] parts = settings.OriginalBody.Split(", ");
-                if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
-                {
-                    Entity originalBody = new Entity { Index = index, Version = version };
-                    if (VWorld.Server.EntityManager.Exists(originalBody))
-                    {
-                        try
-                        {
-                            ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
-                            {
-                                EntityTarget = originalBody,
-                                Target = originalBody.Read<NetworkId>()
-                            };
-                            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-                            existingSystem.ControlUnit(new FromCharacter() { User = player.User, Character = player.Character }, controlDebugEvent);
-                            settings.OriginalBody = "";
-                            DataStructures.Save();
-                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "Returned to original body.");
-
-                          
-
-                        }
-                        catch (Exception e)
-                        {
-                            Plugin.Log.LogInfo(e);
-                        }
-                        
-                    }
-                }
-            }
-            else
-            {
-                bool currentValue = settings.GetMode("ControlToggle");
-                string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
-                DataStructures.Save();
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ControlMode: |{stateMessage}|");
-            }
-        }
-    }
+    
 
     private static void UndoLastTilePlacement(Player player, ulong playerId)
     {

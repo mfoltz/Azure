@@ -22,7 +22,6 @@
             SetMode("MapIconToggle", false); // toggles map icon for spawned structures
             SetMode("DestroyToggle", false); // toggles DestroyMode (destroy unit, won't work on vampires)
             SetMode("CopyToggle", false); // toggles CopyMode, spawns last unit inspected/set as charmed (need to add check for vampire horses as those will crash server)
-            SetMode("ControlToggle", false); // toggles ControlMode (control unit, swap back with same emote)
             SetMode("DebuffToggle", false); // toggles DebuffMode (debuff unit, clear all buffs)
             SetMode("ConvertToggle", false); // toggles ConvertMode (convert unit, follows and fights)
             SetMode("BuffToggle", false); // toggles BuffMode (buff unit, uses last buff set)

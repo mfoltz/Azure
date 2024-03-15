@@ -31,29 +31,38 @@ public static class BehaviourTreeStateChangedEventSystemPatch
         NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
         for (int i = 0; i < entities.Length; i++)
         {
-            Entity entity = entities[i];
-            //entity.LogComponentTypes();
-            if (!entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>()) continue;
-            
-            if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value==GenericEnemyState.Return)
+            try
             {
-                //Plugin.Log.LogInfo($"{entity.Read<BehaviourTreeState>().Value.ToString()}");
-                BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
-                behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
-                entity.Write(behaviourTreeStateChangedEvent);
-            }
-            else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Follow)
-            {
-                var distance = UnityEngine.Vector3.Distance(entity.Read<LocalToWorld>().Position, entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position);
-                if (distance < 5f)
+                Entity entity = entities[i];
+                //entity.LogComponentTypes();
+                if (!entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>()) continue;
+
+                if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Return)
                 {
+                    //Plugin.Log.LogInfo($"{entity.Read<BehaviourTreeState>().Value.ToString()}");
                     BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
-                    behaviourTreeStateChangedEvent.Value = GenericEnemyState.Idle;
+                    behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
                     entity.Write(behaviourTreeStateChangedEvent);
                 }
+                else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Follow)
+                {
+                    var distance = UnityEngine.Vector3.Distance(entity.Read<LocalToWorld>().Position, entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position);
+                    if (distance < 5f)
+                    {
+                        BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
+                        behaviourTreeStateChangedEvent.Value = GenericEnemyState.Idle;
+                        entity.Write(behaviourTreeStateChangedEvent);
+                    }
+                }
             }
+            catch
+            {
+                entities.Dispose();
+                Plugin.Log.LogInfo("Exited BehaviorTreeState hook on try-catch");
+            }
+            
         }
-        entities.Dispose();
+        
     }
 }
 
