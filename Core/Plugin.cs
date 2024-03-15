@@ -89,7 +89,7 @@ namespace VCreate.Core
             }
             catch (Exception ex)
             {
-                Plugin.Logger.LogError($"Error deserializing data: {ex}");
+                Plugin.Logger.LogInfo($"No data to deserialize yet: {ex}");
                 VCreate.Core.DataStructures.PlayerSettings = new Dictionary<ulong, Omnitool>();
                 Plugin.Logger.LogWarning("PlayerSettings Created");
             }
