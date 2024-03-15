@@ -18,7 +18,7 @@ namespace VCreate.Core.Commands
         [Command(name: "give", shortHand: "gv", adminOnly: true, usage: ".gv [ItemName] [Quantity]", description: "Gives the specified item w/quantity.")]
         public static void GiveItem(ChatCommandContext ctx, GivenItem item, int quantity = 1)
         {
-            if (Helper.AddItemToInventory(ctx.Event.SenderCharacterEntity, item.Value, quantity, out var entity))
+            if (Helper.AddItemToInventory(ctx.Event.SenderCharacterEntity, item.Value, quantity, out var _))
             {
                 var prefabSys = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
                 prefabSys.PrefabGuidToNameDictionary.TryGetValue(item.Value, out var name);
