@@ -682,7 +682,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "resetdivinity", shortHand: "rd", adminOnly: true, usage: ".v rd <PlayerName>", description: "Resets player divinity data.")]
+        [Command(name: "wipePlayerAscension", shortHand: "wpa", adminOnly: true, usage: ".wpa [Player]", description: "Resets player ascen data.")]
         public static void ResetDivinityCommand(ChatCommandContext ctx, string playerName)
         {
             if (!Plugin.PlayerAscension)
@@ -703,6 +703,8 @@ namespace VPlus.Core.Commands
                 ctx.Reply($"Player {playerName} not found or no divinity data to wipe.");
             }
         }
+
+        // need to add command to see items needed for level and stats gained from current level
 
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
