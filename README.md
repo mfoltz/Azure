@@ -2,7 +2,7 @@
 
 Collection of tools and features for V Rising. Consider this an open-beta; it's mostly stable and ready for stress-testing. If you like what you see and want to support development, my Kofi can be found here: https://ko-fi.com/zfolmt
 
-# Commands
+## Commands
 
 **Notes**:
 - 🔒 Requires admin permissions
@@ -93,7 +93,7 @@ Provides a blood merlot as ordered.
 
 Displays ping.
 
-# Modes & Toggles
+## Modes & Toggles
 
 **Notes**:
 - 🔒 Requires admin permissions
