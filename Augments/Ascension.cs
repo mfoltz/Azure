@@ -69,6 +69,10 @@ namespace V.Augments
                     ChatCommands.SavePlayerDivinity();
                 }
             }
+            else
+            {
+
+            }
         }
 
         public static bool ApplyAscensionBonuses(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
@@ -99,7 +103,7 @@ namespace V.Augments
             float extraSpellResistance = (float)(preSpellResistance + Plugin.AscensionSpellResistanceBonus);
 
             // Example condition to limit the maximum number of ascensions
-            if (data.Divinity > Plugin.MaxAscensions)
+            if (data.Divinity == Plugin.MaxAscensions)
             {
                 ctx.Reply("You have reached the maximum number of ascensions.");
                 return false;
@@ -112,13 +116,14 @@ namespace V.Augments
 
         public enum AscensionLevel
         {
+            Level0,
             Level1,
             Level2,
             Level3,
             Level4
         }
 
-        private static List<int> ParsePrefabIdentifiers(string prefabIds)
+        public static List<int> ParsePrefabIdentifiers(string prefabIds)
         {
             // Removing the brackets at the start and end, then splitting by commas
             var ids = prefabIds.Trim('[', ']').Split(',');

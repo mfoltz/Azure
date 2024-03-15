@@ -56,10 +56,7 @@ namespace VPlus.Augments
             try
             {
                 PrefabCollectionSystem prefabCollectionSystem = entityManager.World.GetExistingSystem<PrefabCollectionSystem>();
-                if (prefabCollectionSystem._SpawnableNameToPrefabGuidDictionary.TryGetValue("HUDCanvas", out PrefabGUID canvas))
-                {
-                    Plugin.Logger.LogInfo($"Found HUDCanvas PrefabGUID: {canvas.GuidHash.ToString()}");
-                }
+                
 
                 return prefabCollectionSystem._PrefabGuidToEntityMap[prefabGUID];
             }

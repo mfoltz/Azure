@@ -3,6 +3,7 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using VCreate.Core.Toolbox;
 using VPlus.Core.Toolbox;
 using Plugin = VPlus.Core.Plugin;
 
@@ -18,7 +19,7 @@ namespace VPlus.Hooks
 
         private static void Prefix(ModifyUnitStatBuffSystem_Spawn __instance)
         {
-            if (!Plugin.modifyDeathSetStats)
+            if (!Plugin.modifyDeathSetStats && !Plugin.modifyNoctumSetStats)
             {
                 return;
             }
@@ -46,7 +47,7 @@ namespace VPlus.Hooks
                             //Plugin.Logger.LogInfo($"ArmorLevel {(int)component.Level} found...");
                             //could also do if armor level == 90
 
-                            if ((int)component.Level == 90)
+                            if ((int)component.Level == 90 && Plugin.modifyDeathSetStats)
                             {
                                 // this should add 5 sp per piece of death set equipped
                                 //Plugin.Logger.LogInfo("Player equipping piece of death set...");
@@ -56,11 +57,24 @@ namespace VPlus.Hooks
                                 //Plugin.Logger.LogInfo("Adding stat...");
                                 //ModifyUnitStatBuff_DOTS item = buffer[0];
                                 //ModifyUnitStatBuff_DOTS newItem = item;
-                                ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatType);
+                                ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatTypeDeathSet);
                                 // will be spell power by default if no match from config
-                                newItem.Value = (float)Plugin.extraStatValue;
+                                newItem.Value = (float)Plugin.extraStatValueDeathSet;
                                 buffer.Add(newItem);
                                 //Plugin.Logger.LogInfo("Addition complete.");
+                            }
+                            else if (entity.Read<PrefabGUID>().LookupName().ToLower().Contains("noctum") && Plugin.modifyNoctumSetStats)
+                            {
+                                Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                                User user = entityManager.GetComponentData<User>(userEntity);
+                                DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
+                                //Plugin.Logger.LogInfo("Adding stat...");
+                                //ModifyUnitStatBuff_DOTS item = buffer[0];
+                                //ModifyUnitStatBuff_DOTS newItem = item;
+                                ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatTypeNoctumSet);
+                                // will be spell power by default if no match from config
+                                newItem.Value = (float)Plugin.extraStatValueNoctumSet;
+                                buffer.Add(newItem);
                             }
                         }
                     }
@@ -79,7 +93,7 @@ namespace VPlus.Hooks
     {
         private static void Prefix(ModifyUnitStatBuffSystem_Destroy __instance)
         {
-            if (!Plugin.modifyDeathSetStats)
+            if (!Plugin.modifyDeathSetStats && !Plugin.modifyNoctumSetStats)
             {
                 return;
             }
@@ -101,7 +115,7 @@ namespace VPlus.Hooks
                         if (entityManager.TryGetComponentData(entity, out ArmorLevel component))
                         {
                             //Plugin.Logger.LogInfo($"ArmorLevel {(int)component.Level} found...");
-                            if ((int)component.Level == 90)
+                            if ((int)component.Level == 90 && Plugin.modifyDeathSetStats)
                             {
                                 //Plugin.Logger.LogInfo("Player unequipping piece of death set...");
                                 Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
@@ -110,7 +124,24 @@ namespace VPlus.Hooks
                                 //Plugin.Logger.LogInfo("Removing stat...");
                                 for (int i = 0; i < buffer.Length; i++)
                                 {
-                                    ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatType);
+                                    ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatTypeDeathSet);
+                                    UnitStatType type = buffer[i].StatType;
+                                    if (buffer[i].StatType == type && buffer[i].Id.Id == 0)
+                                    {
+                                        buffer.RemoveAt(i);
+                                        //Plugin.Logger.LogInfo("Removal complete.");
+                                    }
+                                }
+                            }
+                            else if (entity.Read<PrefabGUID>().LookupName().ToLower().Contains("noctum") && Plugin.modifyNoctumSetStats)
+                            {
+                                Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
+                                User user = entityManager.GetComponentData<User>(userEntity);
+                                DynamicBuffer<ModifyUnitStatBuff_DOTS> buffer = entityManager.GetBuffer<ModifyUnitStatBuff_DOTS>(entity);
+                                //Plugin.Logger.LogInfo("Removing stat...");
+                                for (int i = 0; i < buffer.Length; i++)
+                                {
+                                    ModifyUnitStatBuff_DOTS newItem = MUSB_Functions.GetStatType(Plugin.extraStatTypeNoctumSet);
                                     UnitStatType type = buffer[i].StatType;
                                     if (buffer[i].StatType == type && buffer[i].Id.Id == 0)
                                     {

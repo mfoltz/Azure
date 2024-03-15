@@ -32,7 +32,7 @@
 
   <ItemGroup>
     <Reference Include="RPGMods">
-      <HintPath>..\..\..\Downloads\RPGMods (2).dll</HintPath>
+      <HintPath>..\..\..\Downloads\RPGMods (3).dll</HintPath>
     </Reference>
     <Reference Include="VCreate">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\VRising\VRising_Server\BepInEx\plugins\VCreate.dll</HintPath>

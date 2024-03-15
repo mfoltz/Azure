@@ -17,6 +17,8 @@ using System.Text;
 using VCreate.Core.Toolbox;
 using static VCreate.Core.Services.PlayerService;
 using VCreate.Core.Services;
+using static V.Augments.Ascension;
+using VRising.GameData.Utils;
 
 namespace VPlus.Core.Commands
 {
@@ -663,7 +665,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "playerAscend", shortHand: "asc", adminOnly: false, usage: ".v asc", description: "Ascends player if requirements are met.")]
+        [Command(name: "playerAscend", shortHand: "ascend", adminOnly: false, usage: ".ascend", description: "Ascends player if requirements are met.")]
         public static void PlayerAscendCommand(ChatCommandContext ctx)
         {
             if (Plugin.PlayerAscension == false)
@@ -681,30 +683,117 @@ namespace VPlus.Core.Commands
                 Ascension.AscensionCheck(ctx, name, SteamID, data);
             }
         }
-
-        [Command(name: "wipePlayerAscension", shortHand: "wpa", adminOnly: true, usage: ".wpa [Player]", description: "Resets player ascen data.")]
-        public static void ResetDivinityCommand(ChatCommandContext ctx, string playerName)
+        [Command(name: "getAscension", shortHand: "getasc", adminOnly: false, usage: ".getasc", description: "Gets current ascension level and bonus stats.")]
+        public static void GetPlayerAscendCommand(ChatCommandContext ctx)
         {
-            if (!Plugin.PlayerAscension)
+            if (Plugin.PlayerAscension == false)
             {
                 ctx.Reply("Ascension is disabled.");
                 return;
             }
-            PlayerService.TryGetPlayerFromString(playerName, out var player);
-            ulong SteamID = player.SteamID;
-            if (Databases.playerDivinity.ContainsKey(SteamID))
+            var user = ctx.Event.User;
+            
+            string name = user.CharacterName.ToString();
+            ulong SteamID = user.PlatformId;
+            string StringID = SteamID.ToString();
+            if (Databases.playerDivinity.TryGetValue(SteamID, out DivineData data))
             {
-                Databases.playerDivinity[SteamID] = new DivineData(0, 0); // Reset the divinity data
-                SavePlayerDivinity(); // Save changes
-                ctx.Reply($"Divinity data for {playerName} has been reset.");
+                if (RPGMods.Utils.Database.PowerUpList.TryGetValue(SteamID, out var powerUp))
+                {
+                    int health = (int)powerUp.MaxHP;
+                    int phys = (int)powerUp.PATK;
+                    int spell = (int)powerUp.SATK;
+                    float pdef = powerUp.PDEF;
+                    float sdef = powerUp.SDEF;
+
+                    string colorHealth = VPlus.Core.Toolbox.FontColors.Green(health.ToString());
+                    string colorPhys = VPlus.Core.Toolbox.FontColors.Red(phys.ToString());
+                    string colorSpell =  VPlus.Core.Toolbox.FontColors.Cyan(spell.ToString());
+                    string colorPdef = VPlus.Core.Toolbox.FontColors.Yellow(string.Format("{0:P0}", pdef));
+                    string colorSdef = VPlus.Core.Toolbox.FontColors.White(string.Format("{0:P0}", sdef));
+
+                    int level = data.Divinity;
+                    string colorLevel = VPlus.Core.Toolbox.FontColors.Pink(level.ToString());
+
+
+                    ctx.Reply($"Ascension Level: |{colorLevel}|");
+                    ctx.Reply($"MaxHealth: |{colorHealth}| PhysicalPower: |{colorPhys}| SpellPower: |{colorSpell}| PhysicalResistance: |{colorPdef}| SpellResistance: |{colorSdef}|");
+                    ReplyItemsForAscLevel(ctx, name, SteamID, data);
+                }
+                
             }
             else
             {
-                ctx.Reply($"Player {playerName} not found or no divinity data to wipe.");
+                ctx.Reply("Couldn't find ascension data.");
             }
         }
+        // need to add commands for ascension that show current level and stats gained from current level, also need to add a command to show items needed for level
+        [Command(name: "getAscensionRequirements", shortHand: "getreq", adminOnly: false, usage: ".getreq", description: "Lists items required for next level of ascension.")]
+        public static void GetAscendRequirementsCommand(ChatCommandContext ctx)
+        {
+            if (Plugin.PlayerAscension == false)
+            {
+                ctx.Reply("Ascension is disabled.");
+                return;
+            }
+            var user = ctx.Event.User;
 
-        // need to add command to see items needed for level and stats gained from current level
+            string name = user.CharacterName.ToString();
+            ulong SteamID = user.PlatformId;
+            string StringID = SteamID.ToString();
+            if (Databases.playerDivinity.TryGetValue(SteamID, out DivineData data))
+            {
+                ReplyItemsForAscLevel(ctx, name, SteamID, data);
+
+            }
+            else
+            {
+                ctx.Reply("Couldn't find ascension data.");
+            }
+        }
+        public static void ReplyItemsForAscLevel(ChatCommandContext ctx, string playerName, ulong SteamID, DivineData data)
+        {
+            
+            AscensionLevel ascensionLevel = (AscensionLevel)(data.Divinity);
+            List<int> prefabIds;
+
+            // Determine the prefab IDs based on the ascension level
+            switch (ascensionLevel)
+            {
+                case AscensionLevel.Level0:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFirstAscension);
+                    break;
+                case AscensionLevel.Level1:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsSecondAscension);
+                    break;
+
+                case AscensionLevel.Level2:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsThirdAscension);
+                    break;
+
+                case AscensionLevel.Level3:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFourthAscension);
+                    break;
+                case AscensionLevel.Level4:
+                    ctx.Reply("You have reached the maximum ascension level.");
+                    return;
+
+                
+
+                default:
+                    prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFirstAscension);
+                    break;
+            }
+            
+            for (int i = 0; i < prefabIds.Count; i++)
+            {
+                PrefabGUID prefab = new(prefabIds[i]);
+                string name = VPlus.Core.Toolbox.FontColors.White(prefab.GetPrefabName());
+                string quantity = VPlus.Core.Toolbox.FontColors.Yellow((i + 1).ToString());
+                ctx.Reply($"Item: {name}x{quantity}");
+            }
+            
+        }
 
         /*
         [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]

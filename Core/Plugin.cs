@@ -66,10 +66,14 @@ namespace VPlus.Core
 
         public static bool modifyDeathSetBonus;
         public static bool modifyDeathSetStats;
+        public static bool modifyNoctumSetStats;
 
         public static int deathSetBonus;
-        public static string extraStatType;
-        public static double extraStatValue;
+        
+        public static string extraStatTypeDeathSet;
+        public static double extraStatValueDeathSet;
+        public static string extraStatTypeNoctumSet;
+        public static double extraStatValueNoctumSet;
 
         public static int AscensionHealthBonus;
         public static int AscensionPhysicalPowerBonus;
@@ -131,8 +135,12 @@ namespace VPlus.Core
             modifyDeathSetStats = Config.Bind("Config", "ModifyDeathSetStats", true, "Modify the stats of the death set").Value;
             modifyDeathSetBonus = Config.Bind("Config", "ModifyDeathSetBonus", true, "Modify the set bonus of the death set").Value;
             deathSetBonus = Config.Bind("Config", "DeathSetBonus", 35317589, "Set bonus to apply to the death set, bloodmoon by default if enabled").Value;
-            extraStatType = Config.Bind("Config", "ExtraStatType", "SpellResistance", "Stat type to add to the death set. ").Value;
-            extraStatValue = Config.Bind("Config", "ExtraStatValue", 0.025, "Stat value to add to the death set. Be mindful as not all stat increases are equal.").Value;
+            extraStatTypeDeathSet = Config.Bind("Config", "ExtraStatTypeDeathSet", "SpellResistance", "Stat type to add to the death set. ").Value;
+            extraStatValueDeathSet = Config.Bind("Config", "ExtraStatValueDeathSet", 0.025, "Stat value to add to the death set. Be mindful as not all stat increases are equal.").Value;
+
+            modifyNoctumSetStats = Config.Bind("Config", "ModifyNoctumSetStats", true, "Modify the stats of the death set").Value;
+            extraStatTypeNoctumSet = Config.Bind("Config", "ExtraStatTypeNoctumSet", "SpellResistance", "Stat type to add to the noctum set. ").Value;
+            extraStatValueNoctumSet = Config.Bind("Config", "ExtraStatValueNoctumSet", 0.025, "Stat value to add to the noctum set. Be mindful as not all stat increases are equal.").Value;
 
             divineMultiplier = Config.Bind("Config", "DivineMultiplier", 1, "Multiplier for stats on ascending. This only applies to spell and physical for now.").Value;
             AscensionHealthBonus = Config.Bind("Config", "AscensionHealthBonus", 50, "Health bonus on ascending.").Value;
