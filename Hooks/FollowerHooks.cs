@@ -15,7 +15,7 @@ using VCreate.Core.Toolbox;
 [HarmonyPatch(typeof(RepairDoubleVBloodSpawnedSystem), nameof(RepairDoubleVBloodSpawnedSystem.OnUpdate))]
 public static class RepairDoubleVBloodSpawnedSystemPatch
 {
-    public static bool Prefix(RepairDoubleVBloodSpawnedSystem _)
+    public static bool Prefix(RepairDoubleVBloodSpawnedSystem __instance)
     {
         Plugin.Log.LogInfo("RepairDoubleVBloodSpawnedSystem Prefix called...");
         return false;
