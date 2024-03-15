@@ -25,7 +25,7 @@ Lists the modes and toggles you can control with emotes.
 
 Controls moving and dismantling structures that were placed with '.twb' per player. This does not apply to objects spawned with Q in TileMode but you can achieve similar functionality by toggling tile immortality via the emote menu (prevents tiles from being destroyed when taking damage if they normally would be, works as expected for most objects but is not perfectly consistent for reasons I have yet to determine).
 
-#### 🔒 `.rot [0/90/180/270]'
+#### 🔒 `.rot [0/90/180/270]`
 
 Sets rotation of objects placed in TileMode. Can also use Bow to cycle through rotations.
 
