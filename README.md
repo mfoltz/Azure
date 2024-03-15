@@ -51,7 +51,7 @@ Sets the map icon that will be applied to objects spawned in TileMode if map ico
 
 #### 🔒 `.tm [PrefabGUID]`
 
-Sets the tile model that will be spawned in TileMode. It will currently let you spawn any set tile model with TileMode but if the object/structure is something already present in the buildmenu I would strongly recommend using '.twb' instead; some tiles behave strangely when spawned this way and it's difficult to guarantee they wi
+Sets the tile model that will be spawned in TileMode. It will currently let you spawn any set tile model with TileMode but if the object/structure is something already present in the buildmenu I would recommend using '.twb' instead as this is mostly meant for decorations and other props not normally available to the player.
 
 #### 🔒 `.undo`
 
@@ -147,3 +147,9 @@ Toggles immortality for objects placed with TileMode, generally prevents them fr
 #### 🔒 `Reset` || Wave
 
 Resets modes and toggles.
+
+## Other
+
+---
+
+Borrowed the README format from LeadAHorseToWater (https://github.com/decaprime/LeadAHorseToWater). Code examples from decaprime, willis, cheesasaurus, trodi, backxtar, and other members of the V Rising modding community were all very helpful in putting this together. https://discord.com/invite/QG2FmueAG9
