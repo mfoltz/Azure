@@ -20,23 +20,19 @@ namespace VCreate.Core.Commands
             get { return wbFlag; }
         }
 
-        private static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
+        private static SetDebugSettingEvent BuildingCostsDebugSetting = new()
         {
             SettingType = (DebugSettingType)5,
             Value = false
         };
 
-        private static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new SetDebugSettingEvent()
+        private static SetDebugSettingEvent BuildingPlacementRestrictionsDisabledSetting = new()
         {
             SettingType = (DebugSettingType)16,
             Value = false
         };
 
-        private static SetDebugSettingEvent CastleHeartConnectionRequirementDisabled = new SetDebugSettingEvent()
-        {
-            SettingType = (DebugSettingType)27,
-            Value = false
-        };
+        
 
         [Command(name: "toggleWorldBuild", shortHand: "twb", adminOnly: true, usage: ".twb", description: "Toggles worldbuilding debug settings for no-cost building anywhere by anyone.")]
         public static void ToggleBuildDebugCommand(ChatCommandContext ctx)
@@ -56,12 +52,11 @@ namespace VCreate.Core.Commands
                 BuildingPlacementRestrictionsDisabledSetting.Value = wbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
 
-                CastleHeartConnectionRequirementDisabled.Value = wbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionRequirementDisabled);
+                
 
                 string enabledColor = FontColors.Green("enabled");
-                ctx.Reply($"freebuild: {enabledColor}");
-                ctx.Reply($"BuildingCostsDisabled: {BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {CastleHeartConnectionRequirementDisabled}");
+                ctx.Reply($"WorldBuild: {enabledColor}");
+                ctx.Reply($"BuildingCostsDisabled: |{BuildingCostsDebugSetting.Value}| || BuildingPlacementRestrictionsDisabled: |{BuildingPlacementRestrictionsDisabledSetting.Value}|");
             }
             else
             {
@@ -72,12 +67,11 @@ namespace VCreate.Core.Commands
                 BuildingPlacementRestrictionsDisabledSetting.Value = wbFlag;
                 existingSystem.SetDebugSetting(user.Index, ref BuildingPlacementRestrictionsDisabledSetting);
 
-                CastleHeartConnectionRequirementDisabled.Value = wbFlag;
-                existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionRequirementDisabled);
+                
 
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"freebuild: {disabledColor}");
-                ctx.Reply($"BuildingCostsDisabled: {BuildingCostsDebugSetting.Value} | BuildingPlacementRestrictionsDisabled: {BuildingPlacementRestrictionsDisabledSetting.Value} | CastleHeartConnectionRequirement: {CastleHeartConnectionRequirementDisabled}");
+                ctx.Reply($"WorldBuild: {disabledColor}");
+                ctx.Reply($"BuildingCostsDisabled: |{BuildingCostsDebugSetting.Value}| || BuildingPlacementRestrictionsDisabled: |{BuildingPlacementRestrictionsDisabledSetting.Value}|");
             }
         }
     }
@@ -86,13 +80,13 @@ namespace VCreate.Core.Commands
     {
         private static bool buildingCostsFlag = false;
 
-        private static SetDebugSettingEvent BuildingCostsDebugSetting = new SetDebugSettingEvent()
+        private static SetDebugSettingEvent BuildingCostsDebugSetting = new()
         {
             SettingType = (DebugSettingType)5, // Assuming this is the correct DebugSettingType for building costs
             Value = false
         };
 
-        [Command(name: "toggleBuildingCosts", shortHand: "tbc", adminOnly: true, usage: ".tbc", description: "Toggles building costs for no-cost building, useful for setting up a castle linked to your heart easily.")]
+        [Command(name: "toggleBuildingCosts", shortHand: "tbc", adminOnly: true, usage: ".tbc", description: "Toggles building costs, useful for setting up a castle linked to your heart easily.")]
         public static void ToggleBuildingCostsCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;
@@ -111,15 +105,15 @@ namespace VCreate.Core.Commands
 
     public class CastleHeartConnectionToggle
     {
-        public static bool castleHeartConnectionRequirementFlag = false;
+        private static bool castleHeartConnectionRequirementFlag = false;
 
-        public static SetDebugSettingEvent CastleHeartConnectionDebugSetting = new SetDebugSettingEvent()
+        private static SetDebugSettingEvent CastleHeartConnectionDebugSetting = new()
         {
             SettingType = (DebugSettingType)27,
             Value = false
         };
 
-        [Command(name: "toggleCastleHeartConnectionRequirement", shortHand: "tch", adminOnly: true, usage: ".tch", description: "Toggles the Castle Heart connection requirement for structures. Handy for testing.")]
+        [Command(name: "toggleCastleHeartConnectionRequirement", shortHand: "tchc", adminOnly: true, usage: ".tchc", description: "Toggles the Castle Heart connection requirement for structures. Handy for testing.")]
         public static void ToggleCastleHeartConnectionCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;

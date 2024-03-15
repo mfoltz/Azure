@@ -25,7 +25,6 @@
             SetMode("DebuffToggle", false); // toggles DebuffMode (debuff unit, clear all buffs)
             SetMode("ConvertToggle", false); // toggles ConvertMode (convert unit, follows and fights)
             SetMode("BuffToggle", false); // toggles BuffMode (buff unit, uses last buff set)
-            SetMode("LinkToggle", false); // toggles LinkMode (WIP, don't use... yet)
             SetMode("TileToggle", false); // toggles TileMode (spawn tile, uses last tile set)
 
             SetData("Rotation", 0); // rotation for spawned structures

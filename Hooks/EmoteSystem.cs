@@ -26,7 +26,7 @@ internal class EmoteSystemPatch
             { -1462274656, ToggleTileRotation }, // Bow
             { -26826346, ToggleConvert }, // Clap
             { -452406649, ToggleInspectMode }, // Point
-            { -53273186, ToggleKillMode }, // No
+            { -53273186, ToggleDestroyMode }, // No
             { -370061286, ToggleCopyMode }, // Salute
             { -578764388, ToggleImmortalTiles }, // Shrug
             { 808904257, ToggleBuffMode }, // Sit
@@ -44,7 +44,7 @@ internal class EmoteSystemPatch
             { -1462274656, ToggleTileRotation }, // Bow
             { -26826346, ToggleConvert }, // Clap
             { -452406649, ToggleInspectMode }, // Point
-            { -53273186, ToggleKillMode }, // No
+            { -53273186, ToggleDestroyMode }, // No
             { -370061286, ToggleCopyMode }, // Salute
             { -578764388, ToggleImmortalTiles }, // Shrug
             { 808904257, ToggleBuffMode }, // Sit
@@ -131,9 +131,9 @@ internal class EmoteSystemPatch
         }
     }
 
-    private static void ToggleKillMode(Player player, ulong playerId)
+    private static void ToggleDestroyMode(Player player, ulong playerId)
     {
-        ResetAllToggles(playerId, "KillToggle");
+        ResetAllToggles(playerId, "DestroyToggle");
         if (DataStructures.PlayerSettings.TryGetValue(playerId, out Omnitool settings))
         {
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
@@ -309,7 +309,7 @@ internal class EmoteSystemPatch
         if (DataStructures.PlayerSettings.TryGetValue(playerId, out var settings))
         {
             // Default all toggles to false
-            settings.SetMode("KillToggle", false);
+            settings.SetMode("DestroyToggle", false);
             settings.SetMode("TileToggle", false);
             settings.SetMode("InspectToggle", false);
             settings.SetMode("SnappingToggle", false);
@@ -335,12 +335,12 @@ internal class EmoteSystemPatch
         if (DataStructures.PlayerSettings.TryGetValue(playerId, out var settings))
         {
             // Default all toggles to false
-            settings.SetMode("KillToggle", false);
+            settings.SetMode("DestroyToggle", false);
             settings.SetMode("TileToggle", false);
             settings.SetMode("InspectToggle", false);
-            settings.SetMode("SnappingToggle", false);
-            settings.SetMode("ImmortalToggle", false);
-            settings.SetMode("MapIconToggle", false);
+            //settings.SetMode("SnappingToggle", false);
+            //settings.SetMode("ImmortalToggle", false);
+            //settings.SetMode("MapIconToggle", false);
             settings.SetMode("CopyToggle", false);
             settings.SetMode("DebuffToggle", false);
             settings.SetMode("ConvertToggle", false);
@@ -380,39 +380,11 @@ internal class EmoteSystemPatch
                         ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Successfully destroyed last tile placed.");
                         DataStructures.Save();
                     }
-                    /*
                     else
                     {
-                        try
-                        {
-                            Entity tile = new Entity { Index = index, Version = version + 1 };
-                            if (entityManager.Exists(tileEntity))
-                            {
-                                SystemPatchUtil.Destroy(tileEntity);
-                                ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Successfully destroyed last tile placed.");
-                                DataStructures.Save();
-                            }
-                        }
-                        catch
-                        {
-                            try
-                            {
-                                Entity tile = new Entity { Index = index, Version = version + 2 };
-                                if (entityManager.Exists(tileEntity))
-                                {
-                                    SystemPatchUtil.Destroy(tileEntity);
-                                    ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Successfully destroyed last tile placed.");
-                                    DataStructures.Save();
-                                }
-                            }
-                            catch (Exception d)
-                            {
-                                Plugin.Log.LogInfo(d);
-                            }
-                        }
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "The tile could not be found or has already been modified more than twice.");
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Failed to find the last tile placed.");
                     }
-                    */
+                    
                 }
                 else
                 {

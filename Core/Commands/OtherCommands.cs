@@ -73,7 +73,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
-        [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks all the things.")]
+        [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks vBloods and research.")]
         public static void UnlockCommand(ChatCommandContext ctx, string playerName)
         {
             TryGetPlayerFromString(playerName, out Player player);

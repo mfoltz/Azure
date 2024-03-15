@@ -21,7 +21,6 @@ namespace VCreate.Core.Commands
         [Command(name: "equipUnarmedSkills", shortHand: "equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
         public static void ToggleSkillEquip(ChatCommandContext ctx)
         {
-            User setter = ctx.Event.User;
             Entity userEntity = ctx.Event.SenderUserEntity;
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
@@ -96,25 +95,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "toggleSnapping", shortHand: "snap", adminOnly: true, usage: ".snap", description: "Toggles snapping.")]
-        public static void SnapToggleCommand(ChatCommandContext ctx)
-        {
-            Entity character = ctx.Event.SenderCharacterEntity;
-            ulong SteamID = ctx.Event.User.PlatformId;
-
-            if (DataStructures.PlayerSettings.TryGetValue(SteamID, out Omnitool data))
-            {
-                data.SetMode("SnappingToggle", !data.GetMode("SnappingToggle"));
-                DataStructures.Save();
-                string enabledColor = FontColors.Green("enabled");
-                string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"Snapping: |{(data.GetMode("SnappingToggle") ? enabledColor : disabledColor)}|");
-            }
-            else
-            {
-                ctx.Reply("Couldn't find omnitool data.");
-            }
-        }
+        
 
         [Command(name: "setTileRotation", shortHand: "rot", adminOnly: true, usage: ".rot [0/90/180/270]", description: "Sets rotation for spawned tiles.")]
         public static void SetTileRotationCommand(ChatCommandContext ctx, int rotation)
@@ -134,7 +115,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "setSnapLevel", shortHand: "sl", adminOnly: true, usage: ".sl [1/2/3]", description: "Sets snap level for spawned tiles.")]
+        [Command(name: "setSnapLevel", shortHand: "snap", adminOnly: true, usage: ".snap [1/2/3]", description: "Sets snap level for spawned tiles.")]
         public static void SetSnappingLevelCommand(ChatCommandContext ctx, int level)
         {
             if (level != 1 && level != 2 && level != 3)
@@ -315,7 +296,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "undolast", shortHand: "undo", adminOnly: true, usage: ".undo", description: "Destroys the last tile entity placed, up to 10.")]
+        [Command(name: "undoLast", shortHand: "undo", adminOnly: true, usage: ".undo", description: "Destroys the last tile entity placed, up to 10.")]
         public static void UndoCommand(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -363,7 +344,7 @@ namespace VCreate.Core.Commands
             ctx.Reply("Resource nodes in player territories destroyed. Probably.");
         }
 
-        [Command("destroyTileModels", shortHand: "dtm", adminOnly: true, description: "Destroys tiles in entered radius matching entered full tile model name (ex: TM_ArtisansWhatsit_T01).", usage: "Usage: .dtm [TM_Example_01] [radius]")]
+        [Command(name: "destroyTileModels", shortHand: "dtm", adminOnly: true, description: "Destroys tiles in entered radius matching entered full tile model name (ex: TM_ArtisansWhatsit_T01).", usage: ".dtm [TM_Example_01] [Radius]")]
         public static void DestroyTiles(ChatCommandContext ctx, string name, float radius = 5f)
         {
             // Check if a name is not provided or is empty

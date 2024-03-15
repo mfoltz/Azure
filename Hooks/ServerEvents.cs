@@ -42,7 +42,6 @@ namespace VCreate.Hooks
                 DataStructures.Save();
                 // reset all horses to enabled state
                 EnableHorsesOnQuit();
-                
             }
         }
 
@@ -54,7 +53,6 @@ namespace VCreate.Hooks
                 //DataStructures.Save();
             }
         }
-
         public static void EnableHorsesOnQuit()
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -75,32 +73,6 @@ namespace VCreate.Hooks
                     SystemPatchUtil.Enable(entity);
             }
             entityArray.Dispose();
-        }
-    
-        
-
-        public static void ReturnSoul(Omnitool soul, Entity userEntity)
-        {
-            string[] parts = soul.OriginalBody.Split(", ");
-            if (parts.Length == 2 && int.TryParse(parts[0], out int index) && int.TryParse(parts[1], out int version))
-            {
-                Entity originalBody = new Entity { Index = index, Version = version };
-                if (VWorld.Server.EntityManager.Exists(originalBody))
-                {
-                    ControlDebugEvent controlDebugEvent = new ControlDebugEvent()
-                    {
-                        EntityTarget = originalBody,
-                        Target = userEntity.Read<NetworkId>()
-                    };
-                    DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-                    // might need to change originalBody to the character user is occupying when this runs, we shall see
-                    existingSystem.ControlUnit(new FromCharacter() { User = userEntity, Character = originalBody }, controlDebugEvent);
-                    soul.OriginalBody = "";
-                    DataStructures.Save();
-                    //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, soul.Value.User.Read<User>(), "Returned to original body.");
-                }
-                
-            }
         }
     }
 }

@@ -2,16 +2,15 @@
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.Shared;
 using ProjectM.Tiles;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 using VampireCommandFramework;
-using VCreate.Core.Services;
+using VCreate.Core;
 using VCreate.Core.Toolbox;
 using VCreate.Data;
-using VCreate.Core;
-using ProjectM.Shared;
 
 namespace VCreate.Systems;
 
@@ -76,13 +75,12 @@ internal static class Enablers
         public static unsafe void SearchAndDestroy()
         {
             Plugin.Log.LogInfo("Entering SearchAndDestroy...");
-            EntityManager entityManager = VWorld.Server.EntityManager;
 
             EntityCommandBufferSystem commandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
             EntityCommandBuffer commandBuffer = commandBufferSystem.CreateCommandBuffer();
             int counter = 0;
             bool includeDisabled = true;
-            var nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            EntityQuery nodeQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
             {
                 All = new ComponentType[] {
                     ComponentType.ReadOnly<YieldResourcesOnDamageTaken>(),
@@ -90,19 +88,18 @@ internal static class Enablers
                 Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
             });
 
-            var resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-            foreach (var node in resourceNodeEntities)
+            NativeArray<Entity> resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
+            foreach (Entity node in resourceNodeEntities)
             {
                 if (ShouldRemoveNodeBasedOnTerritory(node))
                 {
                     counter += 1;
-                    //SystemPatchUtil.Destroy(node);
                     DestroyUtility.CreateDestroyEvent(commandBuffer, node, DestroyReason.Default, DestroyDebugReason.None);
                 }
             }
             resourceNodeEntities.Dispose();
 
-            var cleanUp = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            EntityQuery cleanUp = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
             {
                 All = new ComponentType[]
                 {
@@ -110,11 +107,11 @@ internal static class Enablers
             },
                 Options = EntityQueryOptions.IncludeDisabled
             });
-            var cleanUpEntities = cleanUp.ToEntityArray(Allocator.Temp);
+            NativeArray<Entity> cleanUpEntities = cleanUp.ToEntityArray(Allocator.Temp);
             foreach (var node in cleanUpEntities)
             {
                 PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(node);
-                string name = prefabGUID.LookupName();
+                string name = prefabGUID.LookupName().ToLower();
                 if (name.Contains("plant") || name.Contains("fibre") || name.Contains("shrub") || name.Contains("tree") || name.Contains("fiber") || name.Contains("bush") || name.Contains("grass") || name.Contains("sapling"))
                 {
                     if (ShouldRemoveNodeBasedOnTerritory(node))
@@ -125,15 +122,13 @@ internal static class Enablers
                 }
             }
             cleanUpEntities.Dispose();
-            //commandBuffer.Playback(entityManager);
-            //commandBuffer.Dispose();
-            Plugin.Log.LogInfo($"{counter} resource nodes destroyed.");
+
+            Plugin.Log.LogInfo($"{counter} resource entities destroyed.");
         }
 
         private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
         {
-            Entity territoryEntity;
-            if (CastleTerritoryCache.TryGetCastleTerritory(node, out territoryEntity))
+            if (CastleTerritoryCache.TryGetCastleTerritory(node, out _))
             {
                 return true;
             }
@@ -144,7 +139,7 @@ internal static class Enablers
     // this one doesn't really belong here but that's where it's going for now
     public class HorseFunctions
     {
-        internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = new();
+        internal static Dictionary<ulong, HorseStasisState> PlayerHorseStasisMap = [];
 
         [Command("disablehorses", "dh", description: "Disables dead, dominated ghost horses on the server.", adminOnly: true)]
         public static void DisableGhosts(ChatCommandContext ctx)

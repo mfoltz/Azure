@@ -49,10 +49,15 @@ namespace VCreate.Systems
                 {
                     // Create a unique string reference for the entity or prefab or whatever
                     PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(hoveredEntity);
-                    data.SetData("Unit", prefabGUID.GuidHash);
+                    if (!prefabGUID.GuidHash.Equals(VCreate.Data.Prefabs.CHAR_VampireMale))
+                    {
+                        data.SetData("Unit", prefabGUID.GuidHash);
+                        DataStructures.Save();
+                    }
+                   
 
-                    DataStructures.Save();
-                    string copySuccess = $"Inspected hovered entity for components, check log: '{entityString}', {prefabGUID.LookupName()}";
+                    
+                    string copySuccess = $"Inspected hovered entity for buffs and components, check console log for components: '{entityString}', {prefabGUID.LookupName()}";
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, copySuccess);
                 }
             }
@@ -296,6 +301,11 @@ namespace VCreate.Systems
             EntityManager entityManager = VWorld.Server.EntityManager;
 
             Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            if (hoveredEntity.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_VampireMale))
+            {
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Vampires can't be converted.");
+                return;
+            }
             Team userTeam = userEntity.Read<Team>();
             TeamReference teamReference = userEntity.Read<TeamReference>();
             Entity character = userEntity.Read<User>().LocalCharacter._Entity;
@@ -311,7 +321,7 @@ namespace VCreate.Systems
             //useBossCenterPositionAsPreCombatPosition.RangeSq = 0f;
             //hoveredEntity.Write(useBossCenterPositionAsPreCombatPosition);
             entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team.");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team. It will follow amnd fight until death.");
         }
 
         public static unsafe void SpawnCopy(Entity userEntity)
@@ -335,6 +345,11 @@ namespace VCreate.Systems
                     PrefabGuid = prefab,
                     Position = userEntity.Read<EntityInput>().AimPosition
                 };
+                if (prefab.GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse_Vampire.GuidHash) || prefab.GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse_Gloomrot.GuidHash) || prefab.GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse_Gloomrot.GuidHash))
+                {
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "This can't be used to summon vampire horses as they don't like being charmed (crashes the server).");
+                    return;
+                }
                 DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected/set as charmed.");
@@ -495,27 +510,29 @@ namespace VCreate.Systems
             bool success = false;
             //var Position = userEntity.Read<EntityInput>().AimPosition;
             Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
-            if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out DynamicBuffer<BuffBuffer> buffer))
+            if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(entity, out DynamicBuffer<BuffBuffer> buffer) && DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out Omnitool data))
             {
+                PrefabGUID debuff = new(data.GetData("Debuff"));
                 for (int i = 0; i < buffer.Length; i++)
                 {
                     //buffer.RemoveAt(i);
-                    if (DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out Omnitool data))
+                    
+                    
+                    if (buffer[i].PrefabGuid.GuidHash.Equals(debuff.GuidHash))
                     {
-                        PrefabGUID debuff = new(data.GetData("Debuff"));
-                        if (buffer[i].PrefabGuid.GuidHash.Equals(debuff.GuidHash))
-                        {
-                            SystemPatchUtil.Destroy(buffer[i].Entity);
-                            //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Removed buff.");
-                            success = true;
-                            break;
-                        }
+                        SystemPatchUtil.Destroy(buffer[i].Entity);
+                        //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Removed buff.");
+                        success = true;
+                        break;
                     }
+                    
 
                 }
                 if (success)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Removed buff.");
+
+                    string colorBuff = VCreate.Core.Toolbox.FontColors.Cyan(debuff.LookupName());
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), $"Removed buff {colorBuff} from entity.");
                 }
                 else
                 {
@@ -525,7 +542,7 @@ namespace VCreate.Systems
             }
             else
             {
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No buff buffer found.");
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No buff buffer found on entity.");
             }
         }
 

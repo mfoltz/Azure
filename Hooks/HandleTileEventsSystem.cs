@@ -13,7 +13,6 @@ using VCreate.Systems;
 using Plugin = VCreate.Core.Plugin;
 using User = ProjectM.Network.User;
 
-
 namespace WorldBuild.Hooks
 {
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
@@ -92,14 +91,13 @@ namespace WorldBuild.Hooks
                     OnHover.InspectHoveredEntity(userEntity);
                 };
             }
-            else if (settings.GetMode("KillToggle"))
+            else if (settings.GetMode("DestroyToggle"))
             {
                 return (userEntity, _) =>
                 {
                     OnHover.DestroyAtHover(userEntity);
                 };
             }
-            
             else if (settings.GetMode("CopyToggle"))
             {
                 return (userEntity, _) =>
@@ -135,15 +133,6 @@ namespace WorldBuild.Hooks
                     OnHover.SpawnTileModel(userEntity);
                 };
             }
-            else if (settings.GetMode("LinkToggle"))
-            {
-                return (userEntity, _) =>
-                {
-                    //OnHover.LinkHelper(userEntity);
-                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "WIP, currently not implemented.");
-                };
-            }
-
             else
             {
                 return null;
@@ -156,7 +145,6 @@ namespace WorldBuild.Hooks
             var buildTileModelData = entityManager.GetComponentData<BuildTileModelEvent>(job);
             return buildTileModelData.PrefabGuid.Equals(CastleHeartPrefabGUID);
         }
-
 
         private static void CancelCastleHeartPlacement(EntityManager entityManager, Entity job)
         {
@@ -216,7 +204,6 @@ namespace WorldBuild.Hooks
         }
     }
 
-
     public static class TileOperationUtility
     {
         public static bool CanPerformOperation(EntityManager entityManager, Entity tileModelEntity)
@@ -244,7 +231,6 @@ namespace WorldBuild.Hooks
 
         private static bool IsTileOwnedByUser(User user, Entity tileModelEntity)
         {
-            
             if (tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId.Equals(user.PlatformId))
             {
                 Plugin.Log.LogInfo("Object owned by user, allowing.");
@@ -255,7 +241,6 @@ namespace WorldBuild.Hooks
                 Plugin.Log.LogInfo("Object not owned by user, disallowing.");
                 return false;
             }
-            
         }
     }
 }

@@ -15,7 +15,7 @@ using VCreate.Core.Toolbox;
 [HarmonyPatch(typeof(RepairDoubleVBloodSpawnedSystem), nameof(RepairDoubleVBloodSpawnedSystem.OnUpdate))]
 public static class RepairDoubleVBloodSpawnedSystemPatch
 {
-    public static bool Prefix(RepairDoubleVBloodSpawnedSystem __instance)
+    public static bool Prefix(RepairDoubleVBloodSpawnedSystem _)
     {
         Plugin.Log.LogInfo("RepairDoubleVBloodSpawnedSystem Prefix called...");
         return false;
@@ -54,11 +54,12 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                         entity.Write(behaviourTreeStateChangedEvent);
                     }
                 }
+                entities.Dispose();
             }
             catch
             {
                 entities.Dispose();
-                Plugin.Log.LogInfo("Exited BehaviorTreeState hook on try-catch");
+                Plugin.Log.LogInfo("Exited BehaviorTreeState hook early");
             }
             
         }
