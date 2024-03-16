@@ -11,20 +11,15 @@ using Bloodstone.API;
 
 namespace VPlus.Hooks
 {
-
-
-
     [HarmonyPatch]
     public class ServerBootstrapPatches
     {
         private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
+
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
         [HarmonyPrefix]
-
-        private unsafe static void OnUserConnectedPrefix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
+        private static unsafe void OnUserConnectedPrefix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
-            
-         
             int userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
             ServerBootstrapSystem.ServerClient serverClient = __instance._ApprovedUsersLookup[userIndex];
             Entity userEntity = serverClient.UserEntity;
@@ -38,7 +33,6 @@ namespace VPlus.Hooks
                 VPlus.Data.Databases.playerDivinity.Add(steamId, divineData);
                 ChatCommands.SavePlayerDivinity();
                 // start tracking VPoints, every hour get a crystal unless inventory is full then you get VPoints you can redeem for crystals at the same ratio
-
             }
             if (!VPlus.Data.Databases.playerRanks.ContainsKey(steamId) && VPlus.Core.Plugin.PlayerRankUp)
             {
@@ -62,35 +56,35 @@ namespace VPlus.Hooks
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Welcome back! Your {redV}Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(currentPlayerDivineData.VTokens.ToString())}");
                 }
             }
-
         }
-
-
 
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserDisconnected))]
         [HarmonyPrefix]
-
         private static void OnUserDisconnectedPrefix(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
         {
-            int userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
-            ServerBootstrapSystem.ServerClient serverClient = __instance._ApprovedUsersLookup[userIndex];
-            Entity userEntity = serverClient.UserEntity;
-            User user = __instance.EntityManager.GetComponentData<User>(userEntity);
-            Entity playerEntity = user.LocalCharacter.GetEntityOnServer();
-            ulong steamId = user.PlatformId;
-
-            if (VPlus.Data.Databases.playerDivinity.ContainsKey(steamId))
+            try
             {
-                DivineData divineData = VPlus.Data.Databases.playerDivinity[steamId];
+                int userIndex = __instance._NetEndPointToApprovedUserIndex[netConnectionId];
+                ServerBootstrapSystem.ServerClient serverClient = __instance._ApprovedUsersLookup[userIndex];
+                Entity userEntity = serverClient.UserEntity;
+                User user = __instance.EntityManager.GetComponentData<User>(userEntity);
+                Entity playerEntity = user.LocalCharacter.GetEntityOnServer();
+                ulong steamId = user.PlatformId;
 
-                DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
-                currentPlayerDivineData.OnUserDisconnected(user, divineData); // Calculate points and update times
-                ChatCommands.SavePlayerDivinity();
+                if (VPlus.Data.Databases.playerDivinity.ContainsKey(steamId))
+                {
+                    DivineData divineData = VPlus.Data.Databases.playerDivinity[steamId];
 
+                    DivineData currentPlayerDivineData = VPlus.Data.Databases.playerDivinity[steamId];
+                    currentPlayerDivineData.OnUserDisconnected(user, divineData); // Calculate points and update times
+                    ChatCommands.SavePlayerDivinity();
+                }
             }
-
+            catch (System.Exception ex)
+            {
+                //VPlus.Core.Logger.Log(VPlus.Core.Logger.Level.Error, ex);
+            }
+            
         }
     }
 }
-    
-
