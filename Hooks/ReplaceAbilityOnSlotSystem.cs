@@ -10,6 +10,8 @@ using Plugin = VPlus.Core.Plugin;
 using VPlus.Core.Toolbox;
 using ProjectM.UI;
 using VPlus.Data;
+using VCreate.Core.Toolbox;
+using Bloodstone.API;
 
 // almost ready for live maybe
 // wow, famoust last words huh ^
@@ -22,10 +24,11 @@ namespace VPlus.Hooks
 
         private static void Prefix(ReplaceAbilityOnSlotSystem __instance)
         {
+            NativeArray<Entity> entities = __instance.__Spawn_entityQuery.ToEntityArray(Allocator.Temp);
             try
             {
                 EntityManager entityManager = __instance.EntityManager;
-                NativeArray<Entity> entities = __instance.__Spawn_entityQuery.ToEntityArray(Allocator.Temp);
+                
                 Plugin.Logger.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
 
                 foreach (Entity entity in entities)
@@ -37,6 +40,7 @@ namespace VPlus.Hooks
             }
             catch (System.Exception ex)
             {
+                entities.Dispose();
                 Plugin.Logger.LogInfo(ex.Message);
             }
         }
@@ -48,7 +52,7 @@ namespace VPlus.Hooks
 
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
-            ulong steamID = user.PlatformId;
+            //ulong steamID = user.PlatformId;
 
             if (entityManager.HasComponent<WeaponLevel>(entity))
             {
@@ -102,23 +106,49 @@ namespace VPlus.Hooks
             }
         }
 
-        private static void EquipIronOrHigherWeapon(EntityManager entityManager, Entity entity, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
+        private static void EquipIronOrHigherWeapon(EntityManager entityManager, Entity _, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {
             Plugin.Logger.LogInfo("Player equipping iron<= weapon, adding rank spell to shift if not necrodagger...");
             if (buffer[0].NewGroupId.GuidHash == VCreate.Data.Prefabs.AB_NecromancyDagger_Primary_AbilityGroup.GuidHash) return; //necro already OP, no shift spell for necro
-            ReplaceAbilityOnSlotBuff newItem = buffer[2]; // Assuming iron or higher weapon adds to the third slot
+            ReplaceAbilityOnSlotBuff newItem = buffer[2]; // shift slot
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
-            ulong steamID = user.PlatformId;
             
-            if (Databases.playerRanks.TryGetValue(steamID, out RankData data) && data.RankSpell != 0)
+            if (Databases.playerRanks.TryGetValue(user.PlatformId, out RankData data) && data.RankSpell != 0)
             {
                 PrefabGUID prefabGUID = new PrefabGUID(data.RankSpell);
                 newItem.NewGroupId = prefabGUID;
+                
+                
+
+
 
                 newItem.Slot = 3; // Assuming slot 3 is where the rank spell should go
                 buffer.Add(newItem);
-                Plugin.Logger.LogInfo("Modification complete.");
+                
+                Plugin.Logger.LogInfo("Ability added, attempting to modify cooldown...");
+                try
+                {
+
+                    Entity abilityEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[prefabGUID];
+                    //if (!abilityEntity.Has<AbilityGroupStartAbilitiesBuffer>() || abilityEntity.ReadBuffer<AbilityGroupStartAbilitiesBuffer>().Length == 0) return;
+
+                    AbilityGroupStartAbilitiesBuffer bufferItem = abilityEntity.ReadBuffer<AbilityGroupStartAbilitiesBuffer>()[0];
+                    Entity castEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[bufferItem.PrefabGUID];
+                    AbilityCooldownData abilityCooldownData = castEntity.Read<AbilityCooldownData>();
+
+                    abilityCooldownData.Cooldown._Value = 30f; // Set the cooldown to 30 seconds
+                    castEntity.Write(abilityCooldownData);
+                    Plugin.Logger.LogInfo("Cooldown modified.");
+                    // need to get the ability cast entity to modify the cooldown, so first get the cast for an ability group somehow
+
+
+                }
+                catch (System.Exception ex)
+                {
+                    Plugin.Logger.LogInfo("Error setting cooldown."+ex.Message);
+
+                }
             }
             else
             {
@@ -126,7 +156,9 @@ namespace VPlus.Hooks
             }
         }
 
-        private static void HandleFishingPole(EntityManager entityManager, Entity entity, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
+       
+
+        private static void HandleFishingPole(EntityManager entityManager, Entity _, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {
             Plugin.Logger.LogInfo("Fishing pole unequipped, modifiying unarmed slots...");
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;

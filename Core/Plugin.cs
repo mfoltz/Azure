@@ -58,7 +58,6 @@ namespace VPlus.Core
         public static string ItemPrefabsFourthAscension;
 
 
-
         public static bool BuffRewardsPrestige;
         public static bool BuffRewardsRankUp;
         public static string BuffPrefabsPrestige;
