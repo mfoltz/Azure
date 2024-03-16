@@ -56,10 +56,10 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                 }
                 entities.Dispose();
             }
-            catch
+            catch (Exception e)
             {
                 entities.Dispose();
-                Plugin.Log.LogInfo("Exited BehaviorTreeState hook early");
+                //Plugin.Log.LogInfo($"Exited BehaviorTreeState hook early {e}");
             }
             
         }
