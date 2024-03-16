@@ -208,16 +208,12 @@ namespace WorldBuild.Hooks
     {
         public static bool CanPerformOperation(EntityManager entityManager, Entity tileModelEntity)
         {
-            if (!Utilities.HasComponent<UserOwner>(tileModelEntity))
-            {
-                Plugin.Log.LogInfo("Unable to verify user entity for tile operation, disallowing.");
-                return false;
-            }
+            
 
             var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
             var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
-
-            return CanEditTiles(user) || IsTileOwnedByUser(user, tileModelEntity);
+            Plugin.Log.LogInfo($"User: {user.CharacterName}");
+            return CanEditTiles(user) || HasValidCastleHeartConnection(user, tileModelEntity);
         }
 
         private static bool CanEditTiles(User user)
@@ -229,32 +225,18 @@ namespace WorldBuild.Hooks
             return false;
         }
 
-        private static bool IsTileOwnedByUser(User user, Entity tileModelEntity)
+        private static bool HasValidCastleHeartConnection(User user, Entity tileModelEntity)
         {
-            if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity))
-            {
-
-                CastleTerritory castleTerritory = Utilities.GetComponentData<CastleTerritory>(territoryEntity);
-                Entity castleHeart = castleTerritory.CastleHeart;
-                NetworkedEntity territoryOwner = Utilities.GetComponentData<UserOwner>(castleHeart).Owner;
-                User territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
-                return user.PlatformId.Equals(territoryUser.PlatformId);
-            }
+            if (!tileModelEntity.Has<CastleHeartConnection>()) return false;
             else
             {
-                
-                Plugin.Log.LogInfo("Unable to verify territory, checking via UserOwner...");
-                if (tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId.Equals(user.PlatformId))
-                {
-                    Plugin.Log.LogInfo("Tile is owned by user, allowing.");
-                    return true;
-                }
+                CastleHeartConnection castleHeartConnection = tileModelEntity.Read<CastleHeartConnection>();
+                Entity castleHeart = castleHeartConnection.CastleHeartEntity._Entity;
+                if (castleHeart == Entity.Null) return false;
                 else
                 {
-                    Plugin.Log.LogInfo("PlatformID did not match, not allowing.");
-                    return false;
+                    return true;
                 }
-
             }
         }
     }
