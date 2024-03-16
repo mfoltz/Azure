@@ -230,11 +230,13 @@ namespace WorldBuild.Hooks
             if (!tileModelEntity.Has<CastleHeartConnection>()) return false;
             else
             {
+                Plugin.Log.LogInfo("Checking for valid castle heart connection...");
                 CastleHeartConnection castleHeartConnection = tileModelEntity.Read<CastleHeartConnection>();
                 Entity castleHeart = castleHeartConnection.CastleHeartEntity._Entity;
                 if (castleHeart == Entity.Null) return false;
                 else
                 {
+                    Plugin.Log.LogInfo("Castle heart entity not null.");
                     return true;
                 }
             }
