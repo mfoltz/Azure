@@ -12,6 +12,7 @@ using ProjectM.UI;
 using VPlus.Data;
 using VCreate.Core.Toolbox;
 using Bloodstone.API;
+using Utilities = VPlus.Core.Toolbox.Utilities;
 
 // almost ready for live maybe
 // wow, famoust last words huh ^
