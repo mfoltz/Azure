@@ -69,7 +69,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
 }
 
 
-/*
+
 [HarmonyPatch(typeof(FollowerSystem), nameof(FollowerSystem.OnUpdate))]
 public static class FollowerSystemPatch
 {
@@ -122,7 +122,7 @@ public static class FollowerSystemPatch
         entities.Dispose();
     }
 }
-*/
+
 
 
 
