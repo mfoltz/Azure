@@ -231,15 +231,30 @@ namespace WorldBuild.Hooks
 
         private static bool IsTileOwnedByUser(User user, Entity tileModelEntity)
         {
-            if (tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId.Equals(user.PlatformId))
+            if (CastleTerritoryCache.TryGetCastleTerritory(tileModelEntity, out Entity territoryEntity))
             {
-                Plugin.Log.LogInfo("Object owned by user, allowing.");
-                return true;
+
+                CastleTerritory castleTerritory = Utilities.GetComponentData<CastleTerritory>(territoryEntity);
+                Entity castleHeart = castleTerritory.CastleHeart;
+                NetworkedEntity territoryOwner = Utilities.GetComponentData<UserOwner>(castleHeart).Owner;
+                User territoryUser = Utilities.GetComponentData<User>(territoryOwner._Entity);
+                return user.PlatformId.Equals(territoryUser.PlatformId);
             }
             else
             {
-                Plugin.Log.LogInfo("Object not owned by user, disallowing.");
-                return false;
+                
+                Plugin.Log.LogInfo("Unable to verify territory, checking via UserOwner...");
+                if (tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId.Equals(user.PlatformId))
+                {
+                    Plugin.Log.LogInfo("Tile is owned by user, allowing.");
+                    return true;
+                }
+                else
+                {
+                    Plugin.Log.LogInfo("PlatformID did not match, not allowing.");
+                    return false;
+                }
+
             }
         }
     }

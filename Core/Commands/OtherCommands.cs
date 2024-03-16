@@ -76,72 +76,23 @@ namespace VCreate.Core.Commands
         [Command(name: "unlock", shortHand: "ul", adminOnly: true, usage: ".ul [PlayerName]", description: "Unlocks vBloods and research.")]
         public static void UnlockCommand(ChatCommandContext ctx, string playerName)
         {
-            TryGetPlayerFromString(playerName, out Player player);
-            Player player1;
-            Entity entity1;
-            if ((object)player == null)
-            {
-                entity1 = ctx.Event.SenderUserEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity1 = player1.User;
-            }
-            Entity entity2 = entity1;
-            Entity entity3;
-            if ((object)player == null)
-            {
-                entity3 = ctx.Event.SenderCharacterEntity;
-            }
-            else
-            {
-                player1 = player;
-                entity3 = player1.Character;
-            }
-            Entity entity4 = entity3;
+            TryGetCharacterFromName(playerName, out Entity character);
+            TryGetUserFromName(playerName, out Entity user);
             try
             {
                 VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 FromCharacter fromCharacter = new FromCharacter()
                 {
-                    User = entity2,
-                    Character = entity4
+                    User = user,
+                    Character = character
                 };
 
                 Helper.UnlockVBloods(fromCharacter);
-                ChatCommandContext chatCommandContext2 = ctx;
-                string str3;
-                if ((object)player == null)
-                {
-                    str3 = null;
-                }
-                else
-                {
-                    player1 = player;
-                    str3 = player1.Name;
-                }
-                if (str3 == null)
-                    str3 = "you";
-                string str4 = "Unlocked VBloods for " + str3 + ".";
-                //chatCommandContext2.Reply(str4);
+                
 
                 Helper.UnlockResearch(fromCharacter);
-                ChatCommandContext chatCommandContext4 = ctx;
-                string str7;
-                if ((object)player == null)
-                {
-                    str7 = null;
-                }
-                else
-                {
-                    player1 = player;
-                    str7 = player1.Name;
-                }
-                if (str7 == null)
-                    str7 = "you";
-                string str8 = "Unlocked research for " + str7 + ".";
-                //chatCommandContext4.Reply(str8);
+                
+                Helper.UnlockAchievements(fromCharacter);
             }
             catch (Exception ex)
             {
