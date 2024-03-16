@@ -35,6 +35,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
             {
                 Entity entity = entities[i];
                 //entity.LogComponentTypes();
+                if (!entity.Has<Follower>()) continue;
                 if (!entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>()) continue;
 
                 if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Return)
