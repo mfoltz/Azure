@@ -71,7 +71,8 @@ namespace V.Augments
             }
             else
             {
-
+                ctx.Reply("You do not meet the requirements to ascend.");
+                return;
             }
         }
 
@@ -138,19 +139,19 @@ namespace V.Augments
             // Determine the prefab IDs based on the ascension level
             switch (ascensionLevel)
             {
-                case AscensionLevel.Level1:
+                case AscensionLevel.Level0:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFirstAscension);
                     break;
 
-                case AscensionLevel.Level2:
+                case AscensionLevel.Level1:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsSecondAscension);
                     break;
 
-                case AscensionLevel.Level3:
+                case AscensionLevel.Level2:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsThirdAscension);
                     break;
 
-                case AscensionLevel.Level4:
+                case AscensionLevel.Level3:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFourthAscension);
                     break;
 
@@ -161,7 +162,7 @@ namespace V.Augments
             return CheckLevelRequirements(ctx, data, prefabIds);
         }
 
-        public static bool CheckLevelRequirements(ChatCommandContext ctx, DivineData data, List<int> prefabIds)
+        public static bool CheckLevelRequirements(ChatCommandContext ctx, DivineData _, List<int> prefabIds)
         {
             bool itemCheck = true;
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -193,7 +194,7 @@ namespace V.Augments
 
             if (!itemCheck)
             {
-                ctx.Reply("You do not have the required items to ascend.");
+                //ctx.Reply("You do not have the required items to ascend.");
                 // give back here
                 if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
                 {
@@ -212,7 +213,6 @@ namespace V.Augments
                 return false;
             }
 
-            // Since we're ignoring the bloodline check for now, we assume it's always true
             return true;
         }
     }

@@ -827,6 +827,10 @@ namespace VPlus.Core.Commands
 
             for (int i = 0; i < prefabIds.Count; i++)
             {
+                if (prefabIds[i] == 0)
+                {
+                    continue;
+                }
                 PrefabGUID prefab = new(prefabIds[i]);
                 string name = VPlus.Core.Toolbox.FontColors.White(prefab.GetPrefabName());
                 string quantity = VPlus.Core.Toolbox.FontColors.Yellow((i + 1).ToString());
