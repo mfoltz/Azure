@@ -183,6 +183,7 @@ namespace VPlus.Core
         {
             // This method is called after the game has been initialized
             // or execute any other logic that needs to happen after the game has been initialized
+
         }
 
         public static void LoadData()

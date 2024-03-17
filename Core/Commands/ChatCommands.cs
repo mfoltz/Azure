@@ -724,6 +724,10 @@ namespace VPlus.Core.Commands
                     ctx.Reply($"MaxHealth: |{colorHealth}| PhysicalPower: |{colorPhys}| SpellPower: |{colorSpell}| PhysicalResistance: |{colorPdef}| SpellResistance: |{colorSdef}|");
                     ReplyItemsForAscLevel(ctx, name, SteamID, data);
                 }
+                else
+                {
+                    ctx.Reply("You haven't ascended yet.");
+                }
             }
             else
             {

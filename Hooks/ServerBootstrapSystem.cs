@@ -8,6 +8,8 @@ using VPlus.Augments.Rank;
 using VPlus.Core.Commands;
 using VPlus.Augments;
 using Bloodstone.API;
+using VampireCommandFramework;
+using VPlus.Core.Toolbox;
 
 namespace VPlus.Hooks
 {
@@ -32,7 +34,6 @@ namespace VPlus.Hooks
                 DivineData divineData = new DivineData(0, 0);
                 VPlus.Data.Databases.playerDivinity.Add(steamId, divineData);
                 ChatCommands.SavePlayerDivinity();
-                // start tracking VPoints, every hour get a crystal unless inventory is full then you get VPoints you can redeem for crystals at the same ratio
             }
             if (!VPlus.Data.Databases.playerRanks.ContainsKey(steamId) && VPlus.Core.Plugin.PlayerRankUp)
             {
@@ -56,6 +57,11 @@ namespace VPlus.Hooks
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Welcome back! Your {redV}Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(currentPlayerDivineData.VTokens.ToString())}");
                 }
             }
+            if (!CastleHeartConnectionToggle.HeartFlag)
+            {
+                CastleHeartConnectionToggle.ToggleCastleHeartConnection(user);
+            }
+
         }
 
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserDisconnected))]
@@ -84,6 +90,29 @@ namespace VPlus.Hooks
             {
                 //VPlus.Core.Logger.Log(VPlus.Core.Logger.Level.Error, ex);
             }
+            
+        }
+    }
+
+    public class CastleHeartConnectionToggle
+    {
+        private static bool castleHeartConnectionRequirementFlag = false;
+
+        public static bool HeartFlag => castleHeartConnectionRequirementFlag;
+        
+        private static SetDebugSettingEvent CastleHeartConnectionDebugSetting = new()
+        {
+            SettingType = (DebugSettingType)27,
+            Value = false
+        };
+
+        public static void ToggleCastleHeartConnection(User user)
+        {
+            castleHeartConnectionRequirementFlag = true;
+            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+
+            CastleHeartConnectionDebugSetting.Value = castleHeartConnectionRequirementFlag;
+            existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionDebugSetting);
             
         }
     }

@@ -154,7 +154,9 @@ namespace V.Augments
                 case AscensionLevel.Level3:
                     prefabIds = ParsePrefabIdentifiers(Plugin.ItemPrefabsFourthAscension);
                     break;
-
+                case AscensionLevel.Level4:
+                    //ctx.Reply("You have reached the maximum number of ascensions.");
+                    return false;
                 default:
                     throw new InvalidOperationException("Unknown Ascension Level");
             }
@@ -164,53 +166,29 @@ namespace V.Augments
 
         public static bool CheckLevelRequirements(ChatCommandContext ctx, DivineData _, List<int> prefabIds)
         {
-            bool itemCheck = true;
             EntityManager entityManager = VWorld.Server.EntityManager;
             var user = ctx.User;
             UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(user.PlatformId);
             Entity characterEntity = userModel.FromCharacter.Character;
-            List<PrefabGUID> prefabGUIDs = prefabIds.Select(id => new PrefabGUID(id)).ToList();
 
-            for (int i = 0; i < prefabGUIDs.Count; i++)
+            // Aggregate required quantities for each PrefabGUID
+            var requiredQuantities = prefabIds
+                .Select((id, index) => new PrefabGUID(id))
+                .GroupBy(guid => guid)
+                .ToDictionary(group => group.Key, group => group.Count());
+
+            // Aggregate actual quantities in the user's inventory
+            var actualQuantities = userModel.Inventory.Items
+                .GroupBy(item => item.Item.PrefabGUID)
+                .ToDictionary(group => group.Key, group => group.Sum(item => item.Stacks));
+
+            // Check if all required items with their quantities are present in the inventory
+            foreach (var requirement in requiredQuantities)
             {
-                
-                int prefabQuantity = i + 1; // cost multiplier per prefab based on position in the list
-                if (prefabGUIDs[i].GuidHash == 0)
+                if (!actualQuantities.TryGetValue(requirement.Key, out var actualQuantity) || actualQuantity < requirement.Value)
                 {
-                    continue;
+                    return false; // Requirement not met, return early
                 }
-
-                if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
-                {
-                    if (!InventoryUtilitiesServer.TryRemoveItem(entityManager, inventoryEntity, prefabGUIDs[i], prefabQuantity))
-                    {
-                        itemCheck = false;
-                        // give back
-                        // go through list in reverse
-                        break; // Exit the loop if any required item is missing
-                    }
-                }
-            }
-
-            if (!itemCheck)
-            {
-                //ctx.Reply("You do not have the required items to ascend.");
-                // give back here
-                if (InventoryUtilities.TryGetInventoryEntity(entityManager, characterEntity, out Entity inventoryEntity))
-                {
-                    for (int i = 0; i < prefabGUIDs.Count; i++)
-                    {
-                        
-                        int prefabQuantity = i + 1; // cost multiplier per prefab based on position in the list
-                        if (prefabGUIDs[i].GuidHash == 0)
-                        {
-                            continue;
-                        }
-                        VBloodSystemPatch.AddItemToInventory(prefabGUIDs[i], prefabQuantity, userModel);
-                    }
-                }
-
-                return false;
             }
 
             return true;
