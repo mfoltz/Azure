@@ -158,11 +158,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("DivineRays", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_DivineRays_AbilityGroup.GuidHash, 5) },
+                    { 5, new RankSpellConstructor("BatStorm", VCreate.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup.GuidHash, 5) },
                     { 4, new RankSpellConstructor("NightDash", VCreate.Data.Prefabs.AB_BatVampire_NightDash_Dash_AbilityGroup.GuidHash, 4) },
-                    { 3, new RankSpellConstructor("HealBomb", VCreate.Data.Prefabs.AB_ChurchOfLight_Priest_HealBomb_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("MeleeAlt", VCreate.Data.Prefabs.AB_BatVampire_MeleeAttack_AbilityGroup.GuidHash, 2) },
-                    { 1, new RankSpellConstructor("BatWhirlwind", VCreate.Data.Prefabs.AB_BatVampire_Whirlwind_AbilityGroup.GuidHash, 1) },
+                    { 3, new RankSpellConstructor("AngelicAscent", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("DirectionalShield", VCreate.Data.Prefabs.AB_Gloomrot_TractorBeamer_DirectionalShield_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("BatSwarm", VCreate.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup.GuidHash, 1) },
                 };
             }
 
