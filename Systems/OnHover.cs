@@ -321,6 +321,7 @@ namespace VCreate.Systems
             //useBossCenterPositionAsPreCombatPosition.RangeSq = 0f;
             //hoveredEntity.Write(useBossCenterPositionAsPreCombatPosition);
             entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
+            Utilities.AddComponent<ServantPowerConstants>(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team. It will follow amnd fight until death.");
         }
 

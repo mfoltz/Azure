@@ -74,7 +74,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
 public static class FollowerSystemPatch
 {
     // proxies for pets
-    private static readonly PrefabGUID invulnerable = VCreate.Data.Buffs.Admin_Invulnerable_Buff;
+    //private static readonly PrefabGUID invulnerable = VCreate.Data.Buffs.Admin_Invulnerable_Buff;
     //private static readonly PrefabGUID invisible = VCreate.Data.Buffs.Admin_Observe_Invisible_Buff;
     private static readonly PrefabGUID servant = VCreate.Data.Prefabs.CHAR_Gloomrot_AceIncinerator_Servant;
     private static readonly PrefabGUID horse = VCreate.Data.Prefabs.CHAR_Mount_Horse;
@@ -84,43 +84,71 @@ public static class FollowerSystemPatch
         EntityManager entityManager = VWorld.Server.EntityManager;
         //Plugin.Logger.LogInfo("FollowerSystem Prefix called...");
         NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
-        foreach (var entity in entities)
+        try
         {
-            if (!Utilities.HasComponent<Follower>(entity)) continue; // if entity is not following someone skip, this is an entity being followed probably
-            // want to filter for charmed things following players, decharm them and make them follow the player follower if one of the above prefabs
-            if (entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>() && (entity.Read<PrefabGUID>().GuidHash.Equals(servant.GuidHash) || entity.Read<PrefabGUID>().GuidHash.Equals(horse.GuidHash) || entity.Read<PrefabGUID>().GuidHash.Equals(trader.GuidHash)))
+            foreach (var entity in entities)
             {
-                // if conditions met want to make this follow the player follower with a follwerbuffer
-                Follower follower = entity.Read<Follower>();
-                var buffer = entity.Read<Follower>().Followed._Value.ReadBuffer<FollowerBuffer>();
-                for (int i = 0; i < buffer.Length; i++)
-                {
-                    // want to find the follower with follwerbuffer itself
-                    if (!entityManager.TryGetBuffer<FollowerBuffer>(buffer[i].Entity._Entity, out var petBuffer)) continue;
-                    // if we got here want to make this entity follow the player follower
-                    ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(buffer[i].Entity._Entity);
-                    follower.Followed = modifiableEntity;
-                    follower.ModeModifiable._Value = (int)FollowMode.Unit;
-                    entity.Write(follower);
-                }
-            }
-            if (entityManager.TryGetBuffer<FollowerBuffer>(entity, out var followers))
-            {
-                //Plugin.Log.LogInfo("FollowerSystem Prefix: has buffer, setting helper positions");
-                //GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
-                NativeArray<FollowerBuffer> followerEntities = followers.ToNativeArray(Unity.Collections.Allocator.Temp);
-                for (int i = 0; i < followerEntities.Length; i++)
-                {
-                    followers[i].Entity._Entity.Write<LastTranslation>(new LastTranslation { Value = entity.Read<LastTranslation>().Value });
-                    followers[i].Entity._Entity.Write<Translation>(new Translation { Value = entity.Read<Translation>().Value });
-                }
-                followerEntities.Dispose();
-            }
-            
+                if (!Utilities.HasComponent<Follower>(entity)) continue; // if entity is not following someone skip, this is an entity being followed probably
 
+                // pet helper net, catches helpers when spawned and links them to pet
+                if (entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>() && (entity.Read<PrefabGUID>().GuidHash.Equals(servant.GuidHash) || entity.Read<PrefabGUID>().GuidHash.Equals(horse.GuidHash) || entity.Read<PrefabGUID>().GuidHash.Equals(trader.GuidHash)))
+                {
+                    // if conditions met want to make this follow the player follower with a follwerbuffer
+                    Follower follower = entity.Read<Follower>();
+                    var buffer = entity.Read<Follower>().Followed._Value.ReadBuffer<FollowerBuffer>();
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        // want to find the follower with follwerbuffer itself
+                        if (!entityManager.TryGetBuffer<FollowerBuffer>(buffer[i].Entity._Entity, out var petBuffer)) continue;
+                        // if we get here want to make this entity follow the player follower and possibly link components
+                        //Entity pet = buffer[i].Entity._Entity;
+                        ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(entity.Read<Follower>().Followed._Value.ReadBuffer<FollowerBuffer>()[0].Entity._Entity);
+                        follower.Followed = modifiableEntity;
+                        follower.ModeModifiable._Value = (int)FollowMode.Unit;
+                        entity.Write(follower);
+                        
+                    }
+                }
+
+                // if entity is a follower and has a followerbuffer, set the position of the followers in the buffer to the position of the follower entity
+                if (entityManager.TryGetBuffer<FollowerBuffer>(entity, out var followers))
+                {
+                    //Plugin.Log.LogInfo("FollowerSystem Prefix: has buffer, setting helper positions");
+                    //GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
+                    NativeArray<FollowerBuffer> followerEntities = followers.ToNativeArray(Unity.Collections.Allocator.Temp);
+                    try
+                    {
+                        var enumerator = followerEntities.GetEnumerator();
+                        while (enumerator.MoveNext())
+                        {
+                            var follower = enumerator.Current;
+                            follower.Entity._Entity.Write<Translation>(new Translation { Value = follower.Entity._Entity.Read<Translation>().Value });
+                            if (follower.Entity._Entity.Read<PrefabGUID>().GuidHash.Equals(servant.GuidHash))
+                            {
+                                ServantPower power = follower.Entity._Entity.Read<ServantPower>();
+                                entity.Write(new ServantPower {GearLevel = power.GearLevel, Power = power.Power, Profficiency = power.Profficiency});
+                            }
+                            
+                            
+                        }
+                    }
+                    finally
+                    {
+                        followerEntities.Dispose();
+                    }
+                }
+
+
+            }
         }
-        entities.Dispose();
+        finally
+        {
+            entities.Dispose();
+        }
+        
     }
+
+   
 }
 
 
