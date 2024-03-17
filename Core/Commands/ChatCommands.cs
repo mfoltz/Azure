@@ -682,6 +682,10 @@ namespace VPlus.Core.Commands
             {
                 Ascension.AscensionCheck(ctx, name, SteamID, data);
             }
+            else
+            {
+                ctx.Reply("Couldn't find ascension data.");
+            }
         }
 
         [Command(name: "getAscension", shortHand: "getasc", adminOnly: false, usage: ".getasc", description: "Gets current ascension level and bonus stats.")]
