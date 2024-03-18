@@ -7,6 +7,7 @@ using VCreate.Core.Toolbox;
 using VPlus.Core;
 using VPlus.Core.Commands;
 using VPlus.Data;
+using VRising.GameData.Models;
 
 namespace VPlus.Hooks
 {
@@ -29,9 +30,12 @@ namespace VPlus.Hooks
             if (playerDivinities == null) return;
             foreach (var entry in playerDivinities)
             {
-
+                // filter for people online and offline here
+                
                 try
                 {
+                    UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(entry.Key);
+                    if (!userModel.IsConnected) continue;
                     ulong steamId = entry.Key;
                     DivineData currentPlayerDivineData = entry.Value;
 
