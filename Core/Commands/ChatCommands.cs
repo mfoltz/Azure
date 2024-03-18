@@ -525,19 +525,19 @@ namespace VPlus.Core.Commands
         [Command(name: "getTopPlayers", shortHand: "getranks", adminOnly: false, usage: ".getranks", description: "Shows the top 10 players by PvE rank and points.")]
         public static void GetTopPlayersCommand(ChatCommandContext ctx)
         {
-            // Assuming there's a way to access all RankData instances, for example, a List<RankData> allRanks
-            // This might be stored in a static class or passed in some way to this method
-            List<RankData> allRanks = [.. Databases.playerRanks.Values]; // Placeholder method, you'll need to implement based on your data storage
+            
+            List<RankData> allRanks = [.. Databases.playerRanks.Values]; 
 
             if (allRanks == null || allRanks.Count == 0)
             {
-                ctx.Reply("No ranking data available.");
+                ctx.Reply("No rank data available.");
                 return;
             }
 
             // Sorting by rank in ascending order and taking the top 10
-            var topRanks = allRanks.OrderBy(rankData => rankData.Rank).Take(10);
-
+            //var topRanks = allRanks.OrderBy(rankData => rankData.Rank).Take(10);
+            // count rank as 1000 points per level, plus points for ease of ranking
+            var topRanks = allRanks.OrderByDescending(rankData => rankData.Rank * 1000 + rankData.Points).Take(10);
             StringBuilder replyMessage = new("Top 10 Players by Rank:\n");
             foreach (var rankInfo in topRanks)
             {

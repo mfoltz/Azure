@@ -16,7 +16,7 @@ namespace VPlus.Hooks
     [HarmonyPatch]
     public class ServerBootstrapPatches
     {
-        private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
+        private static readonly string redV = FontColors.Red("V");
 
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
         [HarmonyPrefix]
@@ -28,7 +28,9 @@ namespace VPlus.Hooks
             User user = __instance.EntityManager.GetComponentData<User>(userEntity);
             Entity playerEntity = user.LocalCharacter.GetEntityOnServer();
             ulong steamId = user.PlatformId;
-
+            //string colorName = FontColors.Cyan(user.CharacterName.ToString());
+            //string colorStatus = FontColors.Green("online");
+            //ServerChatUtils.SendSystemMessageToAllClients(VWorld.Server.EntityManager, $"{colorName} is {colorStatus}.");
             if (!VPlus.Data.Databases.playerDivinity.ContainsKey(steamId) && VPlus.Core.Plugin.PlayerAscension)
             {
                 DivineData divineData = new DivineData(0, 0);
@@ -76,7 +78,9 @@ namespace VPlus.Hooks
                 User user = __instance.EntityManager.GetComponentData<User>(userEntity);
                 Entity playerEntity = user.LocalCharacter.GetEntityOnServer();
                 ulong steamId = user.PlatformId;
-
+                //string colorName = FontColors.Cyan(user.CharacterName.ToString());
+                //string colorStatus = FontColors.Red("offline");
+                //ServerChatUtils.SendSystemMessageToAllClients(VWorld.Server.EntityManager, $"{colorName} is {colorStatus}.");
                 if (VPlus.Data.Databases.playerDivinity.ContainsKey(steamId))
                 {
                     DivineData divineData = VPlus.Data.Databases.playerDivinity[steamId];
