@@ -1,10 +1,17 @@
 ﻿namespace VCreate.Systems
 {
+
+    public struct PetExperience
+    {
+        public int CurrentExperience { get; set; }
+        public int Level { get; set; }
+        // Add more fields as necessary
+    }
     public class Omnitool
     {
-        public readonly Dictionary<string, bool> modes = new Dictionary<string, bool>();
+        public readonly Dictionary<string, bool> modes = [];
 
-        public readonly Dictionary<string, int> data = new Dictionary<string, int>();
+        public readonly Dictionary<string, int> data = [];
 
         public bool Permissions { get; set; }
         public bool Emotes { get; set; }

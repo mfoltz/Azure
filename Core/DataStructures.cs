@@ -19,7 +19,7 @@ namespace VCreate.Core
 
         private static Dictionary<ulong, Omnitool> playerSettings = new Dictionary<ulong, Omnitool>();
 
-
+        private static Dictionary<ulong, PetExperience> petExperience = new Dictionary<ulong, PetExperience>();
 
         // Property for playerSettings if external access or modification is required
         public static Dictionary<ulong, Omnitool> PlayerSettings
@@ -27,18 +27,24 @@ namespace VCreate.Core
             get => playerSettings;
             set => playerSettings = value;
         }
-
+        public static Dictionary<ulong, PetExperience> PetExperience
+        {
+            get => petExperience;
+            set => petExperience = value;
+        }
         public static void Save()
         {
             try
             {
                 //string json = JsonSerializer.Serialize(playerSettings, prettyJsonOptions); // Consider using prettyJsonOptions if you want the output to be indented.
                 File.WriteAllText(Plugin.PlayerSettingsJson, JsonSerializer.Serialize(DataStructures.PlayerSettings));
+                File.WriteAllText(Plugin.PetDataJson, JsonSerializer.Serialize(DataStructures.PetExperience));
             }
             catch (IOException ex)
             {
                 // Handle file write exceptions
-                Plugin.Log.LogInfo($"An error occurred saving player settings: {ex.Message}");
+                Plugin.Log.LogInfo($"An error occurred saving settings: {ex.Message}");
+
             }
             catch (JsonException ex)
             {

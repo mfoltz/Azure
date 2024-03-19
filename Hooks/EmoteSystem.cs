@@ -137,9 +137,9 @@ internal class EmoteSystemPatch
         if (DataStructures.PlayerSettings.TryGetValue(playerId, out Omnitool settings))
         {
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
-            bool currentValue = settings.GetMode("KillToggle");
+            bool currentValue = settings.GetMode("DestroyToggle");
             string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"KillMode: |{stateMessage}|");
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"DestroyMode: |{stateMessage}|");
         }
     }
 

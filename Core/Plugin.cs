@@ -27,6 +27,7 @@ namespace VCreate.Core
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
         public static readonly string PlayerSettingsJson = Path.Combine(Plugin.ConfigPath, "player_settings.json");
+        public static readonly string PetDataJson = Path.Combine(Plugin.ConfigPath, "pet_data.json");
 
         public override void Load()
         {

@@ -15,6 +15,7 @@ using Unity.Transforms;
 using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
+using static ProjectM.BuffUtility;
 using User = ProjectM.Network.User;
 
 namespace VCreate.Systems
@@ -54,9 +55,7 @@ namespace VCreate.Systems
                         data.SetData("Unit", prefabGUID.GuidHash);
                         DataStructures.Save();
                     }
-                   
 
-                    
                     string copySuccess = $"Inspected hovered entity for buffs and components, check console log for components: '{entityString}', {prefabGUID.LookupName()}";
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, copySuccess);
                 }
@@ -203,109 +202,32 @@ namespace VCreate.Systems
             }
         }
 
-        public static void SummonHelpers(Entity userEntity)
-        {
-            // want this to spawn all the dummise
-            User user = Utilities.GetComponentData<User>(userEntity);
-            int index = user.Index;
-            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-            PrefabCollectionSystem prefabCollectionSystem = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>();
-            PrefabGUID paladin = VCreate.Data.Prefabs.CHAR_ChurchOfLight_Paladin_Servant;
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            //spawncharmeable on the pet
-            //VWorld.Server.EntityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
-            FromCharacter fromCharacter = new() { Character = hoveredEntity, User = userEntity };
-            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
-            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
-
-            var debugEventEquipment = new SpawnCharmeableDebugEvent
-            {
-                PrefabGuid = paladin,
-                Position = hoveredEntity.Read<Translation>().Value,
-            };
-            DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-            debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEventEquipment, entityCommandBuffer, ref fromCharacter);
-
-            // this will be following the player and will fire the follower hook
-        }
-
-        public static void LinkHelper(Entity userEntity)
-        {
-            //List<Entity> followerEntities = new List<Entity>();
-            EntityManager entityManager = VWorld.Server.EntityManager;
-            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-            Team userTeam = userEntity.Read<Team>();
-            TeamReference teamReference = userEntity.Read<TeamReference>();
-            Entity character = userEntity.Read<User>().LocalCharacter._Entity;
-
-            if (VWorld.Server.EntityManager.TryGetBuffer<FollowerBuffer>(character, out var followers))
-            {
-                for (int i = 0; i < followers.Length; i++)
-                {
-                    if (VWorld.Server.EntityManager.TryGetBuffer<BuffBuffer>(followers[i].Entity._Entity, out var buffs))
-                    {
-                        foreach (var buff in buffs)
-                        {
-                            if (buff.PrefabGuid.Equals(VCreate.Data.Buffs.AB_Charm_Active_Human_Buff))
-                            {
-                                Entity entityToFollow = Entity.Null;
-                                // want to link this follower to the follower with a follower buffer
-                                foreach (var following in followers)
-                                {
-                                    if (VWorld.Server.EntityManager.TryGetBufferReadOnly<FollowerBuffer>(following.Entity._Entity, out var buffer))
-                                    {
-                                        // want to link the follower to the hovered entity if it has a follower buffer
-                                        entityToFollow = following.Entity._Entity;
-                                        break;
-                                    }
-                                }
-                                if (entityToFollow == Entity.Null)
-                                {
-                                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No familar found to link helper to.");
-                                    continue; //no familar found to link
-                                }
-                                else
-                                {
-                                    Utilities.SetComponentData(hoveredEntity, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
-                                    ModifiableEntity modEnt = ModifiableEntity.CreateFixed(entityToFollow);
-                                    ModifiableInt modInt = Utilities.GetComponentData<Follower>(hoveredEntity).ModeModifiable;
-                                    modInt._Value = (int)FollowMode.Unit;
-
-                                    Utilities.SetComponentData(hoveredEntity, new Follower { Followed = modEnt, ModeModifiable = modInt, Stationary = ModifiableBool.CreateFixed(false) });
-                                    Utilities.SetComponentData(hoveredEntity, teamReference);
-                                    GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
-                                    Utilities.AddComponentData(hoveredEntity, getOwnerTranslationOnSpawn);
-                                    //entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
-                                    // now should be safe to get rid of charm
-
-                                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Linked helper to familiar.");
-                                }
-                            }
-                        }
-                        Plugin.Log.LogInfo("Modifying buffs...");
-                        DebuffNonPlayer(hoveredEntity);
-                        BuffNonPlayer(hoveredEntity, VCreate.Data.Buffs.Admin_Observe_Invisible_Buff);
-                        //BuffNonPlayer(hoveredEntity, userEntity, VBuild.Data.Buff.AB_InvisibilityAndImmaterial_Buff);
-                    }
-                }
-                Plugin.Log.LogInfo("Attempted to link helper to familar...");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("No followers found...");
-            }
-        }
-
         public static void ConvertCharacter(Entity userEntity)
         {
+            // if charmed remove automatically
+            ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
+            BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
+            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
             EntityManager entityManager = VWorld.Server.EntityManager;
 
             Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, hoveredEntity);
+            
             if (hoveredEntity.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_VampireMale))
             {
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Vampires can't be converted.");
                 return;
             }
+            FirstPhase(userEntity, hoveredEntity);
+            SecondPhase(userEntity, hoveredEntity);
+         
+            //entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team. It will follow amnd fight until death.");
+        }
+
+        public static void FirstPhase(Entity userEntity, Entity hoveredEntity)
+        {
             Team userTeam = userEntity.Read<Team>();
             TeamReference teamReference = userEntity.Read<TeamReference>();
             Entity character = userEntity.Read<User>().LocalCharacter._Entity;
@@ -317,11 +239,25 @@ namespace VCreate.Systems
             follower.Followed = modifiableEntity;
             Utilities.SetComponentData(hoveredEntity, follower);
             Utilities.SetComponentData(hoveredEntity, teamReference);
-            //UseBossCenterPositionAsPreCombatPosition useBossCenterPositionAsPreCombatPosition = hoveredEntity.Read<UseBossCenterPositionAsPreCombatPosition>();
-            //useBossCenterPositionAsPreCombatPosition.RangeSq = 0f;
-            //hoveredEntity.Write(useBossCenterPositionAsPreCombatPosition);
-            entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team. It will follow amnd fight until death.");
+        }
+
+        public static void SecondPhase(Entity userEntity, Entity hoveredEntity)
+        {
+            // give the pet servant power but tie it to experience on kill
+            ServantPower servantPower = new();
+            ServantPowerConstants servantPowerConstants = new();
+            Utilities.AddComponentData(hoveredEntity, servantPower);
+            Utilities.AddComponentData(hoveredEntity, servantPowerConstants);
+            PetExperience petExperience = new();
+            if (!DataStructures.PetExperience.ContainsKey(userEntity.Read<User>().PlatformId))
+            {
+                DataStructures.PetExperience.Add(userEntity.Read<User>().PlatformId, petExperience);
+            }
+            else
+            {
+                DataStructures.PetExperience[userEntity.Read<User>().PlatformId] = petExperience;
+            }
+            //DataStructures.PetExperience.Add(userEntity.Read<User>().PlatformId, petExperience);
         }
 
         public static unsafe void SpawnCopy(Entity userEntity)
@@ -472,7 +408,7 @@ namespace VCreate.Systems
                 float3 mousePosition = aimPosition.Value;
                 // Assuming TileSnap is an int representing the grid size index
                 // If TileSnap now refers directly to the size, adjust accordingly
-                float gridSize = OnHover.gridSizes[data.GetData("GridSize")-1]; // Adjust this line if the way you access grid sizes has changed
+                float gridSize = OnHover.gridSizes[data.GetData("GridSize") - 1]; // Adjust this line if the way you access grid sizes has changed
                 mousePosition = new float3(
                     math.round(mousePosition.x / gridSize) * gridSize,
                     mousePosition.y,
@@ -516,8 +452,7 @@ namespace VCreate.Systems
                 for (int i = 0; i < buffer.Length; i++)
                 {
                     //buffer.RemoveAt(i);
-                    
-                    
+
                     if (buffer[i].PrefabGuid.GuidHash.Equals(debuff.GuidHash))
                     {
                         SystemPatchUtil.Destroy(buffer[i].Entity);
@@ -525,12 +460,9 @@ namespace VCreate.Systems
                         success = true;
                         break;
                     }
-                    
-
                 }
                 if (success)
                 {
-
                     string colorBuff = VCreate.Core.Toolbox.FontColors.Cyan(debuff.LookupName());
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), $"Removed buff {colorBuff} from entity.");
                 }
@@ -538,7 +470,6 @@ namespace VCreate.Systems
                 {
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "No matching buff found.");
                 }
-                
             }
             else
             {
