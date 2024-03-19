@@ -28,7 +28,7 @@ namespace VPlus.Hooks
         {
             if (!__instance.EventList.IsEmpty)
             {
-                var check = __instance.EventList.Length.ToString();
+                //var check = __instance.EventList.Length.ToString();
 
                 EntityManager entityManager = VWorld.Server.EntityManager;
 
