@@ -152,7 +152,7 @@ internal class EmoteSystemPatch
             // The actual value is set in ResetAllToggles; here, we just trigger UI update and messaging
             bool currentValue = settings.GetMode("InspectToggle");
             string stateMessage = currentValue ? enabledColor : disabledColor; // Notice the change due to toggle reset behavior
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"InspectMode: |{stateMessage}|");
         }
     }
@@ -190,7 +190,7 @@ internal class EmoteSystemPatch
             settings.SetMode("ImmortalToggle", !currentValue);
             string stateMessage = !currentValue ? enabledColor : disabledColor;
             DataStructures.PlayerSettings[playerId] = settings;
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"ImmortalTiles: |{stateMessage}|");
         }
     }
@@ -204,7 +204,7 @@ internal class EmoteSystemPatch
             DataStructures.PlayerSettings[playerId] = settings;
             float currentGridSize = OnHover.gridSizes[settings.GetData("GridSize")];
             string colorFloat = VCreate.Core.Toolbox.FontColors.Cyan(currentGridSize.ToString());
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"GridSize: {colorFloat}u");
         }
     }
@@ -216,7 +216,7 @@ internal class EmoteSystemPatch
             bool currentValue = settings.GetMode("MapIconToggle");
             settings.SetMode("MapIconToggle", !currentValue);
             DataStructures.PlayerSettings[playerId] = settings;
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"MapIcons: |{stateMessage}|");
         }
@@ -229,7 +229,7 @@ internal class EmoteSystemPatch
             bool currentValue = settings.GetMode("SnappingToggle");
             settings.SetMode("SnappingToggle", !currentValue);
             DataStructures.PlayerSettings[playerId] = settings;
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
             string stateMessage = !currentValue ? enabledColor : disabledColor;
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"GridSnapping: |{stateMessage}|");
         }
@@ -263,7 +263,7 @@ internal class EmoteSystemPatch
             }
 
             DataStructures.PlayerSettings[playerId] = settings;
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
             string colorString = VCreate.Core.Toolbox.FontColors.Cyan(settings.GetData("Rotation").ToString());
             // Assuming you have a similar utility method for sending messages as in your base example
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"TileRotatiom: {colorString}°");
@@ -297,7 +297,7 @@ internal class EmoteSystemPatch
         {
             settings.SetData("Rotation", rotation);
             DataStructures.PlayerSettings[playerId] = settings;
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"TileRotation: {rotation}°");
         }
     }
@@ -326,7 +326,7 @@ internal class EmoteSystemPatch
             // Update the player's build settings in the database
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), "All toggles reset.");
             DataStructures.PlayerSettings[playerId] = settings;
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
         }
     }
 
@@ -354,7 +354,7 @@ internal class EmoteSystemPatch
 
             // Update the player's build settings in the database
             DataStructures.PlayerSettings[playerId] = settings;
-            DataStructures.Save();
+            DataStructures.SavePlayerSettings();
         }
     }
 
@@ -378,7 +378,7 @@ internal class EmoteSystemPatch
                     {
                         SystemPatchUtil.Destroy(tileEntity);
                         ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Successfully destroyed last tile placed.");
-                        DataStructures.Save();
+                        DataStructures.SavePlayerSettings();
                     }
                     else
                     {

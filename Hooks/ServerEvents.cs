@@ -39,7 +39,7 @@ namespace VCreate.Hooks
         {
             public static void Prefix()
             {
-                DataStructures.Save();
+                DataStructures.SavePlayerSettings();
                 // reset all horses to enabled state
                 EnableHorsesOnQuit();
             }

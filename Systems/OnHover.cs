@@ -53,7 +53,7 @@ namespace VCreate.Systems
                     if (!prefabGUID.GuidHash.Equals(VCreate.Data.Prefabs.CHAR_VampireMale))
                     {
                         data.SetData("Unit", prefabGUID.GuidHash);
-                        DataStructures.Save();
+                        DataStructures.SavePlayerSettings();
                     }
 
                     string copySuccess = $"Inspected hovered entity for buffs and components, check console log for components: '{entityString}', {prefabGUID.LookupName()}";

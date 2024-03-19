@@ -27,7 +27,7 @@ namespace VCreate.Core.Commands
             {
                 data.EquipSkills = !data.EquipSkills;
 
-                DataStructures.Save();
+                DataStructures.SavePlayerSettings();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"EquipUnarmedSkills: |{(data.EquipSkills ? enabledColor : disabledColor)}|");
@@ -51,7 +51,7 @@ namespace VCreate.Core.Commands
                 // Toggle the CanEditTiles value
                 data.Emotes = !data.Emotes;
 
-                DataStructures.Save();
+                DataStructures.SavePlayerSettings();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"EmoteToggles: |{(data.Emotes ? enabledColor : disabledColor)}|");
@@ -84,7 +84,7 @@ namespace VCreate.Core.Commands
             {
                 data.Permissions = !data.Permissions;
 
-                DataStructures.Save();
+                DataStructures.SavePlayerSettings();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
                 ctx.Reply($"Permissions {(data.Permissions ? enabledColor : disabledColor)} for {name}.");
@@ -110,7 +110,7 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool settings))
             {
                 settings.SetData("Rotation", rotation);
-                DataStructures.Save();
+                DataStructures.SavePlayerSettings();
                 ctx.Reply($"Tile rotation set to: {rotation} degrees.");
             }
         }
@@ -128,7 +128,7 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool settings))
             {
                 settings.SetData("GridSize", level);
-                DataStructures.Save();
+                DataStructures.SavePlayerSettings();
                 ctx.Reply($"Tile snapping set to: {OnHover.gridSizes[settings.GetData("GridSize")] - 1}u");
             }
         }
@@ -149,7 +149,7 @@ namespace VCreate.Core.Commands
                     {
                         ctx.Reply($"Character unit set.");
                         data.SetData("Unit", choice);
-                        DataStructures.Save();
+                        DataStructures.SavePlayerSettings();
                     }
                     else
                     {
@@ -183,7 +183,7 @@ namespace VCreate.Core.Commands
                     {
                         ctx.Reply($"Buff set.");
                         data.SetData("Buff", choice);
-                        DataStructures.Save();
+                        DataStructures.SavePlayerSettings();
                     }
                     else
                     {
@@ -214,7 +214,7 @@ namespace VCreate.Core.Commands
                     
                     ctx.Reply($"Debuff set.");
                     data.SetData("Debuff", choice);
-                    DataStructures.Save();
+                    DataStructures.SavePlayerSettings();
                     
                     
                 }
@@ -245,7 +245,7 @@ namespace VCreate.Core.Commands
                     {
                         ctx.Reply($"Map icon set.");
                         data.SetData("MapIcon", choice);
-                        DataStructures.Save();
+                        DataStructures.SavePlayerSettings();
                     }
                     else
                     {
@@ -278,7 +278,7 @@ namespace VCreate.Core.Commands
                     {
                         ctx.Reply($"Tile model set.");
                         data.SetData("Tile", choice);
-                        DataStructures.Save();
+                        DataStructures.SavePlayerSettings();
                     }
                     else
                     {
@@ -314,7 +314,7 @@ namespace VCreate.Core.Commands
                         {
                             SystemPatchUtil.Destroy(tileEntity);
                             ctx.Reply($"Successfully destroyed last tile placed.");
-                            DataStructures.Save();
+                            DataStructures.SavePlayerSettings();
                         }
                         else
                         {

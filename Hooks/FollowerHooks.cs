@@ -11,7 +11,6 @@ using Unity.Transforms;
 using VCreate.Core;
 using VCreate.Core.Toolbox;
 
-
 [HarmonyPatch(typeof(RepairDoubleVBloodSpawnedSystem), nameof(RepairDoubleVBloodSpawnedSystem.OnUpdate))]
 public static class RepairDoubleVBloodSpawnedSystemPatch
 {
@@ -27,20 +26,21 @@ public static class BehaviourTreeStateChangedEventSystemPatch
 {
     public static void Prefix(BehaviourTreeStateChangedEventSystem __instance)
     {
-        
         NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
-        for (int i = 0; i < entities.Length; i++)
+
+        try
         {
-            try
+            foreach (var entity in entities)
             {
-                Entity entity = entities[i];
-                //entity.LogComponentTypes();
+                // Assuming the LogComponentTypes() method is commented out intentionally.
+                // entity.LogComponentTypes();
                 if (!entity.Has<Follower>()) continue;
-                if (!entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>()) continue;
+                if (!entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>() || !entity.Has<BehaviourTreeState>()) continue;
 
                 if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Return)
                 {
-                    //Plugin.Log.LogInfo($"{entity.Read<BehaviourTreeState>().Value.ToString()}");
+                    // Uncomment the following line if you need to log the state change.
+                    // Plugin.Log.LogInfo($"{entity.Read<BehaviourTreeState>().Value.ToString()}");
                     BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                     behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
                     entity.Write(behaviourTreeStateChangedEvent);
@@ -55,19 +55,19 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                         entity.Write(behaviourTreeStateChangedEvent);
                     }
                 }
-                entities.Dispose();
             }
-            catch (Exception e)
-            {
-                entities.Dispose();
-                //Plugin.Log.LogInfo($"Exited BehaviorTreeState hook early {e}");
-            }
-            
         }
-        
+        catch (Exception e)
+        {
+            Plugin.Log.LogInfo($"Exited BehaviorTreeState hook early {e}");
+        }
+        finally
+        {
+            // Dispose of the NativeArray properly in the finally block to ensure it's always executed.
+            entities.Dispose();
+        }
     }
 }
-
 
 /*
 [HarmonyPatch(typeof(FollowerSystem), nameof(FollowerSystem.OnUpdate))]
@@ -116,13 +116,8 @@ public static class FollowerSystemPatch
                 }
                 followerEntities.Dispose();
             }
-            
-
         }
         entities.Dispose();
     }
 }
 */
-
-
-

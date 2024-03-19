@@ -32,12 +32,30 @@ namespace VCreate.Core
             get => petExperience;
             set => petExperience = value;
         }
-        public static void Save()
+        public static void SavePlayerSettings()
         {
             try
             {
                 //string json = JsonSerializer.Serialize(playerSettings, prettyJsonOptions); // Consider using prettyJsonOptions if you want the output to be indented.
                 File.WriteAllText(Plugin.PlayerSettingsJson, JsonSerializer.Serialize(DataStructures.PlayerSettings));
+            }
+            catch (IOException ex)
+            {
+                // Handle file write exceptions
+                Plugin.Log.LogInfo($"An error occurred saving settings: {ex.Message}");
+
+            }
+            catch (JsonException ex)
+            {
+                // Handle JSON serialization exceptions
+                Plugin.Log.LogInfo($"An error occurred during JSON serialization: {ex.Message}");
+            }
+        }
+        public static void SavePetExperience()
+        {
+            try
+            {
+                //string json = JsonSerializer.Serialize(playerSettings, prettyJsonOptions); // Consider using prettyJsonOptions if you want the output to be indented.
                 File.WriteAllText(Plugin.PetDataJson, JsonSerializer.Serialize(DataStructures.PetExperience));
             }
             catch (IOException ex)

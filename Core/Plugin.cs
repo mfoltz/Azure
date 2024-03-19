@@ -61,7 +61,7 @@ namespace VCreate.Core
         {
             Config.Clear();
             _harmony.UnpatchSelf();
-            VCreate.Core.DataStructures.Save();
+            VCreate.Core.DataStructures.SavePlayerSettings();
             return true;
         }
 

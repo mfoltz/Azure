@@ -14,7 +14,7 @@ using VCreate.Systems;
 
 namespace VCreate.Hooks
 {
-    /*
+    
     internal class PetExperienceSystem
     {
         [HarmonyPatch]
@@ -30,7 +30,17 @@ namespace VCreate.Hooks
                     var enumerator = entities.GetEnumerator();
                     while (enumerator.MoveNext())
                     {
+                        Plugin.Log.LogInfo("DeathEventListenerSystem_PetPatch Postfix called...");
+                        enumerator.Current.LogComponentTypes();
+                        /*
                         if (!enumerator.Current.Has<DeathEvent>() || !enumerator.Current.Has<PlayerCharacter>()) continue;
+                        Plugin.Log.LogInfo("DeathEvent involving player detected..."); 
+                        if (!enumerator.Current.Has<FollowerBuffer>()) continue; // only want to do this if player has a pet
+                        Plugin.Log.LogInfo("FollowerBuffer detected on player..."); // also want to make sure player has a pet and not a charmed human
+                        foreach (var follower in enumerator.Current.ReadBuffer<FollowerBuffer>())
+                        {
+                            DeathEvent
+                        }
                         DeathEvent deathEvent = enumerator.Current.Read<DeathEvent>();
                         Entity entity = deathEvent.Died;
                         // want to turn entity into experience for pet
@@ -40,8 +50,13 @@ namespace VCreate.Hooks
                         {
                             petExperience.CurrentExperience += unitLevel.Level-petExperience.Level;
                             DataStructures.PetExperience[playerCharacter.UserEntity.Read<User>().PlatformId] = petExperience;
+                            DataStructures.SavePetExperience();
                             
+                            //get follower buffer follower and make sure it is not charmed in case player has a charmed human with them
+
+
                         }
+                        */
 
                         
                     }
@@ -57,5 +72,5 @@ namespace VCreate.Hooks
             }
         }
     }
-    */
+    
 }

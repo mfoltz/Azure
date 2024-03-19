@@ -31,7 +31,7 @@ namespace VCreate.Hooks
             {
                 Omnitool newdata = new();
                 VCreate.Core.DataStructures.PlayerSettings.Add(steamId, newdata);
-                DataStructures.Save();
+                DataStructures.SavePlayerSettings();
             }
         }
     }
