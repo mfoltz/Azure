@@ -205,116 +205,89 @@ namespace VCreate.Systems
 
         public static void ConvertCharacter(Entity userEntity, Entity hoveredEntity)
         {
-            // if charmed remove automatically
-            //ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
-            //BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
-            //EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
-            //EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
-            EntityManager entityManager = VWorld.Server.EntityManager;
-
-            //Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-            //BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, hoveredEntity);
-            
-            
             FirstPhase(userEntity, hoveredEntity);
             SecondPhase(userEntity, hoveredEntity);
-         
-            //entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team. It will follow amnd fight until death.");
+
+            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Summoned familiar from soul gem.");
         }
 
-        
-
-        public static void FirstPhase(Entity userEntity, Entity hoveredEntity)
+        public static void FirstPhase(Entity userEntity, Entity familiar)
         {
             Team userTeam = userEntity.Read<Team>();
             TeamReference teamReference = userEntity.Read<TeamReference>();
             Entity character = userEntity.Read<User>().LocalCharacter._Entity;
 
-            Utilities.SetComponentData(hoveredEntity, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
+            Utilities.SetComponentData(familiar, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
 
             ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(character);
-            Follower follower = hoveredEntity.Read<Follower>();
+            Follower follower = familiar.Read<Follower>();
             follower.Followed = modifiableEntity;
-            Utilities.SetComponentData(hoveredEntity, follower);
-            Utilities.SetComponentData(hoveredEntity, teamReference);
+            Utilities.SetComponentData(familiar, follower);
+            Utilities.SetComponentData(familiar, teamReference);
         }
 
-        public static void SecondPhase(Entity userEntity, Entity hoveredEntity)
+        public static void SecondPhase(Entity userEntity, Entity familiar)
         {
-            // give the pet servant power but tie it to experience on kill
-            //ServantPower servantPower = new();
-            //ServantPowerConstants servantPowerConstants = new();
-            //ServantEquipment servantEquipment = new();
-            //Utilities.AddComponentData(hoveredEntity, servantPower);
-            //Utilities.AddComponentData(hoveredEntity, servantPowerConstants);
-            //Utilities.AddComponentData(hoveredEntity, servantEquipment);
-            hoveredEntity.Write<UnitLevel>(new UnitLevel { Level = 0 });
-            UnitStats unitStats = hoveredEntity.Read<UnitStats>();
-            //Health health = hoveredEntity.Read<Health>();
-            //HealthConstants healthConstants = hoveredEntity.Read<HealthConstants>();
-            
+            familiar.Write<UnitLevel>(new UnitLevel { Level = 0 });
+            UnitStats unitStats = familiar.Read<UnitStats>();
+
             unitStats.PhysicalPower._Value = 10f;
             unitStats.SpellPower._Value = 10f;
             unitStats.PassiveHealthRegen._Value = 0.01f;
-            PetExperience petExperience = new();
+            familiar.Write(unitStats);
+            PetExperience petExperience = new()
+            {
+                Active = true
+            };
             if (!DataStructures.PetExperience.ContainsKey(userEntity.Read<User>().PlatformId))
             {
                 DataStructures.PetExperience.Add(userEntity.Read<User>().PlatformId, petExperience);
                 DataStructures.SavePetExperience();
             }
-            else
-            {
-                DataStructures.PetExperience[userEntity.Read<User>().PlatformId] = petExperience;
-                DataStructures.SavePetExperience();
-            }
-
-            
         }
-        public static unsafe void SpawnFamiliar(Entity userEntity)
+
+        public static unsafe void SummonFamiliar(Entity userEntity)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
-            Plugin.Log.LogInfo("Cloning Triggered");
+            Plugin.Log.LogInfo("Entering familiar spawn...");
+
+            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
 
             User user = Utilities.GetComponentData<User>(userEntity);
             int index = user.Index;
+
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
 
-            
-            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
-            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
             UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(userEntity.Read<User>().PlatformId);
             var items = userModel.Inventory.Items;
-            //PrefabGUID prefab;
-            foreach (var item in items)
+            var enumerator = items.GetEnumerator();
+
+            while (enumerator.MoveNext())
             {
-                
-                
-                Entity itemEnt = item.Item.Entity;
+                Entity itemEnt = enumerator.Current.Item.Entity;
                 if (!itemEnt.Has<CastAbilityOnConsume>()) continue;
 
-                
                 ItemData itemData = itemEnt.Read<ItemData>();
-                if (!itemData.ItemCategory.Equals(ItemCategory.Relic)) continue;
-                PrefabGUID prefab = itemData.ItemTypeGUID;
+                if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound)) continue;
+                PrefabGUID prefab = new(itemData.ItemTypeGUID.GuidHash);
+                if (!prefab.LookupName().ToLower().Contains("char")) continue;
                 Plugin.Log.LogInfo("Found familiar...");
                 var debugEvent = new SpawnCharmeableDebugEvent
                 {
                     PrefabGuid = prefab,
-                    Position = userEntity.Read<Translation>().Value
+                    Position = fromCharacter.Character.Read<LocalToWorld>().Position
                 };
-
+                Plugin.Log.LogInfo("Spawning familiar...");
                 DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
                 debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
                 break;
-                
             }
 
             //PrefabGUID prefab = new(data.GetData("Unit"));
-            
+
             //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected/set as charmed.");
-           
         }
 
         public static unsafe void SpawnCopy(Entity userEntity)

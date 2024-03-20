@@ -16,7 +16,7 @@ public static class FollowerSystemPatchV2
 {
     private static readonly PrefabGUID charm = VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff;
 
-    private static HashSet<Entity> processed = [];
+    private static readonly HashSet<Entity> processed = [];
 
     public static void Prefix(FollowerSystem __instance)
     {
@@ -35,23 +35,23 @@ public static class FollowerSystemPatchV2
                 {
                     if (buff.PrefabGuid.GuidHash.Equals(charm.GuidHash) && !processed.Contains(entity))
                     {
-                        Plugin.Log.LogInfo("Charm buff detected...");
+                        Plugin.Log.LogInfo("Charm buff detected in SpawnReactSystem...");
                         Follower follower = entity.Read<Follower>();
                         Entity followed = follower.Followed._Value;
+                        if (!followed.Has<PlayerCharacter>()) continue;
                         Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
                         ulong platformId = userEntity.Read<User>().PlatformId;
+                        if (DataStructures.PetExperience.TryGetValue(platformId, out PetExperience data) && data.Active) continue;
+                        
                         UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(platformId);
                         var items = userModel.Inventory.Items;
                         foreach (var item in items)
                         {
                             Entity itemEnt = item.Item.Entity;
                             if (!itemEnt.Has<CastAbilityOnConsume>()) continue;
-
                             ItemData itemData = itemEnt.Read<ItemData>();
-                            if (!itemData.ItemCategory.Equals(ItemCategory.Relic)) continue;
-
+                            if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound)) continue;
                             Plugin.Log.LogInfo("Linking familiar...");
-                            //DestroyUtility.CreateDestroyEvent(entityManager, buff.Entity, DestroyReason.Default, DestroyDebugReason.None); // destroy charm buff
                             BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
                             OnHover.ConvertCharacter(userEntity, entity);
                         }

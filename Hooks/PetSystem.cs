@@ -336,18 +336,12 @@ namespace VCreate.Hooks
                 foreach (PrefabGUID prefabGUID in perfectGems)
                 {
                     Entity gemEntity = Utilities.GetPrefabEntityByPrefabGUID(prefabGUID, entityManager);
-                    //Entity test_consumable = Utilities.GetPrefabEntityByPrefabGUID(new PrefabGUID(-1413694594), entityManager);
-                    //test_consumable.LogComponentTypes();
-                    //var dataItem = test_consumable.Read<ItemData>();
-                    //Plugin.Log.LogInfo($"{dataItem.ItemCategory.ToString()}, {dataItem.ItemType.ToString()}");
+                    
                     if (gemEntity != Entity.Null)
                     {
-                        //gemEntity.LogComponentTypes();
                         var itemData = Utilities.GetComponentData<ItemData>(gemEntity);
                         itemData.RemoveOnConsume = false;
-                        itemData.MaxAmount = 1;
-                        itemData.ItemType = ItemType.Jewel;
-                        itemData.ItemCategory = ItemCategory.Relic;
+                        itemData.ItemCategory = ItemCategory.BloodBound;
                         //Consumable consumable = new();
                         //var conditionBuffer = entityManager.AddBuffer<ConsumableCondition>(gemEntity);
                         //var buffer = entityManager.GetBuffer<ConsumableCondition>(test_consumable);
@@ -355,7 +349,7 @@ namespace VCreate.Hooks
                         //{
                         //   conditionBuffer.Add(item);
                         //}
-                        CastAbilityOnConsume castAbilityOnConsume = new CastAbilityOnConsume { AbilityGuid = VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_Cast };
+                        CastAbilityOnConsume castAbilityOnConsume = new() { AbilityGuid = VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_Cast };
                         //Utilities.AddComponentData(gemEntity, consumable);
                         Utilities.AddComponentData(gemEntity, castAbilityOnConsume);
                         Utilities.SetComponentData(gemEntity, itemData);
