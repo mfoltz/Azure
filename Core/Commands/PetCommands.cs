@@ -21,7 +21,7 @@ namespace VCreate.Core.Commands
         [Command(name: "summonfamiliar", shortHand: "summon", adminOnly: false, usage: ".summon", description: "?")]
         public static void MethodOne(ChatCommandContext ctx)
         {
-            OnHover.SpawnCopy(ctx.Event.SenderUserEntity);
+            OnHover.SpawnFamiliar(ctx.Event.SenderUserEntity);
         }
         
         

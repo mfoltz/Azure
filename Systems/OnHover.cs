@@ -206,14 +206,14 @@ namespace VCreate.Systems
         public static void ConvertCharacter(Entity userEntity, Entity hoveredEntity)
         {
             // if charmed remove automatically
-            ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
-            BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
-            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
-            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
+            //ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
+            //BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
+            //EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+            //EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
             EntityManager entityManager = VWorld.Server.EntityManager;
 
             //Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
-            BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, hoveredEntity);
+            //BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, hoveredEntity);
             
             
             FirstPhase(userEntity, hoveredEntity);
@@ -289,23 +289,26 @@ namespace VCreate.Systems
             //PrefabGUID prefab;
             foreach (var item in items)
             {
-                if (item.Item.PrefabGUID.LookupName().ToLower().Contains("perfect"))
+                
+                
+                Entity itemEnt = item.Item.Entity;
+                if (!itemEnt.Has<CastAbilityOnConsume>()) continue;
+
+                
+                ItemData itemData = itemEnt.Read<ItemData>();
+                if (!itemData.ItemCategory.Equals(ItemCategory.Relic)) continue;
+                PrefabGUID prefab = itemData.ItemTypeGUID;
+                Plugin.Log.LogInfo("Found familiar...");
+                var debugEvent = new SpawnCharmeableDebugEvent
                 {
-                    Plugin.Log.LogInfo("Found familiar...");
-                    Entity itemEnt = item.Item.Entity;
-                    ItemData itemData = itemEnt.Read<ItemData>();
-                    PrefabGUID prefab = itemData.ItemTypeGUID;
+                    PrefabGuid = prefab,
+                    Position = userEntity.Read<Translation>().Value
+                };
 
-                    var debugEvent = new SpawnCharmeableDebugEvent
-                    {
-                        PrefabGuid = prefab,
-                        Position = userEntity.Read<Translation>().Value
-                    };
-
-                    DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-                    debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
-                    break;
-                }
+                DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
+                break;
+                
             }
 
             //PrefabGUID prefab = new(data.GetData("Unit"));

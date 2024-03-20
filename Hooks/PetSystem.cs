@@ -346,8 +346,8 @@ namespace VCreate.Hooks
                         var itemData = Utilities.GetComponentData<ItemData>(gemEntity);
                         itemData.RemoveOnConsume = false;
                         itemData.MaxAmount = 1;
-                        itemData.ItemType = ItemType.Consumable;
-                        itemData.ItemCategory = ItemCategory.NONE;
+                        itemData.ItemType = ItemType.Jewel;
+                        itemData.ItemCategory = ItemCategory.Relic;
                         //Consumable consumable = new();
                         //var conditionBuffer = entityManager.AddBuffer<ConsumableCondition>(gemEntity);
                         //var buffer = entityManager.GetBuffer<ConsumableCondition>(test_consumable);
