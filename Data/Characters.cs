@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 namespace VCreate.Data;
 internal static class Characters
 {
+    
     public static ReadOnlyDictionary<string, PrefabGUID> Named = new(new Dictionary<string, PrefabGUID>(StringComparer.OrdinalIgnoreCase)
     {
         { "CHAR_ArchMage_FlameSphere", new(2138173476) },

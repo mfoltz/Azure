@@ -11,6 +11,7 @@ using VampireCommandFramework;
 using VCreate.Core.Toolbox;
 using VCreate.Hooks;
 using VCreate.Systems;
+using VRising.GameData;
 
 namespace VCreate.Core
 {
@@ -38,16 +39,18 @@ namespace VCreate.Core
             CommandRegistry.RegisterAll();
             InitConfig();
             ServerEvents.OnGameDataInitialized += GameDataOnInitialize;
+            GameData.OnInitialize += GameDataOnInitialize;
             LoadData();
             Plugin.Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} is loaded!");
         }
 
         private void GameDataOnInitialize(World world)
         {
-            
+            VCreate.Hooks.PetSystem.PerfectGemSystem.ModifyPerfectGems();
+            Plugin.Logger.LogInfo("PerfectGems modified");
         }
 
-        private void InitConfig()
+        private static void InitConfig()
         {
             // Initialize configuration settings
 
@@ -68,11 +71,17 @@ namespace VCreate.Core
         public void OnGameInitialized()
         {
             CastleTerritoryCache.Initialize();
-
             Plugin.Logger.LogInfo("TerritoryCache loaded");
+            
+
         }
         
         public static void LoadData()
+        {
+            LoadPlayerSettings();
+            LoadPetData();
+        }
+        public static void LoadPlayerSettings()
         {
             if (!File.Exists(Plugin.PlayerSettingsJson))
             {
@@ -85,14 +94,38 @@ namespace VCreate.Core
             try
             {
                 var settings = JsonSerializer.Deserialize<Dictionary<ulong, Omnitool>>(json);
-                VCreate.Core.DataStructures.PlayerSettings = settings ?? new Dictionary<ulong, Omnitool>();
+                VCreate.Core.DataStructures.PlayerSettings = settings ?? [];
                 Plugin.Logger.LogWarning("PlayerSettings Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogInfo($"No data to deserialize yet: {ex}");
-                VCreate.Core.DataStructures.PlayerSettings = new Dictionary<ulong, Omnitool>();
+                VCreate.Core.DataStructures.PlayerSettings = [];
                 Plugin.Logger.LogWarning("PlayerSettings Created");
+            }
+        }
+
+        public static void LoadPetData()
+        {
+            if (!File.Exists(Plugin.PetDataJson))
+            {
+                var stream = File.Create(Plugin.PetDataJson);
+                stream.Dispose();
+            }
+
+            string json = File.ReadAllText(Plugin.PetDataJson);
+            Plugin.Logger.LogWarning($"PetData found: {json}");
+            try
+            {
+                var settings = JsonSerializer.Deserialize<Dictionary<ulong, PetExperience>>(json);
+                VCreate.Core.DataStructures.PetExperience = settings ?? [];
+                Plugin.Logger.LogWarning("PetData Populated");
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogInfo($"No data to deserialize yet: {ex}");
+                VCreate.Core.DataStructures.PetExperience = [];
+                Plugin.Logger.LogWarning("PetData Created");
             }
         }
     }

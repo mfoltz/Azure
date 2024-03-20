@@ -102,7 +102,7 @@ namespace WorldBuild.Hooks
             {
                 return (userEntity, _) =>
                 {
-                    OnHover.SpawnCopy(userEntity);
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Deprecated for now.");
                 };
             }
             else if (settings.GetMode("DebuffToggle"))
@@ -116,7 +116,7 @@ namespace WorldBuild.Hooks
             {
                 return (userEntity, _) =>
                 {
-                    OnHover.ConvertCharacter(userEntity);
+                    ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Deprecated for now.");
                 };
             }
             else if (settings.GetMode("BuffToggle"))

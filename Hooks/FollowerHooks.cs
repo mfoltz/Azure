@@ -32,14 +32,12 @@ public static class BehaviourTreeStateChangedEventSystemPatch
         {
             foreach (var entity in entities)
             {
-                // Assuming the LogComponentTypes() method is commented out intentionally.
                 // entity.LogComponentTypes();
                 if (!entity.Has<Follower>()) continue;
                 if (!entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>() || !entity.Has<BehaviourTreeState>()) continue;
 
                 if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Return)
                 {
-                    // Uncomment the following line if you need to log the state change.
                     // Plugin.Log.LogInfo($"{entity.Read<BehaviourTreeState>().Value.ToString()}");
                     BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                     behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
@@ -69,55 +67,5 @@ public static class BehaviourTreeStateChangedEventSystemPatch
     }
 }
 
-/*
-[HarmonyPatch(typeof(FollowerSystem), nameof(FollowerSystem.OnUpdate))]
-public static class FollowerSystemPatch
-{
-    // proxies for pets
-    private static readonly PrefabGUID invulnerable = VCreate.Data.Buffs.Admin_Invulnerable_Buff;
-    //private static readonly PrefabGUID invisible = VCreate.Data.Buffs.Admin_Observe_Invisible_Buff;
-    private static readonly PrefabGUID servant = VCreate.Data.Prefabs.CHAR_Gloomrot_AceIncinerator_Servant;
-    private static readonly PrefabGUID horse = VCreate.Data.Prefabs.CHAR_Mount_Horse;
-    private static readonly PrefabGUID trader = VCreate.Data.Prefabs.CHAR_Trader_Farbane_Knowledge_T01;
-    public static void Prefix(FollowerSystem __instance)
-    {
-        EntityManager entityManager = VWorld.Server.EntityManager;
-        //Plugin.Logger.LogInfo("FollowerSystem Prefix called...");
-        NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
-        foreach (var entity in entities)
-        {
-            if (!Utilities.HasComponent<Follower>(entity)) continue; // if entity is not following someone skip, this is an entity being followed probably
-            // want to filter for charmed things following players, decharm them and make them follow the player follower if one of the above prefabs
-            if (entity.Read<Follower>().Followed._Value.Has<PlayerCharacter>() && (entity.Read<PrefabGUID>().GuidHash.Equals(servant.GuidHash) || entity.Read<PrefabGUID>().GuidHash.Equals(horse.GuidHash) || entity.Read<PrefabGUID>().GuidHash.Equals(trader.GuidHash)))
-            {
-                // if conditions met want to make this follow the player follower with a follwerbuffer
-                Follower follower = entity.Read<Follower>();
-                var buffer = entity.Read<Follower>().Followed._Value.ReadBuffer<FollowerBuffer>();
-                for (int i = 0; i < buffer.Length; i++)
-                {
-                    // want to find the follower with follwerbuffer itself
-                    if (!entityManager.TryGetBuffer<FollowerBuffer>(buffer[i].Entity._Entity, out var petBuffer)) continue;
-                    // if we got here want to make this entity follow the player follower
-                    ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(buffer[i].Entity._Entity);
-                    follower.Followed = modifiableEntity;
-                    follower.ModeModifiable._Value = (int)FollowMode.Unit;
-                    entity.Write(follower);
-                }
-            }
-            if (entityManager.TryGetBuffer<FollowerBuffer>(entity, out var followers))
-            {
-                //Plugin.Log.LogInfo("FollowerSystem Prefix: has buffer, setting helper positions");
-                //GetOwnerTranslationOnSpawn getOwnerTranslationOnSpawn = new GetOwnerTranslationOnSpawn { SnapToGround = true, TranslationSource = GetOwnerTranslationOnSpawnComponent.GetTranslationSource.Owner };
-                NativeArray<FollowerBuffer> followerEntities = followers.ToNativeArray(Unity.Collections.Allocator.Temp);
-                for (int i = 0; i < followerEntities.Length; i++)
-                {
-                    followers[i].Entity._Entity.Write<LastTranslation>(new LastTranslation { Value = entity.Read<LastTranslation>().Value });
-                    followers[i].Entity._Entity.Write<Translation>(new Translation { Value = entity.Read<Translation>().Value });
-                }
-                followerEntities.Dispose();
-            }
-        }
-        entities.Dispose();
-    }
-}
-*/
+
+

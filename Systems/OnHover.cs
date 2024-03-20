@@ -15,6 +15,7 @@ using Unity.Transforms;
 using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
+using VRising.GameData.Models;
 using static ProjectM.BuffUtility;
 using User = ProjectM.Network.User;
 
@@ -202,7 +203,7 @@ namespace VCreate.Systems
             }
         }
 
-        public static void ConvertCharacter(Entity userEntity)
+        public static void ConvertCharacter(Entity userEntity, Entity hoveredEntity)
         {
             // if charmed remove automatically
             ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
@@ -211,20 +212,18 @@ namespace VCreate.Systems
             EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
             EntityManager entityManager = VWorld.Server.EntityManager;
 
-            Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
+            //Entity hoveredEntity = userEntity.Read<EntityInput>().HoveredEntity;
             BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, hoveredEntity);
             
-            if (hoveredEntity.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_VampireMale))
-            {
-                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Vampires can't be converted.");
-                return;
-            }
+            
             FirstPhase(userEntity, hoveredEntity);
             SecondPhase(userEntity, hoveredEntity);
          
             //entityManager.AddBuffer<FollowerBuffer>(hoveredEntity);
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Converted entity to your team. It will follow amnd fight until death.");
         }
+
+        
 
         public static void FirstPhase(Entity userEntity, Entity hoveredEntity)
         {
@@ -244,20 +243,75 @@ namespace VCreate.Systems
         public static void SecondPhase(Entity userEntity, Entity hoveredEntity)
         {
             // give the pet servant power but tie it to experience on kill
-            ServantPower servantPower = new();
-            ServantPowerConstants servantPowerConstants = new();
-            Utilities.AddComponentData(hoveredEntity, servantPower);
-            Utilities.AddComponentData(hoveredEntity, servantPowerConstants);
+            //ServantPower servantPower = new();
+            //ServantPowerConstants servantPowerConstants = new();
+            //ServantEquipment servantEquipment = new();
+            //Utilities.AddComponentData(hoveredEntity, servantPower);
+            //Utilities.AddComponentData(hoveredEntity, servantPowerConstants);
+            //Utilities.AddComponentData(hoveredEntity, servantEquipment);
+            hoveredEntity.Write<UnitLevel>(new UnitLevel { Level = 0 });
+            UnitStats unitStats = hoveredEntity.Read<UnitStats>();
+            //Health health = hoveredEntity.Read<Health>();
+            //HealthConstants healthConstants = hoveredEntity.Read<HealthConstants>();
+            
+            unitStats.PhysicalPower._Value = 10f;
+            unitStats.SpellPower._Value = 10f;
+            unitStats.PassiveHealthRegen._Value = 0.01f;
             PetExperience petExperience = new();
             if (!DataStructures.PetExperience.ContainsKey(userEntity.Read<User>().PlatformId))
             {
                 DataStructures.PetExperience.Add(userEntity.Read<User>().PlatformId, petExperience);
+                DataStructures.SavePetExperience();
             }
             else
             {
                 DataStructures.PetExperience[userEntity.Read<User>().PlatformId] = petExperience;
+                DataStructures.SavePetExperience();
             }
-            //DataStructures.PetExperience.Add(userEntity.Read<User>().PlatformId, petExperience);
+
+            
+        }
+        public static unsafe void SpawnFamiliar(Entity userEntity)
+        {
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            Plugin.Log.LogInfo("Cloning Triggered");
+
+            User user = Utilities.GetComponentData<User>(userEntity);
+            int index = user.Index;
+            PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
+            FromCharacter fromCharacter = new() { Character = character, User = userEntity };
+
+            
+            EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+            EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
+            UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(userEntity.Read<User>().PlatformId);
+            var items = userModel.Inventory.Items;
+            //PrefabGUID prefab;
+            foreach (var item in items)
+            {
+                if (item.Item.PrefabGUID.LookupName().ToLower().Contains("perfect"))
+                {
+                    Plugin.Log.LogInfo("Found familiar...");
+                    Entity itemEnt = item.Item.Entity;
+                    ItemData itemData = itemEnt.Read<ItemData>();
+                    PrefabGUID prefab = itemData.ItemTypeGUID;
+
+                    var debugEvent = new SpawnCharmeableDebugEvent
+                    {
+                        PrefabGuid = prefab,
+                        Position = userEntity.Read<Translation>().Value
+                    };
+
+                    DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+                    debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
+                    break;
+                }
+            }
+
+            //PrefabGUID prefab = new(data.GetData("Unit"));
+            
+            //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected/set as charmed.");
+           
         }
 
         public static unsafe void SpawnCopy(Entity userEntity)

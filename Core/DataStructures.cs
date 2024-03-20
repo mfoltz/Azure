@@ -17,9 +17,9 @@ namespace VCreate.Core
             IncludeFields = true
         };
 
-        private static Dictionary<ulong, Omnitool> playerSettings = new Dictionary<ulong, Omnitool>();
+        private static Dictionary<ulong, Omnitool> playerSettings = [];
 
-        private static Dictionary<ulong, PetExperience> petExperience = new Dictionary<ulong, PetExperience>();
+        private static Dictionary<ulong, PetExperience> petExperience = [];
 
         // Property for playerSettings if external access or modification is required
         public static Dictionary<ulong, Omnitool> PlayerSettings

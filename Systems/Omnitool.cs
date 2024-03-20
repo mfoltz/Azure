@@ -5,6 +5,10 @@
     {
         public int CurrentExperience { get; set; }
         public int Level { get; set; }
+
+        public int Focus { get; set; }
+
+        public bool Active { get; set; }
         // Add more fields as necessary
     }
     public class Omnitool

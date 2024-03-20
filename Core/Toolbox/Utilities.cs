@@ -14,6 +14,21 @@ namespace VCreate.Core.Toolbox
 {
     public static class Utilities
     {
+        public static Entity GetPrefabEntityByPrefabGUID(PrefabGUID prefabGUID, EntityManager entityManager)
+        {
+            try
+            {
+                PrefabCollectionSystem prefabCollectionSystem = entityManager.World.GetExistingSystem<PrefabCollectionSystem>();
+
+
+                return prefabCollectionSystem._PrefabGuidToEntityMap[prefabGUID];
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError($"Error: {ex}");
+                return Entity.Null;
+            }
+        }
         public static Il2CppSystem.Type Il2CppTypeGet(Type type)
         {
             return Il2CppSystem.Type.GetType(type.ToString());
