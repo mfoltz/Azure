@@ -6,8 +6,10 @@ using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
 using VCreate.Core;
+using VCreate.Core.Commands;
 using VCreate.Core.Toolbox;
 using VCreate.Systems;
+using static VCreate.Core.Commands.PetCommands;
 
 namespace VCreate.Hooks
 {
@@ -42,6 +44,7 @@ namespace VCreate.Hooks
                 DataStructures.SavePlayerSettings();
                 // reset all horses to enabled state
                 EnableHorsesOnQuit();
+                EnableFamiliarsOnQuit();
             }
         }
 
@@ -73,6 +76,22 @@ namespace VCreate.Hooks
                     SystemPatchUtil.Enable(entity);
             }
             entityArray.Dispose();
+        }
+
+        public static void EnableFamiliarsOnQuit()
+        {
+            foreach (var key in PetCommands.PlayerFamiliarStasisMap.Keys)
+            {
+                if (PetCommands.PlayerFamiliarStasisMap.TryGetValue(key, out FamiliarStasisState data))
+                {
+                    if (data.IsInStasis)
+                    {
+                        SystemPatchUtil.Enable(data.FamiliarEntity);
+                        data.IsInStasis = false;
+                        PetCommands.PlayerFamiliarStasisMap[key] = data;
+                    }
+                }
+            }
         }
     }
 }

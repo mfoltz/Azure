@@ -35,26 +35,18 @@ public static class FollowerSystemPatchV2
                 {
                     if (buff.PrefabGuid.GuidHash.Equals(charm.GuidHash) && !processed.Contains(entity))
                     {
-                        Plugin.Log.LogInfo("Charm buff detected in SpawnReactSystem...");
+                        
                         Follower follower = entity.Read<Follower>();
                         Entity followed = follower.Followed._Value;
                         if (!followed.Has<PlayerCharacter>()) continue;
+                        Plugin.Log.LogInfo("Charmed entity detected in SpawnReactSystem...");
                         Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
                         ulong platformId = userEntity.Read<User>().PlatformId;
-                        if (DataStructures.PetExperience.TryGetValue(platformId, out PetExperience data) && data.Active) continue;
+                        // need to determine way to filter better here
+                        Plugin.Log.LogInfo("Found familiar, removing charm and binding...");
+                        BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
+                        OnHover.ConvertCharacter(userEntity, entity);
                         
-                        UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(platformId);
-                        var items = userModel.Inventory.Items;
-                        foreach (var item in items)
-                        {
-                            Entity itemEnt = item.Item.Entity;
-                            if (!itemEnt.Has<CastAbilityOnConsume>()) continue;
-                            ItemData itemData = itemEnt.Read<ItemData>();
-                            if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound)) continue;
-                            Plugin.Log.LogInfo("Linking familiar...");
-                            BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
-                            OnHover.ConvertCharacter(userEntity, entity);
-                        }
                     }
                 }
             }

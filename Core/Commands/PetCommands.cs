@@ -20,29 +20,88 @@ namespace VCreate.Core.Commands
     {
         internal static Dictionary<ulong, FamiliarStasisState> PlayerFamiliarStasisMap = [];
 
-        [Command(name: "bindFamiliar", shortHand: "soul", adminOnly: false, usage: ".soul", description: "Summons familiar from first soulgem found in inventory.")]
+        [Command(name: "bindFamiliar", shortHand: "bindsoul", adminOnly: false, usage: ".bindsoul", description: "Summons familiar from first soulgem found in inventory and sets profile to active.")]
         public static void MethodOne(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
-            if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
+            // verify states before proceeding, make sure no active profiles and no familiars in stasis
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out var data))
             {
-                ctx.Reply("You already have a familiar in stasis. If you would like to bind to a new one, destroy the one in stasis first.");
+                var profiles = data.Values;
+                foreach (var profile in profiles)
+                {
+                    if (profile.Active)
+                    {
+                        ctx.Reply("You already have an active familiar profile. Unbind it before binding to another.");
+                        return;
+                    }
+                }
+                if (PlayerFamiliarStasisMap.TryGetValue(platformId, out var familiarStasisState) && familiarStasisState.IsInStasis)
+                {
+                    ctx.Reply("You have a familiar in stasis. If you want to bind to another, summon it and unbind first.");
+                    return;
+                }
             }
             OnHover.SummonFamiliar(ctx.Event.SenderCharacterEntity.Read<PlayerCharacter>().UserEntity);
         }
 
-        [Command(name: "unbindFamiliar", shortHand: "unbindsoul", adminOnly: false, usage: ".unbindsoul", description: "Destroys familiar if you have one in stasis.")]
+        [Command(name: "unbindFamiliar", shortHand: "unbindsoul", adminOnly: false, usage: ".unbindsoul", description: "Deactivates familiar profile and lets you bind to a different familiar.")]
         public static void MethodTwo(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
-            if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
+
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
             {
-                Entity entity = familiarStasisState.FamiliarEntity;
-                SystemPatchUtil.Enable(entity);
-                familiarStasisState.IsInStasis = false;
-                PlayerFamiliarStasisMap[platformId] = familiarStasisState;
-                SystemPatchUtil.Destroy(entity);
-                ctx.Reply("Your familiar has been unbound.");
+                if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
+                {
+                    ctx.Reply("You have a familiar in stasis. Summon it before unbinding.");
+                    return;
+                }
+
+                Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
+                if (!familiar.Equals(Entity.Null) && data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
+                {
+                    UnitStats stats = familiar.Read<UnitStats>();
+                    Health health = familiar.Read<Health>();
+                    // maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower. 
+                    float maxhealth = health.MaxHealth._Value;
+                    float passivehealthregen = stats.PassiveHealthRegen._Value;
+                    float attackspeed = stats.AttackSpeed._Value;
+                    float primaryattackspeed = stats.PrimaryAttackSpeed._Value;
+                    float physicalpower = stats.PhysicalPower._Value;
+                    float spellpower = stats.SpellPower._Value;
+                    profile.Stats.Clear();
+                    profile.Stats.AddRange([maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                    profile.Active = false;
+                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+                    DataStructures.SavePetExperience();
+                    SystemPatchUtil.Destroy(familiar);
+                    ctx.Reply("Familiar profile deactivated, stats saved and familiar unbound. You may now bind to another.");
+                }
+                else if (familiar.Equals(Entity.Null))
+                {
+                    var profiles = data.Keys;
+                    foreach (var key in profiles)
+                    {
+                        if (data[key].Active)
+                        {
+                            // remember if code gets here it means familiar also not in stasis so probably has been lost, unbind it
+                            data.TryGetValue(key, out PetExperienceProfile dataprofile);
+                            dataprofile.Active = false;
+
+                            ctx.Reply("Unable to locate familiar and not in stasis, assuming dead and unbinding.");
+                        }
+                    }
+                }
+                else
+                {
+                    ctx.Reply("You don't have an active familiar to unbind.");
+                }
+            }
+            else
+            {
+                ctx.Reply("You don't have a familiar to unbind.");
+                return;
             }
         }
 
@@ -50,87 +109,143 @@ namespace VCreate.Core.Commands
         public static void EnableFamiliar(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
-            if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
             {
-                SystemPatchUtil.Enable(familiarStasisState.FamiliarEntity);
-                familiarStasisState.IsInStasis = false;
-                PlayerFamiliarStasisMap[platformId] = familiarStasisState;
-                ctx.Reply("Your familiar has been enabled.");
+                if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
+                {
+                    SystemPatchUtil.Enable(familiarStasisState.FamiliarEntity);
+                    familiarStasisState.IsInStasis = false;
+                    PlayerFamiliarStasisMap[platformId] = familiarStasisState;
+                    ctx.Reply("Your familiar has been summoned.");
+                }
+                else
+                {
+                    ctx.Reply("No familiars in stasis to enable.");
+                }
             }
             else
             {
-                ctx.Reply("No familiar in stasis found to enable.");
+                ctx.Reply("No familiars found.");
             }
         }
 
-        [Command(name: "disableFamiliar", shortHand: "dismiss", adminOnly: false, usage: ".dismiss", description: "Puts familiar in stasis.")]
+        [Command(name: "disableFamiliar", shortHand: "dismiss", adminOnly: false, usage: ".dismiss", description: "Puts summoned familiar in stasis.")]
         public static void MethodThree(ChatCommandContext ctx)
         {
-            Dictionary<Entity, bool> keyValuePairs = [];
             ulong platformId = ctx.User.PlatformId;
-            if (DataStructures.PetExperience.TryGetValue(platformId, out PetExperience data) && data.Active)
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
             {
-                var followers = ctx.Event.SenderCharacterEntity.ReadBuffer<FollowerBuffer>();
-                foreach (var follower in followers)
+                Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
+                if (data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
                 {
-                    //string entityString = follower.Entity._Entity.ToString();
-                    keyValuePairs.Add(follower.Entity._Entity, false);
-                    var buffs = follower.Entity._Entity.ReadBuffer<BuffBuffer>();
-                    foreach (var buff in buffs)
-                    {
-                        if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff.GuidHash)
-                        {
-                            keyValuePairs[follower.Entity._Entity] = true;
-                        }
-                    }
+                    SystemPatchUtil.Disable(familiar);
+                    PlayerFamiliarStasisMap[platformId] = new FamiliarStasisState(familiar, true);
+                    ctx.Reply("Your familiar has been put in stasis.");
+                    //DataStructures.SavePetExperience();
                 }
-                foreach (var pair in keyValuePairs)
+                else
                 {
-                    if (!pair.Value)
-                    {
-                        // disable the familiar
-                        Entity entity = pair.Key;
-                        SystemPatchUtil.Disable(entity);
-                        data.Active = false;
-                        DataStructures.PetExperience[platformId] = data;
-                        DataStructures.SavePetExperience();
-
-                        PlayerFamiliarStasisMap[platformId] = new FamiliarStasisState(entity, true);
-                        SystemPatchUtil.Disable(entity);
-                        ctx.Reply("Familiar disabled.");
-                        return;
-                    }
+                    ctx.Reply("You don't have an active familiar to disable.");
                 }
             }
             else
             {
-                ctx.Reply("You don't have an active familiar.");
+                ctx.Reply("You don't have any familiars to disable.");
                 return;
             }
         }
 
-        [Command(name: "setFamiliarFocus", shortHand: "focus", adminOnly: false, usage: ".focus [#]", description: "Sets the stat your familiar will improve specialize in when leveling up.")]
+        [Command(name: "setFamiliarFocus", shortHand: "focus", adminOnly: false, usage: ".focus [#]", description: "Sets the stat your familiar will specialize in when leveling up.")]
         public static void MethodFour(ChatCommandContext ctx, int stat)
         {
             ulong platformId = ctx.User.PlatformId;
-            if (DataStructures.PetExperience.TryGetValue(platformId, out PetExperience data) && data.Active)
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
             {
-                // validate input
-                int toSet = stat - 1;
-                if (toSet < 0 || toSet > PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap.Count - 1)
+                Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
+                if (data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
                 {
-                    ctx.Reply($"Invalid choice, please use 1 to {PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap.Count}.");
+                    int toSet = stat - 1;
+                    if (toSet < 0 || toSet > PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap.Count - 1)
+                    {
+                        ctx.Reply($"Invalid choice, please use 1 to {PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap.Count}.");
+                        return;
+                    }
+                    profile.Focus = toSet;
+                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+
+                    DataStructures.SavePetExperience();
+                    ctx.Reply($"Familiar focus set to {PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap[toSet]}.");
                     return;
                 }
-                data.Focus = toSet;
-                DataStructures.PetExperience[platformId] = data;
-                DataStructures.SavePetExperience();
-                ctx.Reply($"Familiar focus set to {PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap[toSet]}.");
-                return;
+                else
+                {
+                    ctx.Reply("You don't have an active familiar.");
+                }
+            }
+        }
+
+        [Command(name: "combatModeToggle", shortHand: "combat", adminOnly: false, usage: ".combat", description: "Toggles combat mode for familiar.")]
+        public static void MethodFive(ChatCommandContext ctx)
+        {
+            ulong platformId = ctx.User.PlatformId;
+            var buffs = ctx.Event.SenderCharacterEntity.ReadBuffer<BuffBuffer>();
+            foreach (var buff in buffs)
+            {
+                if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.Buff_InCombat.GuidHash)
+                {
+                    ctx.Reply("You cannot toggle combat mode during combat.");
+                    return;
+                }
+            }
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
+            {
+                Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
+                if (familiar.Equals(Entity.Null))
+                {
+                    ctx.Reply("Summon your familiar before toggling this.");
+                    return;
+                }
+                if (data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
+                {
+                    profile.Combat = !profile.Combat; // this will be false when first triggered
+                    FactionReference factionReference = familiar.Read<FactionReference>();
+                    Entity neutral = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[VCreate.Data.Prefabs.NeutralTeam];
+                    TeamReference team = familiar.Read<TeamReference>();
+                    team.Value._Value = neutral;
+                    familiar.Write(team);
+                    PrefabGUID ignored = new(-1430861195);
+                    PrefabGUID player = new(1106458752);
+                    if (!profile.Combat)
+                    {
+                        factionReference.FactionGuid._Value = ignored;
+                    }
+                    else
+                    {
+                        factionReference.FactionGuid._Value = player;
+                    }
+                    if (!familiar.Has<Immortal>())
+                    {
+                        Utilities.AddComponentData(familiar, new Immortal { IsImmortal = false });
+                    }
+
+                    familiar.Write(new Immortal { IsImmortal = !profile.Combat });
+
+                    familiar.Write(factionReference);
+                    if (!profile.Combat)
+                    {
+                        string disabledColor = VCreate.Core.Toolbox.FontColors.Pink("disabled");
+                        ctx.Reply($"Combat for familiar is {disabledColor}. It cannot die and won't participate, however, no experience will be gained.");
+                    }
+                    else
+                    {
+                        string enabledColor = VCreate.Core.Toolbox.FontColors.Green("enabled");
+                        ctx.Reply($"Combat for familiar is {enabledColor}. It will fight till glory or death and gain experience.");
+                    }
+                }
             }
             else
             {
-                ctx.Reply("You don't have an active familiar.");
+                ctx.Reply("You don't have any familiars.");
                 return;
             }
         }
@@ -145,6 +260,35 @@ namespace VCreate.Core.Commands
                 FamiliarEntity = familiar;
                 IsInStasis = isInStasis;
             }
+        }
+
+        public static Entity FindPlayerFamiliar(Entity characterEntity)
+        {
+            Dictionary<Entity, bool> keyValuePairs = [];
+            var followers = characterEntity.ReadBuffer<FollowerBuffer>();
+            foreach (var follower in followers)
+            {
+                //string entityString = follower.Entity._Entity.ToString();
+                keyValuePairs.Add(follower.Entity._Entity, false);
+                var buffs = follower.Entity._Entity.ReadBuffer<BuffBuffer>();
+                foreach (var buff in buffs)
+                {
+                    if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff.GuidHash)
+                    {
+                        keyValuePairs[follower.Entity._Entity] = true;
+                    }
+                }
+            }
+            foreach (var pair in keyValuePairs)
+            {
+                if (!pair.Value)
+                {
+                    // disable the familiar
+                    return pair.Key;
+                }
+            }
+
+            return Entity.Null;
         }
     }
 }

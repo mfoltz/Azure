@@ -29,8 +29,19 @@ namespace WorldBuild.Hooks
             {
                 if (IsCastleHeart(job))
                 {
-                    if (!WorldBuildToggle.WbFlag) return;
+                    if (!WorldBuildToggle.WbFlag) continue;
                     CancelCastleHeartPlacement(entityManager, job);
+                }
+                if (WorldBuildToggle.WbFlag)
+                {
+                    // tie to fake castle heart entity somehow
+                    if (job.Has<CastleHeartConnection>())
+                    {
+                        CastleHeartConnection castleHeartConnection = job.Read<CastleHeartConnection>();
+                        Entity testHeart = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[CastleHeartPrefabGUID];
+                        castleHeartConnection.CastleHeartEntity._Entity = testHeart;
+                        job.Write(castleHeartConnection);
+                    }
                 }
             }
             jobs.Dispose();
@@ -102,6 +113,7 @@ namespace WorldBuild.Hooks
             {
                 return (userEntity, _) =>
                 {
+                    // change this to add specified component to hovered entity
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Deprecated for now.");
                 };
             }
@@ -116,6 +128,7 @@ namespace WorldBuild.Hooks
             {
                 return (userEntity, _) =>
                 {
+                    // change this to remove specified component from hovered entity
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Deprecated for now.");
                 };
             }

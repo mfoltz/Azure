@@ -43,9 +43,9 @@ namespace VCreate.Hooks
                         Entity died = deathEvent.Died;
                         if (!died.Has<UnitLevel>()) continue; // if no level, continue
                         if (killer.Has<PlayerCharacter>()) DeathEventHandlers.HandlePlayerKill(killer, died);  // if player, handle token drop
-                        else if (killer.Has<Follower>() && killer.Has<FactionReference>())
+                        else if (killer.Has<Follower>())
                         {
-                            if (killer.Read<Follower>().Followed._Value.Has<PlayerCharacter>() && !killer.Read<FactionReference>().FactionGuid.Equals(VCreate.Data.Prefabs.Faction_Players)) DeathEventHandlers.HandlePetKill(killer, died); // if pet, handle pet experience
+                            if (killer.Read<Follower>().Followed._Value.Has<PlayerCharacter>()) DeathEventHandlers.HandlePetKill(killer, died); // if pet, handle pet experience
                         }
                     }
                 }
@@ -85,33 +85,46 @@ namespace VCreate.Hooks
                 {
                     // also shinies
                     Entity follower = enumerator.Current.Entity._Entity;
-                    // check for servantpower on follower, give exp to pet when found
-                    if (follower.Read<Team>().Value.Equals(killer.Read<Team>().Value) && DataStructures.PetExperience.TryGetValue(killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out PetExperience petExperience))
+                    if (follower.Read<Team>().Value.Equals(killer.Read<Team>().Value) && DataStructures.PlayerPetsMap.TryGetValue(killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var profiles))
                     {
+                        if (!profiles.TryGetValue(follower.Read<PrefabGUID>().GuidHash, out var profile) || !profile.Combat) continue;
                         UnitLevel unitLevel = died.Read<UnitLevel>();
-                        float baseExp = Math.Max(unitLevel.Level - petExperience.Level, 1);
+                        float baseExp = Math.Max(unitLevel.Level - profile.Level, 1);
 
-                        petExperience.CurrentExperience += (int)baseExp;
+                        profile.CurrentExperience += (int)baseExp;
 
-                        double toNext = 1.25 * Math.Pow(petExperience.Level, 3);
+                        double toNext = 1.25 * Math.Pow(profile.Level, 3);
 
-                        if (petExperience.CurrentExperience >= toNext && petExperience.Level < 80)
+                        if (profile.CurrentExperience >= toNext && profile.Level < 80)
                         {
-                            petExperience.CurrentExperience = 0;
-                            petExperience.Level++;
+                            profile.CurrentExperience = 0;
+                            profile.Level++;
 
-                            Plugin.Log.LogInfo("Pet level up! Setting unit level...");
-                            follower.Write<UnitLevel>(new UnitLevel { Level = petExperience.Level });
-                            UnitStatSet(follower);
-                            DataStructures.PetExperience[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = petExperience;
+                            Plugin.Log.LogInfo("Pet level up! Setting unit level and saving stats...");
+                            follower.Write<UnitLevel>(new UnitLevel { Level = profile.Level });
+                            UnitStatSet(follower); // need to review
+
+                            UnitStats unitStats = follower.Read<UnitStats>();
+                            Health health = follower.Read<Health>();
+                            float maxhealth = health.MaxHealth._Value;
+                            float passivehealthregen = unitStats.PassiveHealthRegen._Value;
+                            float attackspeed = unitStats.AttackSpeed._Value;
+                            float primaryattackspeed = unitStats.PrimaryAttackSpeed._Value;
+                            float physicalpower = unitStats.PhysicalPower._Value;
+                            float spellpower = unitStats.SpellPower._Value;
+                            profile.Stats.Clear();
+                            profile.Stats.AddRange([maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                            profiles[follower.Read<PrefabGUID>().GuidHash] = profile;
+                            DataStructures.PlayerPetsMap[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = profiles;
                             DataStructures.SavePetExperience();
                             break;
                         }
                         else
                         {
-                            Plugin.Log.LogInfo("Giving pet experience...");
+                            Plugin.Log.LogInfo("Giving pet experience... (this will accumulate past 80 but has no extra function yet)");
 
-                            DataStructures.PetExperience[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = petExperience;
+                            profiles[follower.Read<PrefabGUID>().GuidHash] = profile;
+                            DataStructures.PlayerPetsMap[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = profiles;
                             DataStructures.SavePetExperience();
                             break;
                         }
@@ -125,42 +138,48 @@ namespace VCreate.Hooks
                 Entity pet = killer;
                 Entity entity = killer.Read<Follower>().Followed._Value; // player
                 ulong platformId = entity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
-                if (DataStructures.PetExperience.TryGetValue(platformId, out PetExperience petExperience))
+                if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out var profiles))
                 {
+                    if (!profiles.TryGetValue(pet.Read<PrefabGUID>().GuidHash, out var profile)) return;
+                    if (!profile.Combat) return;
                     UnitLevel unitLevel = died.Read<UnitLevel>();
-                    float baseExp = Math.Max(unitLevel.Level - petExperience.Level, 1);
+                    float baseExp = Math.Max(unitLevel.Level - profile.Level, 1);
+                    // fix stat permanencesa
+                    profile.CurrentExperience += (int)baseExp;
 
-                    petExperience.CurrentExperience += (int)baseExp;
+                    double toNext = 1.25 * Math.Pow(profile.Level, 3);
 
-                    double toNext = 1.25 * Math.Pow(petExperience.Level, 3);
-
-                    if (petExperience.CurrentExperience >= toNext && petExperience.Level < 80)
+                    if (profile.CurrentExperience >= toNext && profile.Level < 80)
                     {
-                        petExperience.CurrentExperience = 0;
-                        petExperience.Level++;
+                        profile.CurrentExperience = 0;
+                        profile.Level++;
 
-                        Plugin.Log.LogInfo("Pet level up! Setting unit level/power...");
-                        pet.Write<UnitLevel>(new UnitLevel { Level = petExperience.Level });
-                        try
-                        {
-                            Utilities.AddComponentData(entity, new UnitLevel { Level = petExperience.Level });
-                        }
-                        catch (Exception e)
-                        {
-                            Plugin.Log.LogError(e);
-                        }
+                        Plugin.Log.LogInfo("Pet level up! Setting unit level/power and saving stats...");
+                        pet.Write<UnitLevel>(new UnitLevel { Level = profile.Level });
+                        
 
                         //UnitStats unitStats = pet.Read<UnitStats>();
                         UnitStatSet(pet);
 
-                        DataStructures.PetExperience[platformId] = petExperience;
+                        UnitStats unitStats = pet.Read<UnitStats>();
+                        Health health = pet.Read<Health>();
+                        float maxhealth = health.MaxHealth._Value;
+                        float passivehealthregen = unitStats.PassiveHealthRegen._Value;
+                        float attackspeed = unitStats.AttackSpeed._Value;
+                        float primaryattackspeed = unitStats.PrimaryAttackSpeed._Value;
+                        float physicalpower = unitStats.PhysicalPower._Value;
+                        float spellpower = unitStats.SpellPower._Value;
+                        profile.Stats.Clear();
+                        profile.Stats.AddRange([maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                        profiles[pet.Read<PrefabGUID>().GuidHash] = profile;
+                        DataStructures.PlayerPetsMap[platformId] = profiles;
                         DataStructures.SavePetExperience();
                     }
                     else
                     {
                         Plugin.Log.LogInfo("Giving pet experience...");
-
-                        DataStructures.PetExperience[platformId] = petExperience;
+                        profiles[pet.Read<PrefabGUID>().GuidHash] = profile;
+                        DataStructures.PlayerPetsMap[platformId] = profiles;
                         DataStructures.SavePetExperience();
                     }
                 }
@@ -175,32 +194,59 @@ namespace VCreate.Hooks
                 //Random random = new Random();
                 int randomIndex = UnitTokenSystem.Random.Next(FocusToStatMap.FocusStatMap.Count);
                 FocusToStatMap.StatType selectedStat = FocusToStatMap.FocusStatMap[randomIndex];
-
-                // Increase the selected stat by 5%. This assumes there's a way to modify the UnitStats component directly.
-                // Note: You might need to adjust how you access and modify the stats based on your actual implementation.
+                ulong playerId = entity.Read<Follower>().Followed._Value.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                if (DataStructures.PlayerPetsMap.TryGetValue(playerId, out var profiles))
+                {
+                    if (profiles.TryGetValue(entity.Read<PrefabGUID>().GuidHash, out var profile))
+                    {
+                        FocusToStatMap.StatType otherStat = FocusToStatMap.FocusStatMap[profile.Focus];
+                        switch (otherStat)
+                        {
+                            case FocusToStatMap.StatType.MaxHealth:
+                                health.MaxHealth._Value *= 1.10f;
+                                break;
+                            case FocusToStatMap.StatType.HealthRegen:
+                                unitStats.PassiveHealthRegen._Value *= 1.10f;
+                                break;
+                            case FocusToStatMap.StatType.AttackSpeed:
+                                unitStats.AttackSpeed._Value += 0.01f;
+                                break;
+                            case FocusToStatMap.StatType.PrimaryAttackSpeed:
+                                unitStats.PrimaryAttackSpeed.Value += 0.02f;
+                                break;
+                            case FocusToStatMap.StatType.PhysicalPower:
+                                unitStats.PhysicalPower._Value *= 1.05f;
+                                break;
+                            case FocusToStatMap.StatType.SpellPower:
+                                unitStats.SpellPower._Value *= 1.05f;
+                                break;
+                        }
+                    }
+                }
                 switch (selectedStat)
                 {
                     case FocusToStatMap.StatType.MaxHealth:
                         health.MaxHealth._Value *= 1.05f;
                         break;
                     case FocusToStatMap.StatType.HealthRegen:
-                        unitStats.PassiveHealthRegen._Value += 0.01f;
+                        unitStats.PassiveHealthRegen._Value *= 1.05f;
                         break;
                     case FocusToStatMap.StatType.AttackSpeed:
-                        unitStats.AttackSpeed._Value *= 1.05f;
+                        unitStats.AttackSpeed._Value += 0.01f;
                         break;
                     case FocusToStatMap.StatType.PrimaryAttackSpeed:
-                        unitStats.PrimaryAttackSpeed.Value *= 1.05f;
+                        unitStats.PrimaryAttackSpeed.Value += 0.02f;
                         break;
                     case FocusToStatMap.StatType.PhysicalPower:
-                        unitStats.PhysicalPower._Value *= 1.05f;
+                        unitStats.PhysicalPower._Value *= 1.10f;
                         break;
                     case FocusToStatMap.StatType.SpellPower:
-                        unitStats.SpellPower._Value *= 1.05f;
+                        unitStats.SpellPower._Value *= 1.10f;
                         break;
                 }
 
                 // Assuming entity.Write<UnitStats>(unitStats) is a way to save the modified UnitStats back to the entity.
+                entity.Write(health);
                 entity.Write(unitStats);
             }
 
@@ -240,7 +286,9 @@ namespace VCreate.Hooks
                 Plugin.Log.LogInfo("Handling token drop...");
                 PrefabGUID gem;
                 EntityCategory diedCategory = died.Read<EntityCategory>();
-
+                if (died.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse.GuidHash)) return;
+                
+                    
                 if ((int)diedCategory.UnitCategory < 5 && !died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
                     gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)diedCategory.UnitCategory]);
@@ -274,13 +322,15 @@ namespace VCreate.Hooks
                             {
                                 if (item.Item.PrefabGUID.Equals(gem))
                                 {
-                                    Plugin.Log.LogInfo("Trying item modification...");
+                                    //Plugin.Log.LogInfo("Trying item modification...");
                                     Entity testing = item.Item.Entity;
+                                    PrefabGUID tested = testing.Read<PrefabGUID>();
+                                    tested = died.Read<PrefabGUID>();
+                                    testing.Write(tested);
                                     ItemData itemData = testing.Read<ItemData>();
-                                    itemData.ItemTypeGUID = died.Read<PrefabGUID>();
                                     itemData.MaxAmount = 1;
                                     testing.Write(itemData);
-                                    Plugin.Log.LogInfo($"Item modified.{itemData.ItemTypeGUID.LookupName()} stored...");
+                                    Plugin.Log.LogInfo($"Created soul gem for {testing.Read<PrefabGUID>().LookupName()}");
                                 }
                             }
 
@@ -342,6 +392,7 @@ namespace VCreate.Hooks
                         var itemData = Utilities.GetComponentData<ItemData>(gemEntity);
                         itemData.RemoveOnConsume = false;
                         itemData.ItemCategory = ItemCategory.BloodBound;
+                        itemData.ItemType = ItemType.Memory;
                         //Consumable consumable = new();
                         //var conditionBuffer = entityManager.AddBuffer<ConsumableCondition>(gemEntity);
                         //var buffer = entityManager.GetBuffer<ConsumableCondition>(test_consumable);
@@ -349,9 +400,9 @@ namespace VCreate.Hooks
                         //{
                         //   conditionBuffer.Add(item);
                         //}
-                        CastAbilityOnConsume castAbilityOnConsume = new() { AbilityGuid = VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_Cast };
+                        //CastAbilityOnConsume castAbilityOnConsume = new() { AbilityGuid = VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_Cast };
                         //Utilities.AddComponentData(gemEntity, consumable);
-                        Utilities.AddComponentData(gemEntity, castAbilityOnConsume);
+                        //Utilities.AddComponentData(gemEntity, castAbilityOnConsume);
                         Utilities.SetComponentData(gemEntity, itemData);
                         Plugin.Log.LogInfo($"Modified {prefabGUID.LookupName()}");
                     }

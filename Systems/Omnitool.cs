@@ -1,7 +1,8 @@
-﻿namespace VCreate.Systems
-{
+﻿using VCreate.Hooks;
 
-    public struct PetExperience
+namespace VCreate.Systems
+{
+    public struct PetExperienceProfile
     {
         public int CurrentExperience { get; set; }
         public int Level { get; set; }
@@ -9,8 +10,14 @@
         public int Focus { get; set; }
 
         public bool Active { get; set; }
+
+        public bool Combat { get; set; }
+
+        public List<float> Stats { get; set; }
+
         // Add more fields as necessary
     }
+
     public class Omnitool
     {
         public readonly Dictionary<string, bool> modes = [];
@@ -28,7 +35,7 @@
             // Initialize default values for settings
             SetMode("InspectToggle", false); // lists buffs, name and prefab of hovered unit. also outputs components to server log
             SetMode("SnappingToggle", false); // toggles snapping to grid for spawned structures
-            SetMode("ImmortalToggle", false); // toggles immortality for spawned structures 
+            SetMode("ImmortalToggle", false); // toggles immortality for spawned structures
             SetMode("MapIconToggle", false); // toggles map icon for spawned structures
             SetMode("DestroyToggle", false); // toggles DestroyMode (destroy unit, won't work on vampires)
             SetMode("CopyToggle", false); // toggles CopyMode, spawns last unit inspected/set as charmed (need to add check for vampire horses as those will crash server)

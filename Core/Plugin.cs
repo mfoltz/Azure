@@ -117,14 +117,14 @@ namespace VCreate.Core
             Plugin.Logger.LogWarning($"PetData found: {json}");
             try
             {
-                var settings = JsonSerializer.Deserialize<Dictionary<ulong, PetExperience>>(json);
-                VCreate.Core.DataStructures.PetExperience = settings ?? [];
+                var settings = JsonSerializer.Deserialize<Dictionary<ulong, Dictionary<int,PetExperienceProfile>>>(json);
+                VCreate.Core.DataStructures.PlayerPetsMap = settings ?? [];
                 Plugin.Logger.LogWarning("PetData Populated");
             }
             catch (Exception ex)
             {
                 Plugin.Logger.LogInfo($"No data to deserialize yet: {ex}");
-                VCreate.Core.DataStructures.PetExperience = [];
+                VCreate.Core.DataStructures.PlayerPetsMap = [];
                 Plugin.Logger.LogWarning("PetData Created");
             }
         }

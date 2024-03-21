@@ -9,6 +9,7 @@ using ProjectM.Network;
 using ProjectM.Pathfinding;
 using ProjectM.Scripting;
 using Stunlock.Sequencer.SequencerPrefab;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -215,6 +216,8 @@ namespace VCreate.Systems
         {
             Team userTeam = userEntity.Read<Team>();
             TeamReference teamReference = userEntity.Read<TeamReference>();
+            FactionReference factionReference = userEntity.Read<FactionReference>();
+
             Entity character = userEntity.Read<User>().LocalCharacter._Entity;
 
             Utilities.SetComponentData(familiar, new Team { Value = userTeam.Value, FactionIndex = userTeam.FactionIndex });
@@ -224,25 +227,87 @@ namespace VCreate.Systems
             follower.Followed = modifiableEntity;
             Utilities.SetComponentData(familiar, follower);
             Utilities.SetComponentData(familiar, teamReference);
+            familiar.Write(factionReference);
+
+            AggroConsumer aggroConsumer = familiar.Read<AggroConsumer>();
+            aggroConsumer.ProximityRadius = 15f;
+            aggroConsumer.MaxDistanceFromPreCombatPosition = 70f;
+            aggroConsumer.RemoveDelay = 8f;
+            familiar.Write(aggroConsumer);
+
+            DynamicCollision dynamicCollision = familiar.Read<DynamicCollision>();
+            dynamicCollision.AgainstPlayers.RadiusOverride = -1f;
+            dynamicCollision.AgainstUnits.RadiusOverride = 0.4f;
+            familiar.Write(dynamicCollision);
+
+            //GenericCombatMovementData genericCombatMovementData = familiar.Read<GenericCombatMovementData>();
+
+            //familiar.Write(genericCombatMovementData);
         }
 
         public static void SecondPhase(Entity userEntity, Entity familiar)
         {
             familiar.Write<UnitLevel>(new UnitLevel { Level = 0 });
             UnitStats unitStats = familiar.Read<UnitStats>();
-
-            unitStats.PhysicalPower._Value = 10f;
-            unitStats.SpellPower._Value = 10f;
-            unitStats.PassiveHealthRegen._Value = 0.01f;
+            // set initial stats
+            unitStats.PhysicalPower._Value *= 0.1f; // Sets PhysicalPower to 10% of its original value
+            unitStats.SpellPower._Value *= 0.1f; // Sets SpellPower to 10% of its original value
+            unitStats.PassiveHealthRegen._Value = 0.005f; // Sets PassiveHealthRegen to 1% since nothing seems to have any naturally
+            if (familiar.Has<DynamicallyWeakenAttackers>())
+            {
+                familiar.Remove<DynamicallyWeakenAttackers>();
+            }
             familiar.Write(unitStats);
-            PetExperience petExperience = new()
+            PetExperienceProfile petExperience = new()
             {
-                Active = true
+                CurrentExperience = 0,
+                Level = 0,
+                Focus = 0,
+                Active = true,
+                Combat = true,
+                Stats = []
             };
-            if (!DataStructures.PetExperience.ContainsKey(userEntity.Read<User>().PlatformId))
+            if (!DataStructures.PlayerPetsMap.ContainsKey(userEntity.Read<User>().PlatformId))
             {
-                DataStructures.PetExperience.Add(userEntity.Read<User>().PlatformId, petExperience);
+                Dictionary<int, PetExperienceProfile> petExperienceProfiles = [];
+                petExperienceProfiles[familiar.Read<PrefabGUID>().GuidHash] = petExperience;
+                DataStructures.PlayerPetsMap.Add(userEntity.Read<User>().PlatformId, petExperienceProfiles);
                 DataStructures.SavePetExperience();
+            }
+            else
+            {
+                // if structure already present, add pet here, if pet profile not created, then do that
+                DataStructures.PlayerPetsMap.TryGetValue(userEntity.Read<User>().PlatformId, out Dictionary<int, PetExperienceProfile> data);
+                if (!data.ContainsKey(familiar.Read<PrefabGUID>().GuidHash))
+                {
+                    data[familiar.Read<PrefabGUID>().GuidHash] = petExperience;
+                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
+                    DataStructures.SavePetExperience();
+                }
+                else
+                {
+                    // only one profile per prefab, need to find way to store pet stats and load again for bind/unbind
+                    data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile);
+                    profile.Active = true;
+                    UnitStats stats = familiar.Read<UnitStats>();
+                    UnitLevel level = familiar.Read<UnitLevel>();
+                    Health health = familiar.Read<Health>();
+                    health.MaxHealth._Value = profile.Stats[0];
+                    stats.PassiveHealthRegen._Value = profile.Stats[1];
+                    stats.AttackSpeed._Value = profile.Stats[2];
+                    stats.PrimaryAttackSpeed._Value = profile.Stats[3];
+                    stats.PhysicalPower._Value = profile.Stats[4];
+                    stats.SpellPower._Value = profile.Stats[5];
+                    level.Level = profile.Level;
+                    familiar.Write(stats);
+                    familiar.Write(health);
+                    familiar.Write(level);
+
+                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
+                    DataStructures.SavePetExperience();
+                    // load/set pet stat method here
+                }
             }
         }
 
@@ -262,18 +327,14 @@ namespace VCreate.Systems
 
             UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(userEntity.Read<User>().PlatformId);
             var items = userModel.Inventory.Items;
-            var enumerator = items.GetEnumerator();
-
-            while (enumerator.MoveNext())
+            foreach (var item in items)
             {
-                Entity itemEnt = enumerator.Current.Item.Entity;
-                if (!itemEnt.Has<CastAbilityOnConsume>()) continue;
-
+                Entity itemEnt = item.Item.Entity;
                 ItemData itemData = itemEnt.Read<ItemData>();
-                if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound)) continue;
-                PrefabGUID prefab = new(itemData.ItemTypeGUID.GuidHash);
+                if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound) || !itemData.ItemType.Equals(ItemType.Memory)) continue;
+                PrefabGUID prefab = itemEnt.Read<PrefabGUID>();
                 if (!prefab.LookupName().ToLower().Contains("char")) continue;
-                Plugin.Log.LogInfo("Found familiar...");
+                Plugin.Log.LogInfo("Found valid soulgem...");
                 var debugEvent = new SpawnCharmeableDebugEvent
                 {
                     PrefabGuid = prefab,
@@ -284,10 +345,6 @@ namespace VCreate.Systems
                 debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
                 break;
             }
-
-            //PrefabGUID prefab = new(data.GetData("Unit"));
-
-            //ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawned last unit inspected/set as charmed.");
         }
 
         public static unsafe void SpawnCopy(Entity userEntity)
@@ -344,7 +401,12 @@ namespace VCreate.Systems
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Unable to locate build settings.");
                 return;
             }
-
+            PrefabGUID prefabGUID = new(data.GetData("Tile"));
+            if (prefabGUID.GuidHash == VCreate.Data.Prefabs.TM_BloodFountain_Pylon_Station.GuidHash)
+            {
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, "Spawning castle hearts will crash the server, change your tile model first.");
+                return;
+            }
             HandleBuild(data, aimPosition, userEntity, user);
         }
 

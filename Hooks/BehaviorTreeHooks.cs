@@ -38,7 +38,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
 
                 if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Return)
                 {
-                    // Plugin.Log.LogInfo($"{entity.Read<BehaviourTreeState>().Value.ToString()}");
+                    // want to somewhat reset familiar state here for any that have weird phases after some amount of time in combat
                     BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                     behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
                     entity.Write(behaviourTreeStateChangedEvent);
@@ -46,7 +46,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Follow)
                 {
                     var distance = UnityEngine.Vector3.Distance(entity.Read<LocalToWorld>().Position, entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position);
-                    if (distance < 5f)
+                    if (distance < 2.5f)
                     {
                         BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                         behaviourTreeStateChangedEvent.Value = GenericEnemyState.Idle;
