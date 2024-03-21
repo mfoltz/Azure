@@ -59,10 +59,7 @@ namespace VPlus.Hooks
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Welcome back! Your {redV}Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(currentPlayerDivineData.VTokens.ToString())}");
                 }
             }
-            if (!CastleHeartConnectionToggle.HeartFlag)
-            {
-                CastleHeartConnectionToggle.ToggleCastleHeartConnection(user);
-            }
+            
 
         }
 
@@ -98,26 +95,5 @@ namespace VPlus.Hooks
         }
     }
 
-    public class CastleHeartConnectionToggle
-    {
-        private static bool castleHeartConnectionRequirementFlag = false;
-
-        public static bool HeartFlag => castleHeartConnectionRequirementFlag;
-        
-        private static SetDebugSettingEvent CastleHeartConnectionDebugSetting = new()
-        {
-            SettingType = (DebugSettingType)27,
-            Value = false
-        };
-
-        public static void ToggleCastleHeartConnection(User user)
-        {
-            castleHeartConnectionRequirementFlag = true;
-            DebugEventsSystem existingSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-
-            CastleHeartConnectionDebugSetting.Value = castleHeartConnectionRequirementFlag;
-            existingSystem.SetDebugSetting(user.Index, ref CastleHeartConnectionDebugSetting);
-            
-        }
-    }
+    
 }
