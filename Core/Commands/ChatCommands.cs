@@ -54,7 +54,7 @@ namespace VPlus.Core.Commands
                 int cost = reward * Plugin.RewardFactor;
 
                 // Subtract the cost from the player's VPoints
-                PrefabGUID prefabGUID = new PrefabGUID(Plugin.VTokensItemPrefab);
+                PrefabGUID prefabGUID = new(Plugin.VTokensItemPrefab);
                 bool success = Helper.AddItemToInventory(characterEntity, prefabGUID, reward, out Entity entity);
                 if (!success)
                 {

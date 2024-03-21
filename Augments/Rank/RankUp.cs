@@ -15,7 +15,7 @@ namespace VPlus.Augments.Rank
     {
         public int Rank { get; set; }
         public int Points { get; set; }
-        public List<int> Buffs { get; set; } = new List<int>();
+        public List<int> Buffs { get; set; } = [];
 
         public DateTime LastAbilityUse { get; set; }
 
@@ -199,7 +199,7 @@ namespace VPlus.Augments.Rank
             }
         }
 
-        [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs <#>", description: "Sets class spell to shift.")]
+        [Command(name: "chooseSpell", shortHand: "cs", adminOnly: false, usage: ".cs [#]", description: "Sets class spell to shift.")]
         public static void SpellChoice(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -207,6 +207,11 @@ namespace VPlus.Augments.Rank
 
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
             {
+                if (DateTime.UtcNow - rankData.LastAbilityUse < TimeSpan.FromSeconds(30))
+                {
+                    ctx.Reply("You must wait before changing abilities.");
+                    return;
+                }
                 var classInstance = ClassFactory.CreateClassInstance(rankData.ClassChoice);
                 if (classInstance is Nightmarshal nightmarshal)
                 {
@@ -214,8 +219,10 @@ namespace VPlus.Augments.Rank
                     {
                         // Logic to apply the spell
                         rankData.RankSpell = spellConstructor.SpellGUID;
+                        rankData.LastAbilityUse = DateTime.UtcNow;
                         ChatCommands.SavePlayerRanks();
                         ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
+                        
                     }
                     else
                     {
@@ -228,6 +235,7 @@ namespace VPlus.Augments.Rank
                     {
                         // Logic to apply the spell
                         rankData.RankSpell = spellConstructor.SpellGUID;
+                        rankData.LastAbilityUse = DateTime.UtcNow;
                         ChatCommands.SavePlayerRanks();
                         ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
                     }
@@ -243,6 +251,7 @@ namespace VPlus.Augments.Rank
                     {
                         // Logic to apply the spell
                         rankData.RankSpell = spellConstructor.SpellGUID;
+                        rankData.LastAbilityUse = DateTime.UtcNow;
                         ChatCommands.SavePlayerRanks();
                         ctx.Reply($"Rank spell set to {spellConstructor.Name}.");
                     }
@@ -269,7 +278,7 @@ namespace VPlus.Augments.Rank
 
         
 
-        [Command(name: "chooseClass", shortHand: "cc", adminOnly: true, usage: ".cc <className>", description: "Sets class to use spells from.")]
+        [Command(name: "chooseClass", shortHand: "cc", adminOnly: true, usage: ".cc [class]", description: "Sets class to use spells from.")]
         public static void ChooseClass(ChatCommandContext ctx, string className)
         {
             string nameClass = className.ToLower();
