@@ -35,13 +35,12 @@ namespace WorldBuild.Hooks
                 if (WorldBuildToggle.WbFlag)
                 {
                     // tie to fake castle heart entity somehow
-                    if (job.Has<CastleHeartConnection>())
+                    
+                    CastleHeartConnection castleHeartConnection = new CastleHeartConnection
                     {
-                        CastleHeartConnection castleHeartConnection = job.Read<CastleHeartConnection>();
-                        Entity testHeart = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[CastleHeartPrefabGUID];
-                        castleHeartConnection.CastleHeartEntity._Entity = testHeart;
-                        job.Write(castleHeartConnection);
-                    }
+                        CastleHeartEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[CastleHeartPrefabGUID]
+                    };
+                    Utilities.AddComponentData(job, castleHeartConnection);
                 }
             }
             jobs.Dispose();

@@ -107,13 +107,12 @@ namespace VCreate.Hooks
                             UnitStats unitStats = follower.Read<UnitStats>();
                             Health health = follower.Read<Health>();
                             float maxhealth = health.MaxHealth._Value;
-                            float passivehealthregen = unitStats.PassiveHealthRegen._Value;
                             float attackspeed = unitStats.AttackSpeed._Value;
                             float primaryattackspeed = unitStats.PrimaryAttackSpeed._Value;
                             float physicalpower = unitStats.PhysicalPower._Value;
                             float spellpower = unitStats.SpellPower._Value;
                             profile.Stats.Clear();
-                            profile.Stats.AddRange([maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                            profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
                             profiles[follower.Read<PrefabGUID>().GuidHash] = profile;
                             DataStructures.PlayerPetsMap[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = profiles;
                             DataStructures.SavePetExperience();
@@ -164,13 +163,12 @@ namespace VCreate.Hooks
                         UnitStats unitStats = pet.Read<UnitStats>();
                         Health health = pet.Read<Health>();
                         float maxhealth = health.MaxHealth._Value;
-                        float passivehealthregen = unitStats.PassiveHealthRegen._Value;
                         float attackspeed = unitStats.AttackSpeed._Value;
                         float primaryattackspeed = unitStats.PrimaryAttackSpeed._Value;
                         float physicalpower = unitStats.PhysicalPower._Value;
                         float spellpower = unitStats.SpellPower._Value;
                         profile.Stats.Clear();
-                        profile.Stats.AddRange([maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                        profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
                         profiles[pet.Read<PrefabGUID>().GuidHash] = profile;
                         DataStructures.PlayerPetsMap[platformId] = profiles;
                         DataStructures.SavePetExperience();
@@ -203,11 +201,9 @@ namespace VCreate.Hooks
                         switch (otherStat)
                         {
                             case FocusToStatMap.StatType.MaxHealth:
-                                health.MaxHealth._Value *= 1.10f;
+                                health.MaxHealth._Value += health.MaxHealth._Value*0.05f;
                                 break;
-                            case FocusToStatMap.StatType.HealthRegen:
-                                unitStats.PassiveHealthRegen._Value *= 1.10f;
-                                break;
+                            
                             case FocusToStatMap.StatType.AttackSpeed:
                                 unitStats.AttackSpeed._Value += 0.01f;
                                 break;
@@ -215,10 +211,10 @@ namespace VCreate.Hooks
                                 unitStats.PrimaryAttackSpeed.Value += 0.02f;
                                 break;
                             case FocusToStatMap.StatType.PhysicalPower:
-                                unitStats.PhysicalPower._Value *= 1.05f;
+                                unitStats.PhysicalPower._Value += 2.5f;
                                 break;
                             case FocusToStatMap.StatType.SpellPower:
-                                unitStats.SpellPower._Value *= 1.05f;
+                                unitStats.SpellPower._Value += 2.5f;
                                 break;
                         }
                     }
@@ -226,11 +222,9 @@ namespace VCreate.Hooks
                 switch (selectedStat)
                 {
                     case FocusToStatMap.StatType.MaxHealth:
-                        health.MaxHealth._Value *= 1.05f;
+                        health.MaxHealth._Value += health.MaxHealth._Value*0.05f;
                         break;
-                    case FocusToStatMap.StatType.HealthRegen:
-                        unitStats.PassiveHealthRegen._Value *= 1.05f;
-                        break;
+                
                     case FocusToStatMap.StatType.AttackSpeed:
                         unitStats.AttackSpeed._Value += 0.01f;
                         break;
@@ -238,10 +232,10 @@ namespace VCreate.Hooks
                         unitStats.PrimaryAttackSpeed.Value += 0.02f;
                         break;
                     case FocusToStatMap.StatType.PhysicalPower:
-                        unitStats.PhysicalPower._Value *= 1.10f;
+                        unitStats.PhysicalPower._Value += 1f;
                         break;
                     case FocusToStatMap.StatType.SpellPower:
-                        unitStats.SpellPower._Value *= 1.10f;
+                        unitStats.SpellPower._Value += 1f;
                         break;
                 }
 
@@ -421,7 +415,6 @@ namespace VCreate.Hooks
                 public enum StatType
                 {
                     MaxHealth,
-                    HealthRegen,
                     AttackSpeed,
                     PrimaryAttackSpeed,
                     PhysicalPower,
@@ -431,11 +424,10 @@ namespace VCreate.Hooks
                 public static readonly Dictionary<int, StatType> FocusStatMap = new()
                 {
                     { 0, StatType.MaxHealth },
-                    { 1, StatType.HealthRegen },
-                    { 2, StatType.AttackSpeed },
-                    { 3, StatType.PrimaryAttackSpeed },
-                    { 4, StatType.PhysicalPower },
-                    { 5, StatType.SpellPower }
+                    { 1, StatType.AttackSpeed },
+                    { 2, StatType.PrimaryAttackSpeed },
+                    { 3, StatType.PhysicalPower },
+                    { 4, StatType.SpellPower }
                     
                 };
             }

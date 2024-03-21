@@ -35,7 +35,6 @@ public static class FollowerSystemPatchV2
                 {
                     if (buff.PrefabGuid.GuidHash.Equals(charm.GuidHash) && !processed.Contains(entity))
                     {
-                        
                         Follower follower = entity.Read<Follower>();
                         Entity followed = follower.Followed._Value;
                         if (!followed.Has<PlayerCharacter>()) continue;
@@ -45,8 +44,9 @@ public static class FollowerSystemPatchV2
                         // need to determine way to filter better here
                         Plugin.Log.LogInfo("Found familiar, removing charm and binding...");
                         BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
+
                         OnHover.ConvertCharacter(userEntity, entity);
-                        
+                        processed.Add(entity);
                     }
                 }
             }

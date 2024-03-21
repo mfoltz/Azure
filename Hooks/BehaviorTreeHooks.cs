@@ -46,7 +46,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Follow)
                 {
                     var distance = UnityEngine.Vector3.Distance(entity.Read<LocalToWorld>().Position, entity.Read<Follower>().Followed._Value.Read<LocalToWorld>().Position);
-                    if (distance < 2.5f)
+                    if (distance < 1f)
                     {
                         BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                         behaviourTreeStateChangedEvent.Value = GenericEnemyState.Idle;

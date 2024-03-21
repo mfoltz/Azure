@@ -216,7 +216,7 @@ namespace VCreate.Systems
         {
             Team userTeam = userEntity.Read<Team>();
             TeamReference teamReference = userEntity.Read<TeamReference>();
-            FactionReference factionReference = userEntity.Read<FactionReference>();
+            //FactionReference factionReference = userEntity.Read<FactionReference>();
 
             Entity character = userEntity.Read<User>().LocalCharacter._Entity;
 
@@ -225,13 +225,15 @@ namespace VCreate.Systems
             ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(character);
             Follower follower = familiar.Read<Follower>();
             follower.Followed = modifiableEntity;
+         
             Utilities.SetComponentData(familiar, follower);
             Utilities.SetComponentData(familiar, teamReference);
-            familiar.Write(factionReference);
+            ModifiablePrefabGUID modifiablePrefabGUID = ModifiablePrefabGUID.CreateFixed(VCreate.Data.Prefabs.Faction_Players);
+            Utilities.AddComponentData(familiar, new FactionReference { FactionGuid = modifiablePrefabGUID });
 
             AggroConsumer aggroConsumer = familiar.Read<AggroConsumer>();
             aggroConsumer.ProximityRadius = 15f;
-            aggroConsumer.MaxDistanceFromPreCombatPosition = 70f;
+            aggroConsumer.MaxDistanceFromPreCombatPosition = 35f;
             aggroConsumer.RemoveDelay = 8f;
             familiar.Write(aggroConsumer);
 
@@ -250,13 +252,12 @@ namespace VCreate.Systems
             familiar.Write<UnitLevel>(new UnitLevel { Level = 0 });
             UnitStats unitStats = familiar.Read<UnitStats>();
             // set initial stats
-            unitStats.PhysicalPower._Value *= 0.1f; // Sets PhysicalPower to 10% of its original value
-            unitStats.SpellPower._Value *= 0.1f; // Sets SpellPower to 10% of its original value
-            unitStats.PassiveHealthRegen._Value = 0.005f; // Sets PassiveHealthRegen to 1% since nothing seems to have any naturally
-            if (familiar.Has<DynamicallyWeakenAttackers>())
-            {
-                familiar.Remove<DynamicallyWeakenAttackers>();
-            }
+            Health healthUnit = familiar.Read<Health>();
+            healthUnit.MaxHealth._Value = 1000;
+            healthUnit.Value = 1000;
+            unitStats.PhysicalPower._Value = 10f; // 
+            unitStats.SpellPower._Value = 10f; // 
+          
             familiar.Write(unitStats);
             PetExperienceProfile petExperience = new()
             {
@@ -293,11 +294,11 @@ namespace VCreate.Systems
                     UnitLevel level = familiar.Read<UnitLevel>();
                     Health health = familiar.Read<Health>();
                     health.MaxHealth._Value = profile.Stats[0];
-                    stats.PassiveHealthRegen._Value = profile.Stats[1];
-                    stats.AttackSpeed._Value = profile.Stats[2];
-                    stats.PrimaryAttackSpeed._Value = profile.Stats[3];
-                    stats.PhysicalPower._Value = profile.Stats[4];
-                    stats.SpellPower._Value = profile.Stats[5];
+                    health.Value = profile.Stats[0];
+                    stats.AttackSpeed._Value = profile.Stats[1];
+                    stats.PrimaryAttackSpeed._Value = profile.Stats[2];
+                    stats.PhysicalPower._Value = profile.Stats[3];
+                    stats.SpellPower._Value = profile.Stats[4];
                     level.Level = profile.Level;
                     familiar.Write(stats);
                     familiar.Write(health);
@@ -330,6 +331,7 @@ namespace VCreate.Systems
             foreach (var item in items)
             {
                 Entity itemEnt = item.Item.Entity;
+                if (itemEnt == Entity.Null) continue;
                 ItemData itemData = itemEnt.Read<ItemData>();
                 if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound) || !itemData.ItemType.Equals(ItemType.Memory)) continue;
                 PrefabGUID prefab = itemEnt.Read<PrefabGUID>();

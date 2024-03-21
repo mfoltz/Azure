@@ -63,15 +63,13 @@ namespace VCreate.Core.Commands
                 {
                     UnitStats stats = familiar.Read<UnitStats>();
                     Health health = familiar.Read<Health>();
-                    // maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower. 
                     float maxhealth = health.MaxHealth._Value;
-                    float passivehealthregen = stats.PassiveHealthRegen._Value;
                     float attackspeed = stats.AttackSpeed._Value;
                     float primaryattackspeed = stats.PrimaryAttackSpeed._Value;
                     float physicalpower = stats.PhysicalPower._Value;
                     float spellpower = stats.SpellPower._Value;
                     profile.Stats.Clear();
-                    profile.Stats.AddRange([maxhealth, passivehealthregen, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                    profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
                     profile.Active = false;
                     data[familiar.Read<PrefabGUID>().GuidHash] = profile;
                     DataStructures.SavePetExperience();
@@ -88,7 +86,9 @@ namespace VCreate.Core.Commands
                             // remember if code gets here it means familiar also not in stasis so probably has been lost, unbind it
                             data.TryGetValue(key, out PetExperienceProfile dataprofile);
                             dataprofile.Active = false;
-
+                            data[key] = dataprofile;
+                            DataStructures.PlayerPetsMap[platformId] = data;
+                            DataStructures.SavePetExperience();
                             ctx.Reply("Unable to locate familiar and not in stasis, assuming dead and unbinding.");
                         }
                     }
@@ -209,6 +209,8 @@ namespace VCreate.Core.Commands
                 {
                     profile.Combat = !profile.Combat; // this will be false when first triggered
                     FactionReference factionReference = familiar.Read<FactionReference>();
+                    AggroConsumer aggroConsumer = familiar.Read<AggroConsumer>();
+                    aggroConsumer.Active._Value = profile.Combat;
                     Entity neutral = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[VCreate.Data.Prefabs.NeutralTeam];
                     TeamReference team = familiar.Read<TeamReference>();
                     team.Value._Value = neutral;
@@ -231,6 +233,9 @@ namespace VCreate.Core.Commands
                     familiar.Write(new Immortal { IsImmortal = !profile.Combat });
 
                     familiar.Write(factionReference);
+                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+                    DataStructures.PlayerPetsMap[platformId] = data;
+                    DataStructures.SavePetExperience();
                     if (!profile.Combat)
                     {
                         string disabledColor = VCreate.Core.Toolbox.FontColors.Pink("disabled");
