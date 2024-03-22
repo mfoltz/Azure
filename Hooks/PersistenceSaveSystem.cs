@@ -70,7 +70,6 @@ namespace VPlus.Hooks
         private static int timer = 0; //in minutes
         private static bool isRunning = false;
         private static Entity infinite = Entity.Null;
-        private static Entity zone = Entity.Null;
         private static int otherTimer = 0;
 
         public static void RunMethods()
@@ -88,15 +87,26 @@ namespace VPlus.Hooks
                 try
                 {
                     EntityManager entityManager = VWorld.Server.EntityManager;
-                    float3 center = new(-1001, 0, -514);
-                    Entity node = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage0_Resource];
-                    
-                    
+                    float3 center = new(-999, 0, -514);
+                    Entity node = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
+                    Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
+                    Health health = node.Read<Health>();
+                    health.MaxHealth._Value = 50000f;
+                    health.Value = 50000f;
                     
                     
                     node.Write<Translation>(new Translation { Value = center });
-                    
-                    
+                    RadialDamageDebuff debuff = new RadialDamageDebuff
+                    {
+                        InnerDamagePerSecond = 15f,
+                        OuterDamagePerSecond = 15f,
+                        InnerRadius = 5f,
+                        OuterRadius = 20f,
+                        DamageIncrements = 15f,
+                        DamageSum = 15f,
+                        DamageType = MainDamageType.RadialHoly
+                    };
+                    Utilities.AddComponentData(node, debuff);
                     
                     if (!node.Has<AttachMapIconsToEntity>())
                     {
@@ -111,10 +121,6 @@ namespace VPlus.Hooks
                     Entity nodeEntity  = entityManager.Instantiate(node);
                     Plugin.Logger.LogInfo("Created and set node...");
                     infinite = nodeEntity;
-                    Entity zonePrefab = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
-                    Entity holy = entityManager.Instantiate(zonePrefab);
-                    zone = holy;
-                    holy.Write(new Translation { Value = center });
                     string red = VPlus.Core.Toolbox.FontColors.Red("Warning");
                     string message = $"{red}: intense holy radiation detected at the colosseum. The Church must be hiding something!";
                     ServerChatUtils.SendSystemMessageToAllClients(ecb, message);
@@ -134,16 +140,16 @@ namespace VPlus.Hooks
 
                     try
                     {
-                        if (zone.Has<RadialDamageDebuff>())
+                        if (infinite.Has<RadialDamageDebuff>())
                         {
-                            RadialDamageDebuff debuff = zone.Read<RadialDamageDebuff>();
+                            RadialDamageDebuff debuff = infinite.Read<RadialDamageDebuff>();
                             debuff.InnerDamagePerSecond += 15f;
                             debuff.OuterDamagePerSecond += 15f;
                             debuff.InnerRadius += 5f;
                             debuff.OuterRadius += 5f;
 
-                            
-                            zone.Write(debuff);
+
+                            infinite.Write(debuff);
                         }
                         else
                         {
@@ -185,15 +191,7 @@ namespace VPlus.Hooks
         public static void CleanUp()
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
-            if (entityManager.Exists(zone))
-            {
-
-                SystemPatchUtil.Destroy(zone);
-            }
-            else
-            {
-                Plugin.Logger.LogInfo("Failed to destroy zone.");
-            }
+            
             
             if (entityManager.Exists(infinite))
             {
