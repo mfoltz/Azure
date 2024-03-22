@@ -343,6 +343,7 @@ namespace VCreate.Systems
             {
                 Entity itemEnt = item.Item.Entity;
                 if (itemEnt == Entity.Null) continue;
+                if (!itemEnt.Has<NameableInteractable>()) continue;
                 NameableInteractable nameableInteractable = itemEnt.Read<NameableInteractable>();
                 Plugin.Log.LogInfo(nameableInteractable.Name.ToString());
                 PrefabGUID prefab = new(int.Parse(nameableInteractable.Name.ToString()));

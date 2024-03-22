@@ -68,6 +68,7 @@ public static class FollowerSystemPatchV2
                         foreach (var item in items)
                         {
                             if (item.Item.Entity.Equals(Entity.Null)) continue;
+                            if (!item.Item.Entity.Has<NameableInteractable>()) continue;
                             Plugin.Log.LogInfo(item.Item.Entity.Read<NameableInteractable>().Name.ToString());
                             PrefabGUID other = new(int.Parse(item.Item.Entity.Read<NameableInteractable>().Name.ToString()));
                             Plugin.Log.LogInfo(other);

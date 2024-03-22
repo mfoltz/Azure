@@ -316,7 +316,6 @@ namespace VCreate.Hooks
                         UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
                         if (Helper.AddItemToInventory(userModel.FromCharacter.Character, stone, 1, out Entity test, false))
                         {
-                            var testing = test.Read<NameableInteractable>();
                             //Plugin.Log.LogInfo("Item entity is null... (going once)");
                             var items = userModel.Inventory.Items;
                             foreach (var item in items)
@@ -333,7 +332,7 @@ namespace VCreate.Hooks
                                     Utilities.AddComponentData(item.Item.Entity, nameableInteractable);
                                     Plugin.Log.LogInfo($"NameableInteractable: {nameableInteractable.Name.ToString()}");
 
-                                    Plugin.Log.LogInfo($"Created soul gem for {item.Item.Entity.Read<NameableInteractable>().Name.ToString()}");
+                                    Plugin.Log.LogInfo($"Created soul stone for {item.Item.Entity.Read<NameableInteractable>().Name.ToString()}");
                                 }
                             }
 
