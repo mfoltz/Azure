@@ -70,21 +70,41 @@ namespace WorldBuild.Hooks
                                     if (userOwner.Owner._Entity.Has<User>())
                                     {
                                         User user = userOwner.Owner._Entity.Read<User>();
-                                        UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(user.PlatformId);
-                                        if (userModel.Internals.CastleHeartConnection.HasValue)
+                                        EntityQuery heartQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
                                         {
-                                            CastleHeartConnection castleHeartConnection = userModel.Internals.CastleHeartConnection.Value;
-                                            Entity newHeart = castleHeartConnection.CastleHeartEntity._Entity;
-                                            CastleHeartConnection castleHeartConnectionEntity = entity.Read<CastleHeartConnection>();
-                                            castleHeartConnectionEntity.CastleHeartEntity._Entity = newHeart;
-                                            entity.Write(castleHeartConnectionEntity);
-                                            Plugin.Log.LogInfo("Replaced null heart. Maybe.");
-                                        }
-                                        else
+                                            All = new ComponentType[]
+                                            {
+                                                ComponentType.ReadOnly<PrefabGUID>(),
+                                                ComponentType.ReadOnly<CastleHeart>(),
+                                                ComponentType.ReadOnly<CastleHeartConnection>(),
+                                            },
+                                            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                                        });
+                                        NativeArray<Entity> heartEntities = heartQuery.ToEntityArray(Allocator.Temp);
+                                        try
                                         {
-                                            Plugin.Log.LogInfo("No valid heart connection found.");
+                                            foreach (var heartEntity in heartEntities)
+                                            {
+                                                if (heartEntity.Read<PrefabGUID>().GuidHash.Equals(CastleHeartPrefabGUID.GuidHash))
+                                                {
+                                                    if (!heartEntity.Read<UserOwner>().Equals(userOwner))
+                                                    {
+                                                        Plugin.Log.LogInfo("Heart doesn't match owner, skipping...");
+                                                        continue;
+                                                    }
+                                                    Plugin.Log.LogInfo("Valid heart found..");
+                                                    Entity transplantHeart = heartEntity.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
+                                                    CastleHeartConnection heartConnection = entity.Read<CastleHeartConnection>();
+                                                    heartConnection.CastleHeartEntity._Entity = transplantHeart;
+                                                    entity.Write(heartConnection);
+                                                    Plugin.Log.LogInfo("Cloned heart entity to missing connection.");
+                                                }
+                                            }
                                         }
-                                        
+                                        finally
+                                        {
+                                            heartEntities.Dispose();
+                                        }
                                     }
                                     
                                     // if this doesnt work replace castleheart entity with the valid one from whoever placed the tile
