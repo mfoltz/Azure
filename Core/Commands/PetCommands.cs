@@ -13,6 +13,7 @@ using VCreate.Systems;
 using VRising.GameData.Models;
 using VCreate.Hooks;
 using static VCreate.Systems.Enablers.HorseFunctions;
+using ProjectM.Scripting;
 
 namespace VCreate.Core.Commands
 {
@@ -20,7 +21,7 @@ namespace VCreate.Core.Commands
     {
         internal static Dictionary<ulong, FamiliarStasisState> PlayerFamiliarStasisMap = [];
 
-        [Command(name: "bindFamiliar", shortHand: "bindsoul", adminOnly: false, usage: ".bindsoul", description: "Summons familiar from first soulgem found in inventory and sets profile to active.")]
+        [Command(name: "bindFamiliar", shortHand: "bind", adminOnly: false, usage: ".bind", description: "Binds familiar from first soulgem found in inventory and sets profile to active.")]
         public static void MethodOne(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
@@ -45,12 +46,12 @@ namespace VCreate.Core.Commands
             OnHover.SummonFamiliar(ctx.Event.SenderCharacterEntity.Read<PlayerCharacter>().UserEntity);
         }
 
-        [Command(name: "unbindFamiliar", shortHand: "unbindsoul", adminOnly: false, usage: ".unbindsoul", description: "Deactivates familiar profile and lets you bind to a different familiar.")]
+        [Command(name: "unbindFamiliar", shortHand: "unbind", adminOnly: false, usage: ".unbind", description: "Deactivates familiar profile and lets you bind to a different familiar.")]
         public static void MethodTwo(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
 
-            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
             {
                 if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
                 {
@@ -59,7 +60,7 @@ namespace VCreate.Core.Commands
                 }
 
                 Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
-                if (!familiar.Equals(Entity.Null) && data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
+                if (!familiar.Equals(Entity.Null) && data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
                 {
                     UnitStats stats = familiar.Read<UnitStats>();
                     Health health = familiar.Read<Health>();
@@ -71,7 +72,8 @@ namespace VCreate.Core.Commands
                     profile.Stats.Clear();
                     profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
                     profile.Active = false;
-                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+                    profile.Combat = true;
+                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
                     DataStructures.SavePetExperience();
                     SystemPatchUtil.Destroy(familiar);
                     ctx.Reply("Familiar profile deactivated, stats saved and familiar unbound. You may now bind to another.");
@@ -105,11 +107,11 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "enableFamiliar", shortHand: "summon", usage: ".summon", description: "Summons familar if found in stasis.", adminOnly: false)]
+        [Command(name: "enableFamiliar", shortHand: "call", usage: ".call", description: "Summons familar if found in stasis.", adminOnly: false)]
         public static void EnableFamiliar(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
-            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
             {
                 if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
                 {
@@ -133,10 +135,10 @@ namespace VCreate.Core.Commands
         public static void MethodThree(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
-            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
             {
                 Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
-                if (data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
+                if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
                 {
                     SystemPatchUtil.Disable(familiar);
                     PlayerFamiliarStasisMap[platformId] = new FamiliarStasisState(familiar, true);
@@ -159,10 +161,10 @@ namespace VCreate.Core.Commands
         public static void MethodFour(ChatCommandContext ctx, int stat)
         {
             ulong platformId = ctx.User.PlatformId;
-            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
             {
                 Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
-                if (data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
+                if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
                 {
                     int toSet = stat - 1;
                     if (toSet < 0 || toSet > PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap.Count - 1)
@@ -171,7 +173,7 @@ namespace VCreate.Core.Commands
                         return;
                     }
                     profile.Focus = toSet;
-                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
 
                     DataStructures.SavePetExperience();
                     ctx.Reply($"Familiar focus set to {PetSystem.PetFocusSystem.FocusToStatMap.FocusStatMap[toSet]}.");
@@ -197,24 +199,22 @@ namespace VCreate.Core.Commands
                     return;
                 }
             }
-            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<int, PetExperienceProfile> data))
+            if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
             {
+                ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
+                BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
+                EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+                EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
                 Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
                 if (familiar.Equals(Entity.Null))
                 {
                     ctx.Reply("Summon your familiar before toggling this.");
                     return;
                 }
-                if (data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile) && profile.Active)
+                if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
                 {
                     profile.Combat = !profile.Combat; // this will be false when first triggered
                     FactionReference factionReference = familiar.Read<FactionReference>();
-                    AggroConsumer aggroConsumer = familiar.Read<AggroConsumer>();
-                    aggroConsumer.Active._Value = profile.Combat;
-                    Entity neutral = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[VCreate.Data.Prefabs.NeutralTeam];
-                    TeamReference team = familiar.Read<TeamReference>();
-                    team.Value._Value = neutral;
-                    familiar.Write(team);
                     PrefabGUID ignored = new(-1430861195);
                     PrefabGUID player = new(1106458752);
                     if (!profile.Combat)
@@ -233,7 +233,17 @@ namespace VCreate.Core.Commands
                     familiar.Write(new Immortal { IsImmortal = !profile.Combat });
 
                     familiar.Write(factionReference);
-                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+                    BufferFromEntity<BuffBuffer> bufferFromEntity = VWorld.Server.EntityManager.GetBufferFromEntity<BuffBuffer>();
+                    if (profile.Combat)
+                    {
+                        BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, familiar);
+                    }
+                    else
+                    {
+                        OnHover.BuffNonPlayer(familiar, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff);
+                    }
+                    
+                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
                     DataStructures.PlayerPetsMap[platformId] = data;
                     DataStructures.SavePetExperience();
                     if (!profile.Combat)
@@ -273,14 +283,23 @@ namespace VCreate.Core.Commands
             var followers = characterEntity.ReadBuffer<FollowerBuffer>();
             foreach (var follower in followers)
             {
-                //string entityString = follower.Entity._Entity.ToString();
                 keyValuePairs.Add(follower.Entity._Entity, false);
                 var buffs = follower.Entity._Entity.ReadBuffer<BuffBuffer>();
                 foreach (var buff in buffs)
                 {
                     if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff.GuidHash)
                     {
-                        keyValuePairs[follower.Entity._Entity] = true;
+                        DataStructures.PlayerPetsMap.TryGetValue(characterEntity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var data);
+                        if (data.TryGetValue(follower.Entity._Entity.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && !profile.Combat)
+                        {
+                            // if charmed and not in combat mode probably familiar
+                            continue;
+                        }
+                        else
+                        {
+                            keyValuePairs[follower.Entity._Entity] = true;
+                        }
+                        
                     }
                 }
             }
@@ -288,7 +307,6 @@ namespace VCreate.Core.Commands
             {
                 if (!pair.Value)
                 {
-                    // disable the familiar
                     return pair.Key;
                 }
             }

@@ -253,12 +253,22 @@ namespace VCreate.Systems
             UnitStats unitStats = familiar.Read<UnitStats>();
             // set initial stats
             Health healthUnit = familiar.Read<Health>();
-            healthUnit.MaxHealth._Value = 1000;
-            healthUnit.Value = 1000;
-            unitStats.PhysicalPower._Value = 10f; // 
-            unitStats.SpellPower._Value = 10f; // 
-          
+            healthUnit.MaxHealth._Value = 1000f;
+            healthUnit.MaxRecoveryHealth = 1f;
+            healthUnit.Value = 1000f;
+            ModifiableFloat modifiableFloat = ModifiableFloat.CreateFixed(10f);
+            unitStats.PhysicalPower = modifiableFloat; // 
+            unitStats.SpellPower = modifiableFloat; // 
+            
+            if (familiar.Has<DamageCategoryStats>())
+            {
+                DamageCategoryStats damageCategoryStats = familiar.Read<DamageCategoryStats>();
+                damageCategoryStats.DamageVsPlayerVampires._Value = 0f;
+                familiar.Write(damageCategoryStats);
+            }
+            
             familiar.Write(unitStats);
+            familiar.Write(healthUnit);
             PetExperienceProfile petExperience = new()
             {
                 CurrentExperience = 0,
@@ -270,25 +280,25 @@ namespace VCreate.Systems
             };
             if (!DataStructures.PlayerPetsMap.ContainsKey(userEntity.Read<User>().PlatformId))
             {
-                Dictionary<int, PetExperienceProfile> petExperienceProfiles = [];
-                petExperienceProfiles[familiar.Read<PrefabGUID>().GuidHash] = petExperience;
+                Dictionary<string, PetExperienceProfile> petExperienceProfiles = [];
+                petExperienceProfiles[familiar.Read<PrefabGUID>().LookupName().ToString()] = petExperience;
                 DataStructures.PlayerPetsMap.Add(userEntity.Read<User>().PlatformId, petExperienceProfiles);
                 DataStructures.SavePetExperience();
             }
             else
             {
                 // if structure already present, add pet here, if pet profile not created, then do that
-                DataStructures.PlayerPetsMap.TryGetValue(userEntity.Read<User>().PlatformId, out Dictionary<int, PetExperienceProfile> data);
-                if (!data.ContainsKey(familiar.Read<PrefabGUID>().GuidHash))
+                DataStructures.PlayerPetsMap.TryGetValue(userEntity.Read<User>().PlatformId, out Dictionary<string, PetExperienceProfile> data);
+                if (!data.ContainsKey(familiar.Read<PrefabGUID>().LookupName().ToString()))
                 {
-                    data[familiar.Read<PrefabGUID>().GuidHash] = petExperience;
+                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = petExperience;
                     DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
                     DataStructures.SavePetExperience();
                 }
                 else
                 {
                     // only one profile per prefab, need to find way to store pet stats and load again for bind/unbind
-                    data.TryGetValue(familiar.Read<PrefabGUID>().GuidHash, out PetExperienceProfile profile);
+                    data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile);
                     profile.Active = true;
                     UnitStats stats = familiar.Read<UnitStats>();
                     UnitLevel level = familiar.Read<UnitLevel>();
@@ -303,8 +313,8 @@ namespace VCreate.Systems
                     familiar.Write(stats);
                     familiar.Write(health);
                     familiar.Write(level);
-
-                    data[familiar.Read<PrefabGUID>().GuidHash] = profile;
+                    
+                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
                     DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
                     DataStructures.SavePetExperience();
                     // load/set pet stat method here
@@ -325,7 +335,7 @@ namespace VCreate.Systems
 
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
-
+            
             UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(userEntity.Read<User>().PlatformId);
             var items = userModel.Inventory.Items;
             foreach (var item in items)
@@ -333,10 +343,10 @@ namespace VCreate.Systems
                 Entity itemEnt = item.Item.Entity;
                 if (itemEnt == Entity.Null) continue;
                 ItemData itemData = itemEnt.Read<ItemData>();
-                if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound) || !itemData.ItemType.Equals(ItemType.Memory)) continue;
-                PrefabGUID prefab = itemEnt.Read<PrefabGUID>();
+                if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound)) continue;
+                PrefabGUID prefab = itemEnt.Read<CastAbilityOnConsume>().AbilityGuid;
                 if (!prefab.LookupName().ToLower().Contains("char")) continue;
-                Plugin.Log.LogInfo("Found valid soulgem...");
+                Plugin.Log.LogInfo("Found valid soulstone...");
                 var debugEvent = new SpawnCharmeableDebugEvent
                 {
                     PrefabGuid = prefab,

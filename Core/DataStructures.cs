@@ -19,7 +19,7 @@ namespace VCreate.Core
 
         private static Dictionary<ulong, Omnitool> playerSettings = [];
 
-        private static Dictionary<ulong, Dictionary<int, PetExperienceProfile>> playerPetsMap = [];
+        private static Dictionary<ulong, Dictionary<string, PetExperienceProfile>> playerPetsMap = [];
 
         // Property for playerSettings if external access or modification is required
         public static Dictionary<ulong, Omnitool> PlayerSettings
@@ -27,7 +27,7 @@ namespace VCreate.Core
             get => playerSettings;
             set => playerSettings = value;
         }
-        public static Dictionary<ulong, Dictionary<int, PetExperienceProfile>> PlayerPetsMap
+        public static Dictionary<ulong, Dictionary<string, PetExperienceProfile>> PlayerPetsMap
         {
             get => playerPetsMap;
             set => playerPetsMap = value;

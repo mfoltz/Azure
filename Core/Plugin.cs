@@ -46,7 +46,7 @@ namespace VCreate.Core
 
         private void GameDataOnInitialize(World world)
         {
-            VCreate.Hooks.PetSystem.PerfectGemSystem.ModifyPerfectGems();
+            VCreate.Hooks.PetSystem.SoulStoneSystem.ModifySiegeStone();
             Plugin.Logger.LogInfo("PerfectGems modified");
         }
 
@@ -117,7 +117,7 @@ namespace VCreate.Core
             Plugin.Logger.LogWarning($"PetData found: {json}");
             try
             {
-                var settings = JsonSerializer.Deserialize<Dictionary<ulong, Dictionary<int,PetExperienceProfile>>>(json);
+                var settings = JsonSerializer.Deserialize<Dictionary<ulong, Dictionary<string,PetExperienceProfile>>>(json);
                 VCreate.Core.DataStructures.PlayerPetsMap = settings ?? [];
                 Plugin.Logger.LogWarning("PetData Populated");
             }

@@ -16,6 +16,7 @@ using VCreate.Core.Toolbox;
 using VCreate.Systems;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
+using static Il2CppSystem.Data.Common.ObjectStorage;
 using static VCreate.Hooks.PetSystem.PetFocusSystem;
 
 namespace VCreate.Hooks
@@ -87,7 +88,7 @@ namespace VCreate.Hooks
                     Entity follower = enumerator.Current.Entity._Entity;
                     if (follower.Read<Team>().Value.Equals(killer.Read<Team>().Value) && DataStructures.PlayerPetsMap.TryGetValue(killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var profiles))
                     {
-                        if (!profiles.TryGetValue(follower.Read<PrefabGUID>().GuidHash, out var profile) || !profile.Combat) continue;
+                        if (!profiles.TryGetValue(follower.Read<PrefabGUID>().LookupName().ToString(), out var profile) || !profile.Combat) continue;
                         UnitLevel unitLevel = died.Read<UnitLevel>();
                         float baseExp = Math.Max(unitLevel.Level - profile.Level, 1);
 
@@ -100,7 +101,7 @@ namespace VCreate.Hooks
                             profile.CurrentExperience = 0;
                             profile.Level++;
 
-                            Plugin.Log.LogInfo("Pet level up! Setting unit level and saving stats...");
+                            Plugin.Log.LogInfo("Pet level up! Setting level and saving stats...");
                             follower.Write<UnitLevel>(new UnitLevel { Level = profile.Level });
                             UnitStatSet(follower); // need to review
 
@@ -113,16 +114,16 @@ namespace VCreate.Hooks
                             float spellpower = unitStats.SpellPower._Value;
                             profile.Stats.Clear();
                             profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
-                            profiles[follower.Read<PrefabGUID>().GuidHash] = profile;
+                            profiles[follower.Read<PrefabGUID>().LookupName().ToString()] = profile;
                             DataStructures.PlayerPetsMap[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = profiles;
                             DataStructures.SavePetExperience();
                             break;
                         }
                         else
                         {
-                            Plugin.Log.LogInfo("Giving pet experience... (this will accumulate past 80 but has no extra function yet)");
+                            Plugin.Log.LogInfo("Giving pet experience...");
 
-                            profiles[follower.Read<PrefabGUID>().GuidHash] = profile;
+                            profiles[follower.Read<PrefabGUID>().LookupName().ToString()] = profile;
                             DataStructures.PlayerPetsMap[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = profiles;
                             DataStructures.SavePetExperience();
                             break;
@@ -139,7 +140,7 @@ namespace VCreate.Hooks
                 ulong platformId = entity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
                 if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out var profiles))
                 {
-                    if (!profiles.TryGetValue(pet.Read<PrefabGUID>().GuidHash, out var profile)) return;
+                    if (!profiles.TryGetValue(pet.Read<PrefabGUID>().LookupName().ToString(), out var profile)) return;
                     if (!profile.Combat) return;
                     UnitLevel unitLevel = died.Read<UnitLevel>();
                     float baseExp = Math.Max(unitLevel.Level - profile.Level, 1);
@@ -153,7 +154,7 @@ namespace VCreate.Hooks
                         profile.CurrentExperience = 0;
                         profile.Level++;
 
-                        Plugin.Log.LogInfo("Pet level up! Setting unit level/power and saving stats...");
+                        Plugin.Log.LogInfo("Pet level up! Setting level and saving stats...");
                         pet.Write<UnitLevel>(new UnitLevel { Level = profile.Level });
                         
 
@@ -169,14 +170,14 @@ namespace VCreate.Hooks
                         float spellpower = unitStats.SpellPower._Value;
                         profile.Stats.Clear();
                         profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
-                        profiles[pet.Read<PrefabGUID>().GuidHash] = profile;
+                        profiles[pet.Read<PrefabGUID>().LookupName().ToString()] = profile;
                         DataStructures.PlayerPetsMap[platformId] = profiles;
                         DataStructures.SavePetExperience();
                     }
                     else
                     {
                         Plugin.Log.LogInfo("Giving pet experience...");
-                        profiles[pet.Read<PrefabGUID>().GuidHash] = profile;
+                        profiles[pet.Read<PrefabGUID>().LookupName().ToString()] = profile;
                         DataStructures.PlayerPetsMap[platformId] = profiles;
                         DataStructures.SavePetExperience();
                     }
@@ -195,7 +196,7 @@ namespace VCreate.Hooks
                 ulong playerId = entity.Read<Follower>().Followed._Value.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
                 if (DataStructures.PlayerPetsMap.TryGetValue(playerId, out var profiles))
                 {
-                    if (profiles.TryGetValue(entity.Read<PrefabGUID>().GuidHash, out var profile))
+                    if (profiles.TryGetValue(entity.Read<PrefabGUID>().LookupName().ToString(), out var profile))
                     {
                         FocusToStatMap.StatType otherStat = FocusToStatMap.FocusStatMap[profile.Focus];
                         switch (otherStat)
@@ -203,7 +204,6 @@ namespace VCreate.Hooks
                             case FocusToStatMap.StatType.MaxHealth:
                                 health.MaxHealth._Value += health.MaxHealth._Value*0.05f;
                                 break;
-                            
                             case FocusToStatMap.StatType.AttackSpeed:
                                 unitStats.AttackSpeed._Value += 0.01f;
                                 break;
@@ -248,7 +248,7 @@ namespace VCreate.Hooks
 
         public class UnitTokenSystem
         {
-            private static readonly float chance = 0.5f; // testing
+            private static readonly float chance = 0.01f; // testing
             public static readonly Random Random = new();
 
             public class UnitToGemMapping
@@ -265,12 +265,13 @@ namespace VCreate.Hooks
 
                 public static readonly Dictionary<UnitType, int> UnitCategoryToGemPrefab = new()
                 {
-                    { UnitType.Human, -2020212226 }, // Item_Ingredient_Gem_Sapphire_T04
-                    { UnitType.Undead, 1354115931 }, // Item_Ingredient_Gem_Emerald_T04
-                    { UnitType.Demon, 750542699 }, // Item_Ingredient_Gem_Miststone_T04
-                    { UnitType.Mechanical, -1983566585 }, // Item_Ingredient_Gem_Topaz_T04
-                    { UnitType.Beast, -106283194 }, // Item_Ingredient_Gem_Amethyst_T04
-                    { UnitType.VBlood, 188653143 } // Item_Ingredient_Gem_Ruby_T04
+                    // all siege stones because perfect gems hate me and refuse to not stack
+                    { UnitType.Human, 2076358520 }, // Item_Ingredient_Gem_Sapphire_T04
+                    { UnitType.Undead, 2076358520 }, // Item_Ingredient_Gem_Emerald_T04
+                    { UnitType.Demon, 2076358520 }, // Item_Ingredient_Gem_Miststone_T04
+                    { UnitType.Mechanical, 2076358520 }, // Item_Ingredient_Gem_Topaz_T04
+                    { UnitType.Beast, 2076358520 }, // Item_Ingredient_Gem_Amethyst_T04
+                    { UnitType.VBlood, 2076358520 } // Item_Ingredient_Gem_Ruby_T04
                 };
             }
 
@@ -278,20 +279,20 @@ namespace VCreate.Hooks
             {
                 // get died category
                 Plugin.Log.LogInfo("Handling token drop...");
-                PrefabGUID gem;
+                PrefabGUID stone;
                 EntityCategory diedCategory = died.Read<EntityCategory>();
                 if (died.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse.GuidHash)) return;
                 
                     
                 if ((int)diedCategory.UnitCategory < 5 && !died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
-                    gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)diedCategory.UnitCategory]);
-                    HandleRoll(gem, chance, died, killer);
+                    stone = new(UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)diedCategory.UnitCategory]);
+                    HandleRoll(stone, 1, died, killer);
                 }
                 else if (died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
-                    gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[UnitToGemMapping.UnitType.VBlood]);
-                    HandleRoll(gem, chance / 3, died, killer);
+                    stone = new(UnitToGemMapping.UnitCategoryToGemPrefab[UnitToGemMapping.UnitType.VBlood]);
+                    HandleRoll(stone, 1, died, killer);
                 }
                 else
                 {
@@ -300,31 +301,34 @@ namespace VCreate.Hooks
                 }
             }
 
-            public static void HandleRoll(PrefabGUID gem, float dropChance, Entity died, Entity killer)
+            public static void HandleRoll(PrefabGUID stone, float dropChance, Entity died, Entity killer)
             {
                 try
                 {
-                    if (RollForChance(gem, dropChance, died))
+                    if (RollForChance(stone, dropChance, died))
                     {
                         //want to give player the item here
                         UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
-                        if (Helper.AddItemToInventory(userModel.FromCharacter.Character, gem, 1, out Entity _, false))
+                        if (Helper.AddItemToInventory(userModel.FromCharacter.Character, stone, 1, out Entity _, false))
                         {
                             //Plugin.Log.LogInfo("Item entity is null... (going once)");
                             var items = userModel.Inventory.Items;
                             foreach (var item in items)
                             {
-                                if (item.Item.PrefabGUID.Equals(gem))
+                                if (item.Item.PrefabGUID.Equals(stone))
                                 {
                                     //Plugin.Log.LogInfo("Trying item modification...");
-                                    Entity testing = item.Item.Entity;
-                                    PrefabGUID tested = testing.Read<PrefabGUID>();
-                                    tested = died.Read<PrefabGUID>();
-                                    testing.Write(tested);
-                                    ItemData itemData = testing.Read<ItemData>();
-                                    itemData.MaxAmount = 1;
-                                    testing.Write(itemData);
-                                    Plugin.Log.LogInfo($"Created soul gem for {testing.Read<PrefabGUID>().LookupName()}");
+                                    Entity itemEntity = item.Item.Entity;
+
+                                    //ItemData itemData = itemEntity.Read<ItemData>();
+                                    //if (itemData.ItemTypeGUID.LookupName().ToLower().Contains("char")) continue; //skip if stone has been modified already
+                                    //itemData.ItemTypeGUID = died.Read<PrefabGUID>();
+                                    CastAbilityOnConsume castAbilityOnConsume = itemEntity.Read<CastAbilityOnConsume>();
+                                    if (!castAbilityOnConsume.AbilityGuid.GuidHash.Equals(0)) continue; //skip if stone has been modified already
+                                    castAbilityOnConsume.AbilityGuid = died.Read<PrefabGUID>();
+                                    itemEntity.Write(castAbilityOnConsume);
+                                    //itemEntity.Write(itemData);
+                                    Plugin.Log.LogInfo($"Created soul gem for {castAbilityOnConsume.AbilityGuid.LookupName()}");
                                 }
                             }
 
@@ -361,32 +365,27 @@ namespace VCreate.Hooks
             }
         }
 
-        public class PerfectGemSystem
+        public class SoulStoneSystem
         {
             private static readonly List<PrefabGUID> perfectGems =
             [
-                new PrefabGUID(-2020212226), // Item_Ingredient_Gem_Sapphire_T04
-                new PrefabGUID(1354115931), // Item_Ingredient_Gem_Emerald_T04
-                new PrefabGUID(750542699), // Item_Ingredient_Gem_Miststone_T04
-                new PrefabGUID(-1983566585), // Item_Ingredient_Gem_Topaz_T04
-                new PrefabGUID(-106283194), // Item_Ingredient_Gem_Amethyst_T04
-                new PrefabGUID(188653143) // Item_Ingredient_Gem_Ruby_T04
+                new PrefabGUID(2076358520), // Item_Building_SiegeStone_T01
             ];
 
-            public static void ModifyPerfectGems()
+            public static void ModifySiegeStone()
             {
                 EntityManager entityManager = VWorld.Server.EntityManager;
 
                 foreach (PrefabGUID prefabGUID in perfectGems)
                 {
-                    Entity gemEntity = Utilities.GetPrefabEntityByPrefabGUID(prefabGUID, entityManager);
+                    Entity stoneEntity = Utilities.GetPrefabEntityByPrefabGUID(prefabGUID, entityManager);
                     
-                    if (gemEntity != Entity.Null)
+                    if (stoneEntity != Entity.Null)
                     {
-                        var itemData = Utilities.GetComponentData<ItemData>(gemEntity);
-                        itemData.RemoveOnConsume = false;
+                        var itemData = Utilities.GetComponentData<ItemData>(stoneEntity);
                         itemData.ItemCategory = ItemCategory.BloodBound;
-                        itemData.ItemType = ItemType.Memory;
+                        //itemData.ItemType = ItemType.Equippable;
+                        //itemData.MaxAmount = 1;
                         //Consumable consumable = new();
                         //var conditionBuffer = entityManager.AddBuffer<ConsumableCondition>(gemEntity);
                         //var buffer = entityManager.GetBuffer<ConsumableCondition>(test_consumable);
@@ -394,10 +393,9 @@ namespace VCreate.Hooks
                         //{
                         //   conditionBuffer.Add(item);
                         //}
-                        //CastAbilityOnConsume castAbilityOnConsume = new() { AbilityGuid = VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_Cast };
-                        //Utilities.AddComponentData(gemEntity, consumable);
-                        //Utilities.AddComponentData(gemEntity, castAbilityOnConsume);
-                        Utilities.SetComponentData(gemEntity, itemData);
+                        CastAbilityOnConsume castAbilityOnConsume = new() { AbilityGuid = new(0) };
+                        Utilities.AddComponentData(stoneEntity, castAbilityOnConsume);
+                        Utilities.SetComponentData(stoneEntity, itemData);
                         Plugin.Log.LogInfo($"Modified {prefabGUID.LookupName()}");
                     }
                     else

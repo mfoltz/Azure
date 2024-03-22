@@ -12,6 +12,8 @@ using VCreate.Core.Commands;
 using VCreate.Systems;
 using Plugin = VCreate.Core.Plugin;
 using User = ProjectM.Network.User;
+using ProjectM.Scripting;
+using ProjectM.CastleBuilding.Placement;
 
 namespace WorldBuild.Hooks
 {
@@ -31,16 +33,6 @@ namespace WorldBuild.Hooks
                 {
                     if (!WorldBuildToggle.WbFlag) continue;
                     CancelCastleHeartPlacement(entityManager, job);
-                }
-                if (WorldBuildToggle.WbFlag)
-                {
-                    // tie to fake castle heart entity somehow
-                    
-                    CastleHeartConnection castleHeartConnection = new CastleHeartConnection
-                    {
-                        CastleHeartEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[CastleHeartPrefabGUID]
-                    };
-                    Utilities.AddComponentData(job, castleHeartConnection);
                 }
             }
             jobs.Dispose();
@@ -175,20 +167,23 @@ namespace WorldBuild.Hooks
     {
         public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
         {
-            if (!__result) return;
+            //if (!__result) return;
 
             Plugin.Log.LogInfo("Verifying dismantle event...");
 
             bool canDismantle = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
-            __result = canDismantle;
+
+            //__result = canDismantle;
 
             if (!canDismantle)
             {
                 Plugin.Log.LogInfo("Disallowed based on permissions and ownership.");
+                __result = false;
             }
             else
             {
-                Plugin.Log.LogInfo("Allowed if owned or user has permission.");
+                Plugin.Log.LogInfo("Allowing normal game handling for dismantle if owned or user has permissions.");
+                return;
             }
         }
     }
@@ -198,21 +193,50 @@ namespace WorldBuild.Hooks
     {
         public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
         {
-            if (!__result) return;
+            //if (!__result) return;
 
             Plugin.Log.LogInfo("Verifying move event...");
 
             bool canMove = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
-            __result = canMove;
+            //__result = canMove;
 
             if (!canMove)
             {
                 Plugin.Log.LogInfo("Disallowed based on permissions and ownership.");
+                __result = false;
             }
             else
             {
                 Plugin.Log.LogInfo("Allowed if owned or user has permission.");
+                return;
             }
+        }
+    }
+
+    /*
+    [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.VerifySharedCanStartEditOrDismantle))]
+    public static class VerifySharedCanStartEditOrDismantlePatch
+    {
+        public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
+        {
+        }
+    }
+    */
+
+    [HarmonyPatch(typeof(ApplyPlacementHistorySystem), nameof(ApplyPlacementHistorySystem.OnUpdate))]
+    public static class ApplyPlacementHistorySystemPatch
+    {
+        public static void Postfix(ApplyPlacementHistorySystem __instance)
+        {
+            if (!WorldBuildToggle.WbFlag) return;
+            Plugin.Log.LogInfo("Create tile model event history postfix...");
+            var history = __instance.ApplyPlacementHistoryTileModelsToCreate.GetEnumerator();
+            while (history.MoveNext())
+            {
+                Entity tile = history.Current.FromTransformedEntity;
+                tile.LogComponentTypes();
+            }
+
         }
     }
 
@@ -220,8 +244,6 @@ namespace WorldBuild.Hooks
     {
         public static bool CanPerformOperation(EntityManager entityManager, Entity tileModelEntity)
         {
-            
-
             var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
             var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
             Plugin.Log.LogInfo($"User: {user.CharacterName}");
