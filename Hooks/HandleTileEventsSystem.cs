@@ -58,7 +58,6 @@ namespace WorldBuild.Hooks
                                 if (entity.Read<PrefabGUID>().LookupName().ToLower().Contains("ruins")) continue;
                                 else if (CastleTerritoryCache.TryGetCastleTerritory(entity, out var _))
                                 {
-                                    
                                     //skip things in territories
                                     continue;
                                 }
@@ -106,7 +105,7 @@ namespace WorldBuild.Hooks
                                             heartEntities.Dispose();
                                         }
                                     }
-                                    
+
                                     // if this doesnt work replace castleheart entity with the valid one from whoever placed the tile
                                 }
                             }
