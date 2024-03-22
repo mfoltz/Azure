@@ -12,8 +12,7 @@ using VCreate.Core.Commands;
 using VCreate.Systems;
 using Plugin = VCreate.Core.Plugin;
 using User = ProjectM.Network.User;
-using ProjectM.Scripting;
-using ProjectM.CastleBuilding.Placement;
+using VRising.GameData.Models;
 
 namespace WorldBuild.Hooks
 {
@@ -33,6 +32,70 @@ namespace WorldBuild.Hooks
                 {
                     if (!WorldBuildToggle.WbFlag) continue;
                     CancelCastleHeartPlacement(entityManager, job);
+                }
+                else
+                {
+                    if (WorldBuildToggle.WbFlag)
+                    {
+                        //method for query
+                        Plugin.Log.LogInfo("querying for walls...");
+                        bool includeDisabled = true;
+                        EntityQuery wallQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                        {
+                            All = new ComponentType[]
+                            {
+                                ComponentType.ReadOnly<PrefabGUID>(),
+                                ComponentType.ReadOnly<CastleDecayAndRegen>(),
+                            },
+                            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                        });
+                        NativeArray<Entity> wallEntities = wallQuery.ToEntityArray(Allocator.Temp);
+                        try
+                        {
+                            foreach (var entity in wallEntities)
+                            {
+                                if (!entity.Read<PrefabGUID>().LookupName().ToLower().Contains("wall") || !entity.Read<PrefabGUID>().LookupName().ToLower().Contains("castle")) continue;
+                                if (entity.Read<PrefabGUID>().LookupName().ToLower().Contains("ruins")) continue;
+                                else if (CastleTerritoryCache.TryGetCastleTerritory(entity, out var _))
+                                {
+                                    
+                                    //skip things in territories
+                                    continue;
+                                }
+                                else
+                                {
+                                    Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
+                                    //entity.LogComponentTypes();
+                                    UserOwner userOwner = entity.Read<UserOwner>();
+                                    if (userOwner.Owner._Entity.Has<User>())
+                                    {
+                                        User user = userOwner.Owner._Entity.Read<User>();
+                                        UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(user.PlatformId);
+                                        if (userModel.Internals.CastleHeartConnection.HasValue)
+                                        {
+                                            CastleHeartConnection castleHeartConnection = userModel.Internals.CastleHeartConnection.Value;
+                                            Entity newHeart = castleHeartConnection.CastleHeartEntity._Entity;
+                                            CastleHeartConnection castleHeartConnectionEntity = entity.Read<CastleHeartConnection>();
+                                            castleHeartConnectionEntity.CastleHeartEntity._Entity = newHeart;
+                                            entity.Write(castleHeartConnectionEntity);
+                                            Plugin.Log.LogInfo("Replaced null heart. Maybe.");
+                                        }
+                                        else
+                                        {
+                                            Plugin.Log.LogInfo("No valid heart connection found.");
+                                        }
+                                        
+                                    }
+                                    
+                                    // if this doesnt work replace castleheart entity with the valid one from whoever placed the tile
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            wallEntities.Dispose();
+                        }
+                    }
                 }
             }
             jobs.Dispose();
@@ -222,23 +285,6 @@ namespace WorldBuild.Hooks
         }
     }
     */
-
-    [HarmonyPatch(typeof(ApplyPlacementHistorySystem), nameof(ApplyPlacementHistorySystem.OnUpdate))]
-    public static class ApplyPlacementHistorySystemPatch
-    {
-        public static void Postfix(ApplyPlacementHistorySystem __instance)
-        {
-            if (!WorldBuildToggle.WbFlag) return;
-            Plugin.Log.LogInfo("Create tile model event history postfix...");
-            var history = __instance.ApplyPlacementHistoryTileModelsToCreate.GetEnumerator();
-            while (history.MoveNext())
-            {
-                Entity tile = history.Current.FromTransformedEntity;
-                tile.LogComponentTypes();
-            }
-
-        }
-    }
 
     public static class TileOperationUtility
     {

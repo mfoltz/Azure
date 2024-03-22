@@ -1,4 +1,5 @@
-﻿using Bloodstone.API;
+﻿using Backtrace.Unity.Extensions;
+using Bloodstone.API;
 using Il2CppSystem;
 using ProjectM;
 using ProjectM.Behaviours;
@@ -342,9 +343,10 @@ namespace VCreate.Systems
             {
                 Entity itemEnt = item.Item.Entity;
                 if (itemEnt == Entity.Null) continue;
-                ItemData itemData = itemEnt.Read<ItemData>();
-                if (!itemData.ItemCategory.Equals(ItemCategory.BloodBound)) continue;
-                PrefabGUID prefab = itemEnt.Read<CastAbilityOnConsume>().AbilityGuid;
+                NameableInteractable nameableInteractable = itemEnt.Read<NameableInteractable>();
+                Plugin.Log.LogInfo(nameableInteractable.Name.ToString());
+                PrefabGUID prefab = new(int.Parse(nameableInteractable.Name.ToString()));
+                Plugin.Log.LogInfo(prefab.LookupName());
                 if (!prefab.LookupName().ToLower().Contains("char")) continue;
                 Plugin.Log.LogInfo("Found valid soulstone...");
                 var debugEvent = new SpawnCharmeableDebugEvent

@@ -46,8 +46,7 @@ namespace VCreate.Core
 
         private void GameDataOnInitialize(World world)
         {
-            VCreate.Hooks.PetSystem.SoulStoneSystem.ModifySiegeStone();
-            Plugin.Logger.LogInfo("PerfectGems modified");
+            
         }
 
         private static void InitConfig()

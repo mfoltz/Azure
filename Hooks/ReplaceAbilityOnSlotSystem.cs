@@ -18,7 +18,7 @@ namespace WorldBuild.Hooks
             {
                 EntityManager entityManager = VWorld.Server.EntityManager;
                 NativeArray<Entity> entityArray = __instance.__Spawn_entityQuery.ToEntityArray(Allocator.Temp);
-                Plugin.Log.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
+                //Plugin.Log.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
 
                 foreach (Entity entity in entityArray)
                 {
