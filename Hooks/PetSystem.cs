@@ -1,23 +1,13 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
-using MS.Internal.Xml.XPath;
 using ProjectM;
 using ProjectM.Network;
-using ProjectM.UI;
-using Stunlock.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Entities;
 using VCreate.Core;
 using VCreate.Core.Toolbox;
-using VCreate.Systems;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
-using static Il2CppSystem.Data.Common.ObjectStorage;
 using static VCreate.Hooks.PetSystem.PetFocusSystem;
 
 namespace VCreate.Hooks
@@ -288,7 +278,8 @@ namespace VCreate.Hooks
                 PrefabGUID gem;
                 EntityCategory diedCategory = died.Read<EntityCategory>();
                 if (died.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse.GuidHash)) return;
-
+                PrefabGUID toCheck = died.Read<PrefabGUID>();
+                if (toCheck.LookupName().ToLower().Contains("unholy")) return;
                 if ((int)diedCategory.UnitCategory < 5 && !died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
                     gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)diedCategory.UnitCategory]);

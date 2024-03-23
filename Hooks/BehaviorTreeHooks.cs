@@ -21,6 +21,48 @@ public static class RepairDoubleVBloodSpawnedSystemPatch
         return false;
     }
 }
+/*
+[HarmonyPatch(typeof(TeleportBuffSystem_Server), nameof(TeleportBuffSystem_Server.OnUpdate))]
+public static class TeleportBuffSystem_ServerPatch
+{
+    public static void Postfix(TeleportBuffSystem_Server __instance)
+    {
+        Plugin.Log.LogInfo("TeleportBuffSystem_Server Postfix called..."); // so for the duration of the teleport the entity has the teleportbuff
+        NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
+        try
+        {
+            foreach (var entity in entities)
+            {
+                //entity.LogComponentTypes();
+                Entity target = entity.Read<Buff>().Target;
+                target.LogComponentTypes();
+                bool check = Utilities.HasComponent<PlayerCharacter>(target);
+                if (check)
+                {
+                    if (DataStructures.PlayerSettings.TryGetValue(target.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var settings) && !settings.NotNew)
+                    {
+                        settings.NotNew = true;
+                        DataStructures.PlayerSettings[entity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = settings;
+                        DataStructures.SavePlayerSettings();
+                        Vision vision = entity.Read<Vision>();
+                        vision.Range._Value = 1000f;
+                        entity.Write(vision);
+                        Helper.UnlockWaypoints(entity.Read<PlayerCharacter>().UserEntity);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.Log.LogInfo($"Exited TeleportToWaypointEventSystem hook early {e}");
+        }
+        finally
+        {
+            entities.Dispose();
+        }
+    }
+}
+*/
 
 [HarmonyPatch(typeof(BehaviourTreeStateChangedEventSystem), nameof(BehaviourTreeStateChangedEventSystem.OnUpdate))]
 public static class BehaviourTreeStateChangedEventSystemPatch
@@ -78,7 +120,6 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                     {
                         continue;
                     }
-                      
                 }
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && (entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Villager_Cover || entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Flee))
                 {
@@ -110,14 +151,12 @@ public static class BehaviourTreeStateChangedEventSystemPatch
     }
 }
 
-
 /*
 [HarmonyPatch(typeof(EquipItemSystem), nameof(EquipItemSystem.OnUpdate))]
 public static class EquipItemSystemPatch
 {
     public static void Prefix(EquipItemSystem __instance)
     {
-
         Plugin.Log.LogInfo("EquipItemSystem Prefix called...");
         NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
         try
@@ -138,6 +177,3 @@ public static class EquipItemSystemPatch
     }
 }
 */
-
-
-

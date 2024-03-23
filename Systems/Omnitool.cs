@@ -27,6 +27,7 @@ namespace VCreate.Systems
         public bool Permissions { get; set; }
         public bool Emotes { get; set; }
 
+        public bool NotNew { get; set; }
         public int Familiar { get; set; }
         public bool EquipSkills { get; set; }
         public Stack<string> LastPlaced { get; set; } = new Stack<string>();

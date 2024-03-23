@@ -1,24 +1,13 @@
-﻿using Backtrace.Unity.Extensions;
-using Bloodstone.API;
+﻿using Bloodstone.API;
 using Il2CppSystem;
 using ProjectM;
-using ProjectM.Behaviours;
-using ProjectM.Gameplay;
-using ProjectM.Gameplay.Scripting;
-using ProjectM.Gameplay.Systems;
 using ProjectM.Network;
-using ProjectM.Pathfinding;
-using ProjectM.Scripting;
-using Stunlock.Sequencer.SequencerPrefab;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
-using VRising.GameData.Models;
-using static ProjectM.BuffUtility;
 using User = ProjectM.Network.User;
 
 namespace VCreate.Systems

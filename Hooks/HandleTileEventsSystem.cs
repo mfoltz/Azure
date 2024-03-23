@@ -16,12 +16,11 @@ using VRising.GameData.Models;
 
 namespace WorldBuild.Hooks
 {
-    
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
     public static class CastleHeartPlacementPatch
     {
         private static HashSet<Entity> hashset = [];
-        private static readonly PrefabGUID CastleHeartPrefabGUID = new PrefabGUID(-485210554); // castle heart prefab
+        private static readonly PrefabGUID CastleHeartPrefabGUID = new(-485210554); // castle heart prefab
 
         public static void Prefix(PlaceTileModelSystem __instance)
         {
@@ -44,7 +43,7 @@ namespace WorldBuild.Hooks
                             //method for query
                             Plugin.Log.LogInfo("querying for decay...");
                             bool includeDisabled = true;
-                            EntityQuery wallQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                            EntityQuery decayQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
                             {
                                 All = new ComponentType[]
                                 {
@@ -54,10 +53,10 @@ namespace WorldBuild.Hooks
                                 },
                                 Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
                             });
-                            NativeArray<Entity> wallEntities = wallQuery.ToEntityArray(Allocator.Temp);
+                            NativeArray<Entity> decayEntities = decayQuery.ToEntityArray(Allocator.Temp);
                             try
                             {
-                                foreach (var entity in wallEntities)
+                                foreach (var entity in decayEntities)
                                 {
                                     if (hashset.Contains(entity)) continue;
                                     if (!entity.Read<PrefabGUID>().LookupName().ToLower().Contains("wall") || !entity.Read<PrefabGUID>().LookupName().ToLower().Contains("castle"))
@@ -70,8 +69,6 @@ namespace WorldBuild.Hooks
                                         hashset.Add(entity);
                                         continue;
                                     }
-
-
                                     else if (CastleTerritoryCache.TryGetCastleTerritory(entity, out var _))
                                     {
                                         //skip things in territories
@@ -82,6 +79,11 @@ namespace WorldBuild.Hooks
                                     {
                                         Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
                                         //entity.LogComponentTypes();
+                                        if (!entity.Has<UserOwner>())
+                                        {
+                                            hashset.Add(entity);
+                                            continue;
+                                        }
                                         UserOwner userOwner = entity.Read<UserOwner>();
                                         if (userOwner.Owner._Entity.Has<User>())
                                         {
@@ -125,7 +127,7 @@ namespace WorldBuild.Hooks
                                         }
                                         else
                                         {
-                                            Plugin.Log.LogInfo("No user owner found, skipping...");
+                                            Plugin.Log.LogInfo("No user found, skipping...");
                                         }
 
                                         // if this doesnt work replace castleheart entity with the valid one from whoever placed the tile
@@ -134,7 +136,7 @@ namespace WorldBuild.Hooks
                             }
                             finally
                             {
-                                wallEntities.Dispose();
+                                decayEntities.Dispose();
                             }
                         }
                     }
@@ -145,37 +147,39 @@ namespace WorldBuild.Hooks
                 jobs.Dispose();
                 hashset.Clear();
             }
-            
 
             jobs = __instance._AbilityCastFinishedQuery.ToEntityArray(Allocator.Temp);
             try
             {
                 foreach (var job in jobs)
                 {
-                    if (!Utilities.HasComponent<AbilityPreCastFinishedEvent>(job)) continue;
-
-                    AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
-                    Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
-                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
-                    Entity character = abilityPreCastFinishedEvent.Character;
-
-                    if (!Utilities.HasComponent<PlayerCharacter>(character)) continue;
-
-                    PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
-                    Entity userEntity = playerCharacter.UserEntity;
-                    User user = Utilities.GetComponentData<User>(userEntity);
-                    if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out _) && prefabGUID.Equals(VCreate.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
+                    if (Utilities.HasComponent<AbilityPreCastFinishedEvent>(job))
                     {
-                        Plugin.Log.LogInfo("SiegeT02 ability cast detected...");
-                        HandleAbilityCast(userEntity);
+                        AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
+                        Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
+                        PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
+                        Entity character = abilityPreCastFinishedEvent.Character;
+
+                        if (!Utilities.HasComponent<PlayerCharacter>(character)) continue;
+
+                        PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
+                        Entity userEntity = playerCharacter.UserEntity;
+                        User user = Utilities.GetComponentData<User>(userEntity);
+                        if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out _) && prefabGUID.Equals(VCreate.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
+                        {
+                            Plugin.Log.LogInfo("SiegeT02 ability cast detected...");
+                            HandleAbilityCast(userEntity);
+                        }
                     }
+                    
+
+                    
                 }
             }
             finally
             {
                 jobs.Dispose();
             }
-            
         }
 
         public static void HandleAbilityCast(Entity userEntity)
@@ -288,6 +292,8 @@ namespace WorldBuild.Hooks
 
             Plugin.Log.LogInfo("Verifying dismantle event...");
 
+
+
             bool canDismantle = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
 
             //__result = canDismantle;
@@ -297,9 +303,13 @@ namespace WorldBuild.Hooks
                 Plugin.Log.LogInfo("Disallowed based on permissions and ownership.");
                 __result = false;
             }
+            else if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
+            {
+                __result = true;
+            }
             else
             {
-                Plugin.Log.LogInfo("Allowing normal game handling for dismantle if owned or user has permissions.");
+                Plugin.Log.LogInfo("Allowing normal game handling for dismantle event.");
                 return;
             }
         }
@@ -319,26 +329,22 @@ namespace WorldBuild.Hooks
 
             if (!canMove)
             {
-                Plugin.Log.LogInfo("Disallowed based on permissions and ownership.");
+                Plugin.Log.LogInfo("Disallowing movement based on permissions and ownership.");
                 __result = false;
+            }
+            else if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
+            {
+                __result = true;
             }
             else
             {
-                Plugin.Log.LogInfo("Allowed if owned or user has permission.");
+                Plugin.Log.LogInfo("Allowing normal game handling for move event.");
                 return;
             }
         }
     }
 
-    /*
-    [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.VerifySharedCanStartEditOrDismantle))]
-    public static class VerifySharedCanStartEditOrDismantlePatch
-    {
-        public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
-        {
-        }
-    }
-    */
+   
 
     public static class TileOperationUtility
     {
