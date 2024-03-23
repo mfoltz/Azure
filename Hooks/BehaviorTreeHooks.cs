@@ -80,6 +80,12 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                     }
                       
                 }
+                else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Villager_Cover)
+                {
+                    BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
+                    behaviourTreeStateChangedEvent.Value = GenericEnemyState.Combat;
+                    entity.Write(behaviourTreeStateChangedEvent);
+                }
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Follow)
                 {
                     var distance = UnityEngine.Vector3.Distance(entity.Read<Translation>().Value, entity.Read<Follower>().Followed._Value.Read<Translation>().Value);
