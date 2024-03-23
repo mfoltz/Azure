@@ -79,7 +79,7 @@ namespace VPlus.Hooks
             timer += 2; // want to run event every 2 hours and save happens every 2 minutes
             EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
             EntityCommandBuffer ecb = entityCommandBufferSystem.CreateCommandBuffer();
-            if (timer > 4)
+            if (timer > 2)
             {
                 timer = 0;
                 isRunning = true;
@@ -88,16 +88,21 @@ namespace VPlus.Hooks
                 try
                 {
                     EntityManager entityManager = VWorld.Server.EntityManager;
-                    float3 center = new(-999, 0, -514);
+                    float3 center = new(-1000, 0, -514);
                     Entity node = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
-                    node.LogComponentTypes();
+                    Entity nodeEntity = entityManager.Instantiate(node);
+                    //node.LogComponentTypes();
+                    //Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                    //zone.LogComponentTypes();
+                    //SystemPatchUtil.Destroy(zone);
                     //Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
-                    Health health = node.Read<Health>();
+                    Health health = nodeEntity.Read<Health>();
                     health.MaxHealth._Value = 50000f;
                     health.Value = 50000f;
                     health.MaxRecoveryHealth = 50000f;
 
-                    node.Write<Translation>(new Translation { Value = center });
+                    nodeEntity.Write(health);
+                    nodeEntity.Write<Translation>(new Translation { Value = center });
                     RadialDamageDebuff debuff = new RadialDamageDebuff
                     {
                         InnerDamagePerSecond = 15f,
@@ -108,19 +113,19 @@ namespace VPlus.Hooks
                         DamageSum = 15f,
                         DamageType = MainDamageType.RadialHoly
                     };
-                    Utilities.AddComponentData(node, debuff);
+                    Utilities.AddComponentData(nodeEntity, debuff);
                     
-                    if (!node.Has<AttachMapIconsToEntity>())
+                    if (!nodeEntity.Has<AttachMapIconsToEntity>())
                     {
-                        var buffer = entityManager.AddBuffer<AttachMapIconsToEntity>(node);
+                        var buffer = entityManager.AddBuffer<AttachMapIconsToEntity>(nodeEntity);
                         buffer.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
                     }
                     else
                     {
-                        var found = node.ReadBuffer<AttachMapIconsToEntity>();
+                        var found = nodeEntity.ReadBuffer<AttachMapIconsToEntity>();
                         found.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
                     }
-                    Entity nodeEntity  = entityManager.Instantiate(node);
+                    
                     Plugin.Logger.LogInfo("Created and set node...");
                     infinite = nodeEntity;
                     string red = VPlus.Core.Toolbox.FontColors.Red("Warning");
