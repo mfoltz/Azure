@@ -80,7 +80,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                     }
                       
                 }
-                else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Villager_Cover)
+                else if (Utilities.HasComponent<BehaviourTreeState>(entity) && (entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Villager_Cover || entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Flee))
                 {
                     BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                     behaviourTreeStateChangedEvent.Value = GenericEnemyState.Combat;
