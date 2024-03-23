@@ -2,6 +2,7 @@
 using HarmonyLib;
 using Il2CppSystem;
 using ProjectM;
+using ProjectM.Behaviours;
 using ProjectM.Network;
 using ProjectM.Terrain;
 using Unity.Entities;
@@ -89,12 +90,13 @@ namespace VPlus.Hooks
                     EntityManager entityManager = VWorld.Server.EntityManager;
                     float3 center = new(-999, 0, -514);
                     Entity node = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
-                    Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
+                    node.LogComponentTypes();
+                    //Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
                     Health health = node.Read<Health>();
                     health.MaxHealth._Value = 50000f;
                     health.Value = 50000f;
-                    
-                    
+                    health.MaxRecoveryHealth = 50000f;
+
                     node.Write<Translation>(new Translation { Value = center });
                     RadialDamageDebuff debuff = new RadialDamageDebuff
                     {
@@ -122,7 +124,7 @@ namespace VPlus.Hooks
                     Plugin.Logger.LogInfo("Created and set node...");
                     infinite = nodeEntity;
                     string red = VPlus.Core.Toolbox.FontColors.Red("Warning");
-                    string message = $"{red}: intense holy radiation detected at the colosseum. The Church must be hiding something!";
+                    string message = $"{red}: holy radiation detected at the colosseum. The Church must be hiding something!";
                     ServerChatUtils.SendSystemMessageToAllClients(ecb, message);
                 }
                 catch (Exception e)
