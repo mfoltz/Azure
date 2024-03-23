@@ -318,20 +318,28 @@ namespace VCreate.Hooks
                         ulong playerId = killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
                         if (DataStructures.PlayerPetsMap.TryGetValue(playerId, out var profiles))
                         {
-                            DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
-                            //profiles.Add(died.Read<PrefabGUID>().LookupName().ToString(), petExperience);
-                            //DataStructures.PlayerPetsMap[playerId] = profiles;
-                            DataStructures.SaveUnlockedPets();
+
+                            if (!DataStructures.UnlockedPets.ContainsKey(playerId))
+                            {
+                                DataStructures.UnlockedPets.Add(playerId, []);
+                                DataStructures.SaveUnlockedPets();
+                            }
+                            
+                            
+                            
+                            
                         }
-                        else
-                        {
-                            return;
-                        }
+                        
                         
                         UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
                         if (Helper.AddItemToInventory(userModel.FromCharacter.Character, gem, 1, out Entity test, false))
                         {
-
+                            if (!DataStructures.UnlockedPets[playerId].Contains(died.Read<PrefabGUID>().GuidHash))
+                            {
+                                DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
+                                DataStructures.SaveUnlockedPets();
+                            }
+                            
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer.Read<PlayerCharacter>().UserEntity.Read<User>(), "Your bag feels slightly heavier...");
                         }
                         else
