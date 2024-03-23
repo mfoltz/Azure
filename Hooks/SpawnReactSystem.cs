@@ -44,6 +44,21 @@ public static class FollowerSystemPatchV2
                         if (!followed.Has<PlayerCharacter>()) continue;
                         //Plugin.Log.LogInfo("Charmed entity detected in SpawnReactSystem...");
                         var buffs = followed.ReadBuffer<BuffBuffer>();
+                        if (DataStructures.PlayerPetsMap.TryGetValue(followed.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var pet))
+                        {
+                            var keys = pet.Keys;
+                            foreach (var key in keys)
+                            {
+                                if (pet.TryGetValue(key, out var value))
+                                {
+                                    if (!value.Combat)
+                                    {
+                                        hashset.Add(entity);
+                                        goto outerLoop;
+                                    }
+                                }
+                            }
+                        }
                         foreach (var item in buffs)
                         {
                             if (item.PrefabGuid.GuidHash.Equals(VCreate.Data.Prefabs.AB_Charm_Owner_HasCharmedTarget_Buff.GuidHash))
