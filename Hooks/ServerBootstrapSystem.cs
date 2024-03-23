@@ -59,8 +59,6 @@ namespace VPlus.Hooks
                     ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, $"Welcome back! Your {redV}Tokens have been updated, don't forget to redeem them: {VPlus.Core.Toolbox.FontColors.Yellow(currentPlayerDivineData.VTokens.ToString())}");
                 }
             }
-            
-
         }
 
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserDisconnected))]
@@ -91,7 +89,6 @@ namespace VPlus.Hooks
             {
                 //VPlus.Core.Logger.Log(VPlus.Core.Logger.Level.Error, ex);
             }
-            
         }
     }
 
