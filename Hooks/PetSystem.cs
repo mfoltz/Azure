@@ -314,23 +314,17 @@ namespace VCreate.Hooks
                     if (RollForChance(gem, dropChance, died))
                     {
                         //want to give player the item here
-                        
+
                         ulong playerId = killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
                         if (DataStructures.PlayerPetsMap.TryGetValue(playerId, out var profiles))
                         {
-
                             if (!DataStructures.UnlockedPets.ContainsKey(playerId))
                             {
                                 DataStructures.UnlockedPets.Add(playerId, []);
                                 DataStructures.SaveUnlockedPets();
                             }
-                            
-                            
-                            
-                            
                         }
-                        
-                        
+
                         UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
                         if (Helper.AddItemToInventory(userModel.FromCharacter.Character, gem, 1, out Entity test, false))
                         {
@@ -339,7 +333,7 @@ namespace VCreate.Hooks
                                 DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
                                 DataStructures.SaveUnlockedPets();
                             }
-                            
+
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer.Read<PlayerCharacter>().UserEntity.Read<User>(), "Your bag feels slightly heavier...");
                         }
                         else
