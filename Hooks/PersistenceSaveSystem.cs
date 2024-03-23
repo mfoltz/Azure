@@ -70,8 +70,10 @@ namespace VPlus.Hooks
     {
         private static int timer = 0; //in minutes
         private static bool isRunning = false;
+
         //private static Entity infinite = Entity.Null;
         private static List<Entity> zones = [];
+
         private static int otherTimer = 0;
 
         public static void RunMethods()
@@ -99,11 +101,9 @@ namespace VPlus.Hooks
                     //Entity holyZone = entityManager.Instantiate(zone);
                     //zones.Add(holyZone);
                     //Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
-                    
 
                     nodeEntity.Write<Translation>(new Translation { Value = center });
-                    
-                    
+
                     if (!nodeEntity.Has<AttachMapIconsToEntity>())
                     {
                         var buffer = entityManager.AddBuffer<AttachMapIconsToEntity>(nodeEntity);
@@ -114,7 +114,7 @@ namespace VPlus.Hooks
                         var found = nodeEntity.ReadBuffer<AttachMapIconsToEntity>();
                         found.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
                     }
-                    
+
                     Plugin.Logger.LogInfo("Created and set node...");
                     zones.Add(nodeEntity);
                     string red = VPlus.Core.Toolbox.FontColors.Red("Warning");
@@ -162,13 +162,14 @@ namespace VPlus.Hooks
                             zones.Add(nodeEntity1);
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message1);
                             break;
+
                         case 2:
                             string message2 = $"The people of Dunley have sent a missive requesting aid from Brighthaven.";
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
                             Entity node2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                             Entity nodeEntity2 = entityManager.Instantiate(node2);
                             nodeEntity2.Write<Translation>(new Translation { Value = center });
-                            
+
                             if (!nodeEntity2.Has<AttachMapIconsToEntity>())
                             {
                                 var buffer = entityManager.AddBuffer<AttachMapIconsToEntity>(nodeEntity2);
@@ -183,6 +184,7 @@ namespace VPlus.Hooks
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
                             break;
+
                         case 3:
                             string message3 = $"The Church of Luminance is purging the area!";
                             Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
@@ -207,6 +209,7 @@ namespace VPlus.Hooks
                             zones.Add(nodeEntity3);
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message3);
                             break;
+
                         case 4:
                             CleanUp();
                             string message4 = $"The area has been completely purged by the light.";
@@ -214,9 +217,8 @@ namespace VPlus.Hooks
                             timer = 0;
                             otherTimer = 0;
                             isRunning = false;
-                            break; 
+                            break;
                     }
-                    
                 }
             }
         }
@@ -224,9 +226,7 @@ namespace VPlus.Hooks
         public static void CleanUp()
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
-            
-            
-            
+
             foreach (var zone in zones)
             {
                 if (entityManager.Exists(zone))
@@ -238,7 +238,6 @@ namespace VPlus.Hooks
                     Plugin.Logger.LogInfo("Failed to destroy zone.");
                 }
             }
-            
         }
     }
 }
