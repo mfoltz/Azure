@@ -56,6 +56,11 @@ public static class FollowerSystemPatchV2
                                         hashset.Add(entity);
                                         goto outerLoop;
                                     }
+                                    else if (value.Active)
+                                    {
+                                        hashset.Add(entity);
+                                        goto outerLoop;
+                                    }
                                 }
                             }
                         }
