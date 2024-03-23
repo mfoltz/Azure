@@ -70,7 +70,7 @@ namespace VPlus.Hooks
     {
         private static int timer = 0; //in minutes
         private static bool isRunning = false;
-        private static Entity infinite = Entity.Null;
+        //private static Entity infinite = Entity.Null;
         private static List<Entity> zones = [];
         private static int otherTimer = 0;
 
@@ -98,7 +98,7 @@ namespace VPlus.Hooks
                     //SystemPatchUtil.Destroy(zone);
                     //Entity holyZone = entityManager.Instantiate(zone);
                     //zones.Add(holyZone);
-                    Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
+                    //Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
                     
 
                     nodeEntity.Write<Translation>(new Translation { Value = center });
@@ -116,7 +116,7 @@ namespace VPlus.Hooks
                     }
                     
                     Plugin.Logger.LogInfo("Created and set node...");
-                    infinite = nodeEntity;
+                    zones.Add(nodeEntity);
                     string red = VPlus.Core.Toolbox.FontColors.Red("Warning");
                     string message = $"{red}: anomaly detected at the Colosseum... ";
                     ServerChatUtils.SendSystemMessageToAllClients(ecb, message);
@@ -128,6 +128,7 @@ namespace VPlus.Hooks
             }
             else if (isRunning)
             {
+                EntityManager entityManager = VWorld.Server.EntityManager;
                 int proxy = timer;
                 if (proxy == 2)
                 {
@@ -138,29 +139,73 @@ namespace VPlus.Hooks
                     switch (otherTimer)
                     {
                         case 1:
-                            string message1 = $"The infinite node is becoming unstable... ";
+                            string message1 = $"The area's been cursed!";
                             Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Cursed_Zone_Area01];
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
                             Entity holyZone = VWorld.Server.EntityManager.Instantiate(zone);
                             zones.Add(holyZone);
                             holyZone.Write<Translation>(new Translation { Value = center });
+                            Entity node1 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
+                            Entity nodeEntity1 = entityManager.Instantiate(node1);
+                            nodeEntity1.Write<Translation>(new Translation { Value = center });
+                            if (!nodeEntity1.Has<AttachMapIconsToEntity>())
+                            {
+                                var buffer = entityManager.AddBuffer<AttachMapIconsToEntity>(nodeEntity1);
+                                buffer.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
+                            }
+                            else
+                            {
+                                var found = nodeEntity1.ReadBuffer<AttachMapIconsToEntity>();
+                                found.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
+                            }
+                            zones.Add(nodeEntity1);
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message1);
                             break;
                         case 2:
                             string message2 = $"The people of Dunley have sent a missive requesting aid from Brighthaven.";
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
+                            Entity node2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
+                            Entity nodeEntity2 = entityManager.Instantiate(node2);
+                            nodeEntity2.Write<Translation>(new Translation { Value = center });
+                            
+                            if (!nodeEntity2.Has<AttachMapIconsToEntity>())
+                            {
+                                var buffer = entityManager.AddBuffer<AttachMapIconsToEntity>(nodeEntity2);
+                                buffer.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
+                            }
+                            else
+                            {
+                                var found = nodeEntity2.ReadBuffer<AttachMapIconsToEntity>();
+                                found.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
+                            }
+                            zones.Add(nodeEntity2);
+                            ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
                             break;
                         case 3:
-                            string message3 = $"The Church of Luminance is applying holy radiation to purge the area!";
+                            string message3 = $"The Church of Luminance is applying holy radiation to purge the area...";
                             Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
                             Entity holyZone2 = VWorld.Server.EntityManager.Instantiate(zone2);
                             zones.Add(holyZone2);
                             holyZone2.Write<Translation>(new Translation { Value = center });
+                            Entity node3 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
+                            Entity nodeEntity3 = entityManager.Instantiate(node3);
+                            nodeEntity3.Write<Translation>(new Translation { Value = center });
+                            if (!nodeEntity3.Has<AttachMapIconsToEntity>())
+                            {
+                                var buffer = entityManager.AddBuffer<AttachMapIconsToEntity>(nodeEntity3);
+                                buffer.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
+                            }
+                            else
+                            {
+                                var found = nodeEntity3.ReadBuffer<AttachMapIconsToEntity>();
+                                found.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
+                            }
+                            zones.Add(nodeEntity3);
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message3);
                             break;
                         case 4:
@@ -182,14 +227,7 @@ namespace VPlus.Hooks
             EntityManager entityManager = VWorld.Server.EntityManager;
             
             
-            if (entityManager.Exists(infinite))
-            {
-                SystemPatchUtil.Destroy(infinite);
-            }
-            else
-            {
-                Plugin.Logger.LogInfo("Failed to destroy node.");
-            }
+            
             foreach (var zone in zones)
             {
                 if (entityManager.Exists(zone))
