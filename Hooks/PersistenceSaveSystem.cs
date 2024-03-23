@@ -89,7 +89,7 @@ namespace VPlus.Hooks
                 try
                 {
                     EntityManager entityManager = VWorld.Server.EntityManager;
-                    float3 center = new(-1000, 0, -515);
+                    float3 center = new(-1000, 0, -513);
                     Entity node = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                     Entity nodeEntity = entityManager.Instantiate(node);
                     //node.LogComponentTypes();
@@ -134,7 +134,7 @@ namespace VPlus.Hooks
                 {
                     timer = 0; // reset while event is running
                     otherTimer += 1; // want to do stuff with this until it reaches 5 then nuke
-                    float3 center = new(-1000, 0, -515);
+                    float3 center = new(-1000, 0, -513);
 
                     switch (otherTimer)
                     {
@@ -180,12 +180,11 @@ namespace VPlus.Hooks
                                 found.Add(new AttachMapIconsToEntity { Prefab = VCreate.Data.Prefabs.MapIcon_Siege_Summon_T02_Complete });
                             }
                             zones.Add(nodeEntity2);
-                            ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
                             break;
                         case 3:
-                            string message3 = $"The Church of Luminance is applying holy radiation to purge the area...";
+                            string message3 = $"The Church of Luminance is purging the area with holy radiation!";
                             Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
