@@ -217,6 +217,7 @@ namespace VCreate.Core.Commands
                 {
                     SystemPatchUtil.Enable(familiarStasisState.FamiliarEntity);
                     familiarStasisState.IsInStasis = false;
+                    familiarStasisState.FamiliarEntity = Entity.Null;
                     PlayerFamiliarStasisMap[platformId] = familiarStasisState;
                     ctx.Reply("Your familiar has been summoned.");
                 }

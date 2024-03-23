@@ -16,9 +16,11 @@ using VRising.GameData.Models;
 
 namespace WorldBuild.Hooks
 {
+    
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
     public static class CastleHeartPlacementPatch
     {
+        private static HashSet<Entity> hashset = [];
         private static readonly PrefabGUID CastleHeartPrefabGUID = new PrefabGUID(-485210554); // castle heart prefab
 
         public static void Prefix(PlaceTileModelSystem __instance)
@@ -26,121 +28,154 @@ namespace WorldBuild.Hooks
             EntityManager entityManager = VWorld.Server.EntityManager;
 
             var jobs = __instance._BuildTileQuery.ToEntityArray(Allocator.Temp);
-            foreach (var job in jobs)
+            try
             {
-                if (IsCastleHeart(job))
+                foreach (var job in jobs)
                 {
-                    if (!WorldBuildToggle.WbFlag) continue;
-                    CancelCastleHeartPlacement(entityManager, job);
-                }
-                else
-                {
-                    if (WorldBuildToggle.WbFlag)
+                    if (IsCastleHeart(job))
                     {
-                        //method for query
-                        Plugin.Log.LogInfo("querying for walls...");
-                        bool includeDisabled = true;
-                        EntityQuery wallQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                        if (!WorldBuildToggle.WbFlag) continue;
+                        CancelCastleHeartPlacement(entityManager, job);
+                    }
+                    else
+                    {
+                        if (WorldBuildToggle.WbFlag)
                         {
-                            All = new ComponentType[]
+                            //method for query
+                            Plugin.Log.LogInfo("querying for decay...");
+                            bool includeDisabled = true;
+                            EntityQuery wallQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
                             {
+                                All = new ComponentType[]
+                                {
                                 ComponentType.ReadOnly<PrefabGUID>(),
                                 ComponentType.ReadOnly<CastleDecayAndRegen>(),
-                            },
-                            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-                        });
-                        NativeArray<Entity> wallEntities = wallQuery.ToEntityArray(Allocator.Temp);
-                        try
-                        {
-                            foreach (var entity in wallEntities)
+                                ComponentType.ReadOnly<CastleAreaRequirement>(),
+                                },
+                                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                            });
+                            NativeArray<Entity> wallEntities = wallQuery.ToEntityArray(Allocator.Temp);
+                            try
                             {
-                                if (!entity.Read<PrefabGUID>().LookupName().ToLower().Contains("wall") || !entity.Read<PrefabGUID>().LookupName().ToLower().Contains("castle")) continue;
-                                if (entity.Read<PrefabGUID>().LookupName().ToLower().Contains("ruins")) continue;
-                                else if (CastleTerritoryCache.TryGetCastleTerritory(entity, out var _))
+                                foreach (var entity in wallEntities)
                                 {
-                                    //skip things in territories
-                                    continue;
-                                }
-                                else
-                                {
-                                    Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
-                                    //entity.LogComponentTypes();
-                                    UserOwner userOwner = entity.Read<UserOwner>();
-                                    if (userOwner.Owner._Entity.Has<User>())
+                                    if (hashset.Contains(entity)) continue;
+                                    if (!entity.Read<PrefabGUID>().LookupName().ToLower().Contains("wall") || !entity.Read<PrefabGUID>().LookupName().ToLower().Contains("castle"))
                                     {
-                                        User user = userOwner.Owner._Entity.Read<User>();
-                                        EntityQuery heartQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                                        hashset.Add(entity);
+                                        continue;
+                                    }
+                                    if (entity.Read<PrefabGUID>().LookupName().ToLower().Contains("ruins"))
+                                    {
+                                        hashset.Add(entity);
+                                        continue;
+                                    }
+
+
+                                    else if (CastleTerritoryCache.TryGetCastleTerritory(entity, out var _))
+                                    {
+                                        //skip things in territories
+                                        hashset.Add(entity);
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
+                                        //entity.LogComponentTypes();
+                                        UserOwner userOwner = entity.Read<UserOwner>();
+                                        if (userOwner.Owner._Entity.Has<User>())
                                         {
-                                            All = new ComponentType[]
+                                            User user = userOwner.Owner._Entity.Read<User>();
+                                            EntityQuery heartQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
                                             {
+                                                All = new ComponentType[]
+                                                {
                                                 ComponentType.ReadOnly<PrefabGUID>(),
                                                 ComponentType.ReadOnly<CastleHeart>(),
                                                 ComponentType.ReadOnly<CastleHeartConnection>(),
-                                            },
-                                            Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-                                        });
-                                        NativeArray<Entity> heartEntities = heartQuery.ToEntityArray(Allocator.Temp);
-                                        try
-                                        {
-                                            foreach (var heartEntity in heartEntities)
+                                                },
+                                                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                                            });
+                                            NativeArray<Entity> heartEntities = heartQuery.ToEntityArray(Allocator.Temp);
+                                            try
                                             {
-                                                if (heartEntity.Read<PrefabGUID>().GuidHash.Equals(CastleHeartPrefabGUID.GuidHash))
+                                                foreach (var heartEntity in heartEntities)
                                                 {
-                                                    if (!heartEntity.Read<UserOwner>().Equals(userOwner))
+                                                    if (heartEntity.Read<PrefabGUID>().GuidHash.Equals(CastleHeartPrefabGUID.GuidHash))
                                                     {
-                                                        Plugin.Log.LogInfo("Heart doesn't match owner, skipping...");
-                                                        continue;
+                                                        if (!heartEntity.Read<UserOwner>().Equals(userOwner))
+                                                        {
+                                                            Plugin.Log.LogInfo("Heart doesn't match owner, skipping...");
+                                                            continue;
+                                                        }
+                                                        Plugin.Log.LogInfo("Valid heart found..");
+                                                        Entity transplantHeart = heartEntity.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
+                                                        CastleHeartConnection heartConnection = entity.Read<CastleHeartConnection>();
+                                                        heartConnection.CastleHeartEntity._Entity = transplantHeart;
+                                                        entity.Write(heartConnection);
+                                                        //hashset.Add(heartEntity);
+                                                        Plugin.Log.LogInfo("Cloned heart entity to missing connection.");
                                                     }
-                                                    Plugin.Log.LogInfo("Valid heart found..");
-                                                    Entity transplantHeart = heartEntity.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
-                                                    CastleHeartConnection heartConnection = entity.Read<CastleHeartConnection>();
-                                                    heartConnection.CastleHeartEntity._Entity = transplantHeart;
-                                                    entity.Write(heartConnection);
-                                                    Plugin.Log.LogInfo("Cloned heart entity to missing connection.");
                                                 }
                                             }
+                                            finally
+                                            {
+                                                heartEntities.Dispose();
+                                            }
                                         }
-                                        finally
+                                        else
                                         {
-                                            heartEntities.Dispose();
+                                            Plugin.Log.LogInfo("No user owner found, skipping...");
                                         }
-                                    }
 
-                                    // if this doesnt work replace castleheart entity with the valid one from whoever placed the tile
+                                        // if this doesnt work replace castleheart entity with the valid one from whoever placed the tile
+                                    }
                                 }
                             }
-                        }
-                        finally
-                        {
-                            wallEntities.Dispose();
+                            finally
+                            {
+                                wallEntities.Dispose();
+                            }
                         }
                     }
                 }
             }
-            jobs.Dispose();
+            finally
+            {
+                jobs.Dispose();
+                hashset.Clear();
+            }
+            
 
             jobs = __instance._AbilityCastFinishedQuery.ToEntityArray(Allocator.Temp);
-            foreach (var job in jobs)
+            try
             {
-                if (!Utilities.HasComponent<AbilityPreCastFinishedEvent>(job)) continue;
-
-                AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
-                Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
-                PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
-                Entity character = abilityPreCastFinishedEvent.Character;
-
-                if (!Utilities.HasComponent<PlayerCharacter>(character)) continue;
-
-                PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
-                Entity userEntity = playerCharacter.UserEntity;
-                User user = Utilities.GetComponentData<User>(userEntity);
-                if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out _) && prefabGUID.Equals(VCreate.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
+                foreach (var job in jobs)
                 {
-                    Plugin.Log.LogInfo("SiegeT02 ability cast detected...");
-                    HandleAbilityCast(userEntity);
+                    if (!Utilities.HasComponent<AbilityPreCastFinishedEvent>(job)) continue;
+
+                    AbilityPreCastFinishedEvent abilityPreCastFinishedEvent = Utilities.GetComponentData<AbilityPreCastFinishedEvent>(job);
+                    Entity abilityGroupData = abilityPreCastFinishedEvent.AbilityGroup;
+                    PrefabGUID prefabGUID = Utilities.GetComponentData<PrefabGUID>(abilityGroupData);
+                    Entity character = abilityPreCastFinishedEvent.Character;
+
+                    if (!Utilities.HasComponent<PlayerCharacter>(character)) continue;
+
+                    PlayerCharacter playerCharacter = Utilities.GetComponentData<PlayerCharacter>(character);
+                    Entity userEntity = playerCharacter.UserEntity;
+                    User user = Utilities.GetComponentData<User>(userEntity);
+                    if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out _) && prefabGUID.Equals(VCreate.Data.Prefabs.AB_Interact_Siege_Structure_T02_AbilityGroup))
+                    {
+                        Plugin.Log.LogInfo("SiegeT02 ability cast detected...");
+                        HandleAbilityCast(userEntity);
+                    }
                 }
             }
-            jobs.Dispose();
+            finally
+            {
+                jobs.Dispose();
+            }
+            
         }
 
         public static void HandleAbilityCast(Entity userEntity)
