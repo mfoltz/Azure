@@ -29,6 +29,7 @@ namespace VCreate.Core
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
         public static readonly string PlayerSettingsJson = Path.Combine(Plugin.ConfigPath, "player_settings.json");
         public static readonly string PetDataJson = Path.Combine(Plugin.ConfigPath, "pet_data.json");
+        public static readonly string UnlockedPetsJson = Path.Combine(Plugin.ConfigPath, "unlocked_pets.json");
 
         public override void Load()
         {
@@ -79,6 +80,7 @@ namespace VCreate.Core
         {
             LoadPlayerSettings();
             LoadPetData();
+            LoadUnlockedPets();
         }
         public static void LoadPlayerSettings()
         {
@@ -126,6 +128,31 @@ namespace VCreate.Core
                 VCreate.Core.DataStructures.PlayerPetsMap = [];
                 Plugin.Logger.LogWarning("PetData Created");
             }
+        }
+        public static void LoadUnlockedPets()
+        {
+            if (!File.Exists(Plugin.UnlockedPetsJson))
+            {
+                var stream = File.Create(Plugin.UnlockedPetsJson);
+                stream.Dispose();
+            }
+
+            string json = File.ReadAllText(Plugin.UnlockedPetsJson);
+            Plugin.Logger.LogWarning($"UnlockedPets found: {json}");
+            try
+            {
+                var settings = JsonSerializer.Deserialize<Dictionary<ulong, List<int>>>(json);
+                VCreate.Core.DataStructures.UnlockedPets = settings ?? [];
+                Plugin.Logger.LogWarning("UnlockedPets Populated");
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogInfo($"No data to deserialize yet: {ex}");
+                VCreate.Core.DataStructures.UnlockedPets = [];
+                Plugin.Logger.LogWarning("UnlockedPets Created");
+            }
+                   
+            
         }
     }
 }

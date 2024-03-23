@@ -33,6 +33,11 @@ namespace VCreate.Hooks
                 VCreate.Core.DataStructures.PlayerSettings.Add(steamId, newdata);
                 DataStructures.SavePlayerSettings();
             }
+            if (!VCreate.Core.DataStructures.PlayerPetsMap.ContainsKey(steamId))
+            {
+                VCreate.Core.DataStructures.PlayerPetsMap.Add(steamId, []);
+                DataStructures.SavePetExperience();
+            }
         }
     }
 }

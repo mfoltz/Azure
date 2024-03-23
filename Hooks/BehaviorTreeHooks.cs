@@ -44,6 +44,42 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                     behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
                     entity.Write(behaviourTreeStateChangedEvent);
                 }
+                else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Combat)
+                {
+                    // if target has pvp protection buff, set this to follow instead
+                    if (!entity.Has<AggroConsumer>()) continue;
+                    AggroConsumer aggroConsumer = entity.Read<AggroConsumer>();
+                    Entity aggroTarget = aggroConsumer.AggroTarget._Entity;
+                    Entity alertTarget = aggroConsumer.AlertTarget._Entity;
+                    if (aggroTarget.Has<VampireTag>() || alertTarget.Has<VampireTag>())
+                    {
+                        var aggroBuffer = aggroTarget.ReadBuffer<BuffBuffer>();
+                        foreach (var buff in aggroBuffer)
+                        {
+                            if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.Buff_General_PvPProtected.GuidHash)
+                            {
+                                BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
+                                behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
+                                entity.Write(behaviourTreeStateChangedEvent);
+                            }
+                        }
+                        var alertBuffer = alertTarget.ReadBuffer<BuffBuffer>();
+                        foreach (var buff in alertBuffer)
+                        {
+                            if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.Buff_General_PvPProtected.GuidHash)
+                            {
+                                BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
+                                behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
+                                entity.Write(behaviourTreeStateChangedEvent);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                      
+                }
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Follow)
                 {
                     var distance = UnityEngine.Vector3.Distance(entity.Read<Translation>().Value, entity.Read<Follower>().Followed._Value.Read<Translation>().Value);
@@ -67,31 +103,9 @@ public static class BehaviourTreeStateChangedEventSystemPatch
         }
     }
 }
-[HarmonyPatch(typeof(HandleRecommendedSpawnLocationRequestEventSystem), nameof(HandleRecommendedSpawnLocationRequestEventSystem.OnUpdate))]
-public static class HandleRecommendedSpawnLocationRequestEventSystemPatch
-{
-    public static void Postfix(HandleRecommendedSpawnLocationRequestEventSystem __instance)
-    {
-        Plugin.Log.LogInfo("HandleRecommendedSpawnLocationRequestEventSystem Postfix called...");
-        NativeArray<Entity> entities = __instance._EventQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
-        try
-        {
-            foreach (var entity in entities)
-            {
-                entity.LogComponentTypes();
-               
-            }
-        }
-        catch (Exception e)
-        {
-            Plugin.Log.LogInfo($"Exited HandleRecommendedSpawnLocationRequestEventSystem hook early {e}");
-        }
-        finally
-        {
-            entities.Dispose();
-        }
-    }
-}
+
+
+/*
 [HarmonyPatch(typeof(EquipItemSystem), nameof(EquipItemSystem.OnUpdate))]
 public static class EquipItemSystemPatch
 {
@@ -117,6 +131,7 @@ public static class EquipItemSystemPatch
         }
     }
 }
+*/
 
 
 

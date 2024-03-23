@@ -14,12 +14,68 @@ using VRising.GameData.Models;
 using VCreate.Hooks;
 using static VCreate.Systems.Enablers.HorseFunctions;
 using ProjectM.Scripting;
+using static VCreate.Hooks.PetSystem.UnitTokenSystem;
 
 namespace VCreate.Core.Commands
 {
     internal class PetCommands
     {
         internal static Dictionary<ulong, FamiliarStasisState> PlayerFamiliarStasisMap = [];
+
+        [Command(name: "setUnlocked", shortHand: "set", adminOnly: false, usage: ".set [#]", description: "Sets familiar to attempt binding to from unlocked units.")]
+        public static void MethodMinusOne(ChatCommandContext ctx, int choice)
+        {
+            ulong platformId = ctx.User.PlatformId;
+            if (DataStructures.UnlockedPets.TryGetValue(platformId, out var data))
+            {
+                if (choice < 1 || choice > data.Count)
+                {
+                    ctx.Reply($"Invalid choice, please use 1 to {data.Count}.");
+                    return;
+                }
+                if (DataStructures.PlayerSettings.TryGetValue(platformId, out var settings))
+                {
+                    settings.Familiar = data[choice - 1];
+                    DataStructures.PlayerSettings[platformId] = settings;
+                    DataStructures.SavePlayerSettings();
+                    PrefabGUID prefabGUID = new(data[choice - 1]);
+                    string colorfam = VCreate.Core.Toolbox.FontColors.Pink(prefabGUID.LookupName());
+                    ctx.Reply($"Familiar to attempt binding to set: {colorfam}");
+                }
+                else
+                {
+                    ctx.Reply("Couldn't find data to set unlocked.");
+                    return;
+                }
+            }
+            else
+            {
+                ctx.Reply("You don't have any unlocked familiars yet.");
+            }
+        }
+
+        [Command(name: "listFamiliars", shortHand: "listfam", adminOnly: false, usage: ".listfam", description: "Lists unlocked familiars.")]
+        public static void MethodZero(ChatCommandContext ctx)
+        {
+            ulong platformId = ctx.User.PlatformId;
+            if (DataStructures.UnlockedPets.TryGetValue(platformId, out var data))
+            {
+                int counter = 0;
+                foreach (var unlock in data)
+                {
+                    counter++;
+                    string colornum = VCreate.Core.Toolbox.FontColors.Green(counter.ToString());
+                    PrefabGUID prefabGUID = new(unlock);
+                    string colorfam = VCreate.Core.Toolbox.FontColors.Pink(prefabGUID.LookupName());
+                    ctx.Reply($"{colornum}: {colorfam}");
+                }
+            }
+            else
+            {
+                ctx.Reply("You don't have any unlocked familiars yet.");
+                return;
+            }
+        }
 
         [Command(name: "bindFamiliar", shortHand: "bind", adminOnly: false, usage: ".bind", description: "Binds familiar from first soulgem found in inventory and sets profile to active.")]
         public static void MethodOne(ChatCommandContext ctx)
@@ -43,7 +99,40 @@ namespace VCreate.Core.Commands
                     return;
                 }
             }
-            OnHover.SummonFamiliar(ctx.Event.SenderCharacterEntity.Read<PlayerCharacter>().UserEntity);
+            bool flag = false;
+            if (DataStructures.PlayerSettings.TryGetValue(platformId, out var settings))
+            {
+                Entity unlocked = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[new(settings.Familiar)];
+                UnitCategory unitCategory = unlocked.Read<UnitCategory>();
+               
+                PrefabGUID gem = new(PetSystem.UnitTokenSystem.UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)unitCategory]);
+                UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(platformId);
+                var inventory = userModel.Inventory.Items;
+                foreach (var item in inventory)
+                {
+                    if (item.Item.PrefabGUID.GuidHash == gem.GuidHash)
+                    {
+                        flag = true;
+                        userModel.Inventory.Items.Remove(item);
+                        break;
+                    }
+                }
+                if (flag)
+                {
+                    OnHover.SummonFamiliar(ctx.Event.SenderCharacterEntity.Read<PlayerCharacter>().UserEntity, new(settings.Familiar));
+                }
+                else
+                {
+                    ctx.Reply("Couldn't find perfect gem to bind to familiar type.");
+                }
+            }
+            else
+            {
+                ctx.Reply("Couldn't find data to bind familiar.");
+                return;
+            }
+            
+            // check for correct gem to take away for binding to familiar
         }
 
         [Command(name: "unbindFamiliar", shortHand: "unbind", adminOnly: false, usage: ".unbind", description: "Deactivates familiar profile and lets you bind to a different familiar.")]
@@ -242,7 +331,7 @@ namespace VCreate.Core.Commands
                     {
                         OnHover.BuffNonPlayer(familiar, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff);
                     }
-                    
+
                     data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
                     DataStructures.PlayerPetsMap[platformId] = data;
                     DataStructures.SavePetExperience();
@@ -299,7 +388,6 @@ namespace VCreate.Core.Commands
                         {
                             keyValuePairs[follower.Entity._Entity] = true;
                         }
-                        
                     }
                 }
             }

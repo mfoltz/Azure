@@ -279,51 +279,43 @@ namespace VCreate.Systems
                 Combat = true,
                 Stats = []
             };
-            if (!DataStructures.PlayerPetsMap.ContainsKey(userEntity.Read<User>().PlatformId))
+
+            // if structure already present, add pet here, if pet profile not created, then do that
+            DataStructures.PlayerPetsMap.TryGetValue(userEntity.Read<User>().PlatformId, out Dictionary<string, PetExperienceProfile> data);
+            if (!data.ContainsKey(familiar.Read<PrefabGUID>().LookupName().ToString()))
             {
-                Dictionary<string, PetExperienceProfile> petExperienceProfiles = [];
-                petExperienceProfiles[familiar.Read<PrefabGUID>().LookupName().ToString()] = petExperience;
-                DataStructures.PlayerPetsMap.Add(userEntity.Read<User>().PlatformId, petExperienceProfiles);
+                data[familiar.Read<PrefabGUID>().LookupName().ToString()] = petExperience;
+                DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
                 DataStructures.SavePetExperience();
             }
             else
             {
-                // if structure already present, add pet here, if pet profile not created, then do that
-                DataStructures.PlayerPetsMap.TryGetValue(userEntity.Read<User>().PlatformId, out Dictionary<string, PetExperienceProfile> data);
-                if (!data.ContainsKey(familiar.Read<PrefabGUID>().LookupName().ToString()))
-                {
-                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = petExperience;
-                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
-                    DataStructures.SavePetExperience();
-                }
-                else
-                {
-                    // only one profile per prefab, need to find way to store pet stats and load again for bind/unbind
-                    data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile);
-                    profile.Active = true;
-                    UnitStats stats = familiar.Read<UnitStats>();
-                    UnitLevel level = familiar.Read<UnitLevel>();
-                    Health health = familiar.Read<Health>();
-                    health.MaxHealth._Value = profile.Stats[0];
-                    health.Value = profile.Stats[0];
-                    stats.AttackSpeed._Value = profile.Stats[1];
-                    stats.PrimaryAttackSpeed._Value = profile.Stats[2];
-                    stats.PhysicalPower._Value = profile.Stats[3];
-                    stats.SpellPower._Value = profile.Stats[4];
-                    level.Level = profile.Level;
-                    familiar.Write(stats);
-                    familiar.Write(health);
-                    familiar.Write(level);
+                // only one profile per prefab, need to find way to store pet stats and load again for bind/unbind
+                data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile);
+                profile.Active = true;
+                UnitStats stats = familiar.Read<UnitStats>();
+                UnitLevel level = familiar.Read<UnitLevel>();
+                Health health = familiar.Read<Health>();
+                health.MaxHealth._Value = profile.Stats[0];
+                health.Value = profile.Stats[0];
+                stats.AttackSpeed._Value = profile.Stats[1];
+                stats.PrimaryAttackSpeed._Value = profile.Stats[2];
+                stats.PhysicalPower._Value = profile.Stats[3];
+                stats.SpellPower._Value = profile.Stats[4];
+                level.Level = profile.Level;
+                familiar.Write(stats);
+                familiar.Write(health);
+                familiar.Write(level);
                     
-                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
-                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
-                    DataStructures.SavePetExperience();
-                    // load/set pet stat method here
-                }
+                data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
+                DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
+                DataStructures.SavePetExperience();
+                // load/set pet stat method here
             }
+            
         }
 
-        public static unsafe void SummonFamiliar(Entity userEntity)
+        public static unsafe void SummonFamiliar(Entity userEntity, PrefabGUID prefabGUID)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
             Plugin.Log.LogInfo("Entering familiar spawn...");
@@ -337,29 +329,17 @@ namespace VCreate.Systems
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
             
-            UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(userEntity.Read<User>().PlatformId);
-            var items = userModel.Inventory.Items;
-            foreach (var item in items)
+            
+                
+            var debugEvent = new SpawnCharmeableDebugEvent
             {
-                Entity itemEnt = item.Item.Entity;
-                if (itemEnt == Entity.Null) continue;
-                if (!itemEnt.Has<NameableInteractable>()) continue;
-                NameableInteractable nameableInteractable = itemEnt.Read<NameableInteractable>();
-                Plugin.Log.LogInfo(nameableInteractable.Name.ToString());
-                PrefabGUID prefab = new(int.Parse(nameableInteractable.Name.ToString()));
-                Plugin.Log.LogInfo(prefab.LookupName());
-                if (!prefab.LookupName().ToLower().Contains("char")) continue;
-                Plugin.Log.LogInfo("Found valid soulstone...");
-                var debugEvent = new SpawnCharmeableDebugEvent
-                {
-                    PrefabGuid = prefab,
-                    Position = fromCharacter.Character.Read<LocalToWorld>().Position
-                };
-                Plugin.Log.LogInfo("Spawning familiar...");
-                DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
-                debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
-                break;
-            }
+                PrefabGuid = prefabGUID,
+                Position = fromCharacter.Character.Read<LocalToWorld>().Position
+            };
+            Plugin.Log.LogInfo("Spawning familiar...");
+            DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
+            debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
+            
         }
 
         public static unsafe void SpawnCopy(Entity userEntity)

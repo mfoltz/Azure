@@ -66,7 +66,7 @@ namespace VCreate.Hooks
         {
             public static void HandlePlayerKill(Entity killer, Entity died)
             {
-                UnitTokenSystem.HandleTokenDrop(killer, died);
+                UnitTokenSystem.HandleGemDrop(killer, died);
                 UpdatePetExperiencePlayerKill(killer, died);
             }
 
@@ -254,7 +254,8 @@ namespace VCreate.Hooks
 
         public class UnitTokenSystem
         {
-            private static readonly float chance = 0.01f; // testing
+            private static readonly float chance = 1f; // testing
+            private static readonly float vfactor = 2.5f;
             public static readonly Random Random = new();
 
             public class UnitToGemMapping
@@ -272,32 +273,32 @@ namespace VCreate.Hooks
                 public static readonly Dictionary<UnitType, int> UnitCategoryToGemPrefab = new()
                 {
                     // all siege stones because perfect gems hate me and refuse to not stack
-                    { UnitType.Human, 2076358520 }, // Item_Ingredient_Gem_Sapphire_T04
-                    { UnitType.Undead, 2076358520 }, // Item_Ingredient_Gem_Emerald_T04
-                    { UnitType.Demon, 2076358520 }, // Item_Ingredient_Gem_Miststone_T04
-                    { UnitType.Mechanical, 2076358520 }, // Item_Ingredient_Gem_Topaz_T04
-                    { UnitType.Beast, 2076358520 }, // Item_Ingredient_Gem_Amethyst_T04
-                    { UnitType.VBlood, 2076358520 } // Item_Ingredient_Gem_Ruby_T04
+                    { UnitType.Human, -2020212226 }, // Item_Ingredient_Gem_Sapphire_T04
+                    { UnitType.Undead, 1354115931 }, // Item_Ingredient_Gem_Emerald_T04
+                    { UnitType.Demon, 750542699 }, // Item_Ingredient_Gem_Miststone_T04
+                    { UnitType.Mechanical, -1983566585 }, // Item_Ingredient_Gem_Topaz_T04
+                    { UnitType.Beast, -106283194 }, // Item_Ingredient_Gem_Amethyst_T04
+                    { UnitType.VBlood, 188653143 } // Item_Ingredient_Gem_Ruby_T04
                 };
             }
 
-            public static void HandleTokenDrop(Entity killer, Entity died)
+            public static void HandleGemDrop(Entity killer, Entity died)
             {
                 // get died category
                 //Plugin.Log.LogInfo("Handling token drop...");
-                PrefabGUID stone;
+                PrefabGUID gem;
                 EntityCategory diedCategory = died.Read<EntityCategory>();
                 if (died.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse.GuidHash)) return;
 
                 if ((int)diedCategory.UnitCategory < 5 && !died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
-                    stone = new(UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)diedCategory.UnitCategory]);
-                    HandleRoll(stone, 1, died, killer);
+                    gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)diedCategory.UnitCategory]);
+                    HandleRoll(gem, chance, died, killer);
                 }
                 else if (died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
-                    stone = new(UnitToGemMapping.UnitCategoryToGemPrefab[UnitToGemMapping.UnitType.VBlood]);
-                    HandleRoll(stone, 1, died, killer);
+                    gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[UnitToGemMapping.UnitType.VBlood]);
+                    HandleRoll(gem, chance, died, killer); //dont forget to divide by vfactor after testing
                 }
                 else
                 {
@@ -306,43 +307,38 @@ namespace VCreate.Hooks
                 }
             }
 
-            public static void HandleRoll(PrefabGUID stone, float dropChance, Entity died, Entity killer)
+            public static void HandleRoll(PrefabGUID gem, float dropChance, Entity died, Entity killer)
             {
                 try
                 {
-                    if (RollForChance(stone, dropChance, died))
+                    if (RollForChance(gem, dropChance, died))
                     {
                         //want to give player the item here
-                        UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
-                        if (Helper.AddItemToInventory(userModel.FromCharacter.Character, stone, 1, out Entity test, false))
+                        
+                        ulong playerId = killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                        if (DataStructures.PlayerPetsMap.TryGetValue(playerId, out var profiles))
                         {
-                            //Plugin.Log.LogInfo("Item entity is null... (going once)");
-                            var items = userModel.Inventory.Items;
-                            foreach (var item in items)
-                            {
-                                if (item.Item.PrefabGUID.Equals(stone))
-                                {
-                                    if (item.Item.Entity.Has<NameableInteractable>())
-                                    {
-                                        Plugin.Log.LogInfo("Item already named.");
-                                        continue;
-                                    }
-                                    NameableInteractable nameableInteractable = new NameableInteractable { OnlyAllyRename = true, Name = died.Read<PrefabGUID>().GuidHash.ToString(), OnlyAllySee = false };
-                                    nameableInteractable.Name = died.Read<PrefabGUID>().GuidHash.ToString();
-                                    Utilities.AddComponentData(item.Item.Entity, nameableInteractable);
-                                    Plugin.Log.LogInfo($"NameableInteractable: {nameableInteractable.Name.ToString()}");
-
-                                    Plugin.Log.LogInfo($"Created soul stone for {item.Item.Entity.Read<NameableInteractable>().Name.ToString()}");
-                                }
-                            }
+                            DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
+                            //profiles.Add(died.Read<PrefabGUID>().LookupName().ToString(), petExperience);
+                            //DataStructures.PlayerPetsMap[playerId] = profiles;
+                            DataStructures.SaveUnlockedPets();
+                        }
+                        else
+                        {
+                            return;
+                        }
+                        
+                        UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
+                        if (Helper.AddItemToInventory(userModel.FromCharacter.Character, gem, 1, out Entity test, false))
+                        {
 
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer.Read<PlayerCharacter>().UserEntity.Read<User>(), "Your bag feels slightly heavier...");
                         }
-
-                        // maybe it immediately gets synced and then destroyed after syncing?
-                        //NetworkedEntityUtil.TryFindEntity()
-
-                        //CastAbilityOnConsume castAbilityOnConsume = new CastAbilityOnConsume { AbilityGuid = VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_SummonAngel_Cast };
+                        else
+                        {
+                            userModel.DropItemNearby(gem, 1);
+                            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer.Read<PlayerCharacter>().UserEntity.Read<User>(), "Something fell out of your bag!");
+                        }
                     }
                 }
                 catch (Exception e)

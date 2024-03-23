@@ -21,7 +21,7 @@ public static class FollowerSystemPatchV2
     private static HashSet<Entity> hashset = new();
     public static void Prefix(FollowerSystem __instance)
     {
-        hashset.Clear();
+        
         ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
         BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
         EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
@@ -43,49 +43,29 @@ public static class FollowerSystemPatchV2
                         Entity followed = follower.Followed._Value;
                         if (!followed.Has<PlayerCharacter>()) continue;
                         //Plugin.Log.LogInfo("Charmed entity detected in SpawnReactSystem...");
-                        
-                        Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
-                        ulong platformId = userEntity.Read<User>().PlatformId;
-                        if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out var data))
+                        var buffs = followed.ReadBuffer<BuffBuffer>();
+                        foreach (var item in buffs)
                         {
-                            var keys = data.Keys;
-                            foreach (var key in keys)
+                            if (item.PrefabGuid.GuidHash.Equals(VCreate.Data.Prefabs.AB_Charm_Owner_HasCharmedTarget_Buff.GuidHash))
                             {
-                                if (data.TryGetValue(key, out var pet))
-                                {
-                                    if (pet.Active)
-                                    {
-                                        hashset.Add(entity);
-                                        goto outerLoop;
-                                    }
-                                }
-                            }
-                        }
-                        // check for matching prefab on unit and soul gem from player for verification?
-                        PrefabGUID prefabGUID = entity.Read<PrefabGUID>();
-                        UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(platformId);
-                        var items = userModel.Inventory.Items;
-                        foreach (var item in items)
-                        {
-                            if (item.Item.Entity.Equals(Entity.Null)) continue;
-                            if (!item.Item.Entity.Has<NameableInteractable>()) continue;
-                            Plugin.Log.LogInfo(item.Item.Entity.Read<NameableInteractable>().Name.ToString());
-                            PrefabGUID other = new(int.Parse(item.Item.Entity.Read<NameableInteractable>().Name.ToString()));
-                            Plugin.Log.LogInfo(other);
-                            if (other.GuidHash.Equals(prefabGUID.GuidHash))
-                            {
+                                //Plugin.Log.LogInfo("Player is charming a human, skip.");
                                 
-                                
-                                // verified soul gem, proceed
-                                Plugin.Log.LogInfo("Found inactive familiar soulstone, removing charm and binding...");
-
-                                BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
-                                OnHover.ConvertCharacter(userEntity, entity);
                                 hashset.Add(entity);
                                 goto outerLoop;
                             }
-                           
                         }
+                        Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
+                        
+                        
+                        Plugin.Log.LogInfo("Found inactive familiar, removing charm and binding...");
+
+                        BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
+                        OnHover.ConvertCharacter(userEntity, entity);
+                        hashset.Add(entity);
+                        goto outerLoop;
+                            
+                           
+                        
                     }
                 }
             }
@@ -99,6 +79,7 @@ public static class FollowerSystemPatchV2
         {
             // Ensure entities are disposed of even if an exception occurs
             entities.Dispose();
+            hashset.Clear();
         }
     }
 }
