@@ -71,6 +71,7 @@ namespace VPlus.Hooks
         private static int timer = 0; //in minutes
         private static bool isRunning = false;
         private static Entity infinite = Entity.Null;
+        private static List<Entity> zones = [];
         private static int otherTimer = 0;
 
         public static void RunMethods()
@@ -92,28 +93,16 @@ namespace VPlus.Hooks
                     Entity node = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                     Entity nodeEntity = entityManager.Instantiate(node);
                     //node.LogComponentTypes();
-                    //Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                    Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                     //zone.LogComponentTypes();
                     //SystemPatchUtil.Destroy(zone);
-                    //Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
-                    Health health = nodeEntity.Read<Health>();
-                    health.MaxHealth._Value = 50000f;
-                    health.Value = 50000f;
-                    health.MaxRecoveryHealth = 50000f;
+                    Entity holyZone = entityManager.Instantiate(zone);
+                    zones.Add(holyZone);
+                    Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
+                    
 
-                    nodeEntity.Write(health);
                     nodeEntity.Write<Translation>(new Translation { Value = center });
-                    RadialDamageDebuff debuff = new RadialDamageDebuff
-                    {
-                        InnerDamagePerSecond = 15f,
-                        OuterDamagePerSecond = 15f,
-                        InnerRadius = 5f,
-                        OuterRadius = 20f,
-                        DamageIncrements = 15f,
-                        DamageSum = 15f,
-                        DamageType = MainDamageType.RadialHoly
-                    };
-                    Utilities.AddComponentData(nodeEntity, debuff);
+                    holyZone.Write<Translation>(new Translation { Value = center });
                     
                     if (!nodeEntity.Has<AttachMapIconsToEntity>())
                     {
@@ -145,41 +134,34 @@ namespace VPlus.Hooks
                     timer = 0; // reset while event is running
                     otherTimer += 1; // want to do stuff with this until it reaches 5 then nuke
 
-                    try
-                    {
-                        if (infinite.Has<RadialDamageDebuff>())
-                        {
-                            RadialDamageDebuff debuff = infinite.Read<RadialDamageDebuff>();
-                            debuff.InnerDamagePerSecond += 15f;
-                            debuff.OuterDamagePerSecond += 15f;
-                            debuff.InnerRadius += 5f;
-                            debuff.OuterRadius += 5f;
-
-
-                            infinite.Write(debuff);
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo("No radial damage debuff...");
-                        }
-                        
-                    }
-                    catch (Exception e)
-                    {
-                        Plugin.Logger.LogInfo($"Error setting radials: {e.Message}");
-                    }
+                    
                     switch (otherTimer)
                     {
                         case 1:
                             string message1 = $"The sacred node is becoming unstable. This won't go unnoticed... ";
+                            Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                            //zone.LogComponentTypes();
+                            //SystemPatchUtil.Destroy(zone);
+                            Entity holyZone = VWorld.Server.EntityManager.Instantiate(zone);
+                            zones.Add(holyZone);
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message1);
                             break;
                         case 2:
                             string message2 = $"Dunley's militia has sent a dispatch requesting aid from Brighthaven.";
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
+                            Entity zone1 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                            //zone.LogComponentTypes();
+                            //SystemPatchUtil.Destroy(zone);
+                            Entity holyZone1 = VWorld.Server.EntityManager.Instantiate(zone1);
+                            zones.Add(holyZone1);
                             break;
                         case 3:
                             string message3 = $"The Church of Luminance is amplifying the holy radiation to purge the area!";
+                            Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                            //zone.LogComponentTypes();
+                            //SystemPatchUtil.Destroy(zone);
+                            Entity holyZone2 = VWorld.Server.EntityManager.Instantiate(zone2);
+                            zones.Add(holyZone2);
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message3);
                             break;
                         case 4:
@@ -187,6 +169,7 @@ namespace VPlus.Hooks
                             string message4 = $"The area has been completely purged by the light. No anomalies remain.";
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message4);
                             timer = 0;
+                            otherTimer = 0;
                             isRunning = false;
                             break; 
                     }
@@ -207,6 +190,17 @@ namespace VPlus.Hooks
             else
             {
                 Plugin.Logger.LogInfo("Failed to destroy node.");
+            }
+            foreach (var zone in zones)
+            {
+                if (entityManager.Exists(zone))
+                {
+                    SystemPatchUtil.Destroy(zone);
+                }
+                else
+                {
+                    Plugin.Logger.LogInfo("Failed to destroy zone.");
+                }
             }
             
         }
