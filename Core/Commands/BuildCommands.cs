@@ -13,6 +13,8 @@ using Il2CppSystem;
 using Unity.Mathematics;
 using VCreate.Core.Converters;
 using VCreate.Core.Services;
+using ProjectM.CastleBuilding;
+using Unity.Collections;
 
 namespace VCreate.Core.Commands
 {
@@ -94,8 +96,6 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
-
-        
 
         [Command(name: "setTileRotation", shortHand: "rot", adminOnly: true, usage: ".rot [0/90/180/270]", description: "Sets rotation for spawned tiles.")]
         public static void SetTileRotationCommand(ChatCommandContext ctx, int rotation)
@@ -200,6 +200,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
+
         [Command(name: "setDebuff", shortHand: "sd", adminOnly: true, usage: ".sd [PrefabGUID]", description: "Sets buff for debuff mode.")]
         public static void SetDebuff(ChatCommandContext ctx, int choice)
         {
@@ -211,12 +212,9 @@ namespace VCreate.Core.Commands
                 // Assuming there's a similar check for map icons as there is for tile models
                 if (Prefabs.FindPrefab.CheckForMatch(choice))
                 {
-                    
                     ctx.Reply($"Debuff set.");
                     data.SetData("Debuff", choice);
                     DataStructures.SavePlayerSettings();
-                    
-                    
                 }
                 else
                 {
@@ -369,6 +367,110 @@ namespace VCreate.Core.Commands
             else
             {
                 ctx.Reply("Tiles have been destroyed!");
+            }
+        }
+
+        [Command(name: "removeDecay", shortHand: "decay", adminOnly: true, usage: ".decay", description: "Puts user heart on missing connections from buildings placed in twb. WIP")]
+        public static void RemoveDecay(ChatCommandContext ctx)
+        {
+            HashSet<Entity> hashset = [];
+            //method for query
+            Plugin.Log.LogInfo("querying for decay to remove...");
+            bool includeDisabled = true;
+            EntityQuery decayQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            {
+                All = new ComponentType[]
+                {
+                                ComponentType.ReadOnly<PrefabGUID>(),
+                                ComponentType.ReadOnly<CastleDecayAndRegen>(),
+                                ComponentType.ReadOnly<CastleAreaRequirement>(),
+                },
+                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+            });
+            NativeArray<Entity> decayEntities = decayQuery.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (var entity in decayEntities)
+                {
+                    if (hashset.Contains(entity)) continue;
+                    if (!entity.Read<PrefabGUID>().LookupName().ToLower().Contains("wall") || !entity.Read<PrefabGUID>().LookupName().ToLower().Contains("castle"))
+                    {
+                        hashset.Add(entity);
+                        continue;
+                    }
+                    if (entity.Read<PrefabGUID>().LookupName().ToLower().Contains("ruins"))
+                    {
+                        hashset.Add(entity);
+                        continue;
+                    }
+                    else if (CastleTerritoryCache.TryGetCastleTerritory(entity, out var _))
+                    {
+                        //skip things in territories
+                        hashset.Add(entity);
+                        continue;
+                    }
+                    else
+                    {
+                        Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
+                        //entity.LogComponentTypes();
+                        if (!entity.Has<UserOwner>())
+                        {
+                            hashset.Add(entity);
+                            continue;
+                        }
+                        UserOwner userOwner = entity.Read<UserOwner>();
+                        if (userOwner.Owner._Entity.Has<User>())
+                        {
+                            User user = userOwner.Owner._Entity.Read<User>();
+                            EntityQuery heartQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+                            {
+                                All = new ComponentType[]
+                                {
+                                                ComponentType.ReadOnly<PrefabGUID>(),
+                                                ComponentType.ReadOnly<CastleHeart>(),
+                                                ComponentType.ReadOnly<CastleHeartConnection>(),
+                                },
+                                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+                            });
+                            NativeArray<Entity> heartEntities = heartQuery.ToEntityArray(Allocator.Temp);
+                            try
+                            {
+                                foreach (var heartEntity in heartEntities)
+                                {
+                                    if (heartEntity.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.TM_BloodFountain_Pylon_Station.GuidHash))
+                                    {
+                                        if (!heartEntity.Read<UserOwner>().Equals(userOwner))
+                                        {
+                                            Plugin.Log.LogInfo("Heart doesn't match owner, skipping...");
+                                            continue;
+                                        }
+                                        Plugin.Log.LogInfo("Valid heart found..");
+                                        Entity transplantHeart = heartEntity.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
+                                        CastleHeartConnection heartConnection = entity.Read<CastleHeartConnection>();
+                                        heartConnection.CastleHeartEntity._Entity = transplantHeart;
+                                        entity.Write(heartConnection);
+                                        //hashset.Add(heartEntity);
+                                        Plugin.Log.LogInfo("Cloned heart entity to missing connection.");
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                heartEntities.Dispose();
+                            }
+                        }
+                        else
+                        {
+                            Plugin.Log.LogInfo("No user found, skipping...");
+                        }
+
+                        // if this doesnt work replace castleheart entity with the valid one from whoever placed the tile
+                    }
+                }
+            }
+            finally
+            {
+                decayEntities.Dispose();
             }
         }
 
