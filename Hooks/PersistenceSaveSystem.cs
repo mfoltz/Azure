@@ -89,20 +89,20 @@ namespace VPlus.Hooks
                 try
                 {
                     EntityManager entityManager = VWorld.Server.EntityManager;
-                    float3 center = new(-1000, 0, -514);
+                    float3 center = new(-1000, 0, -515);
                     Entity node = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                     Entity nodeEntity = entityManager.Instantiate(node);
                     //node.LogComponentTypes();
-                    Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                    //Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                     //zone.LogComponentTypes();
                     //SystemPatchUtil.Destroy(zone);
-                    Entity holyZone = entityManager.Instantiate(zone);
-                    zones.Add(holyZone);
+                    //Entity holyZone = entityManager.Instantiate(zone);
+                    //zones.Add(holyZone);
                     Utilities.AddComponentData(node, new Immortal { IsImmortal = true });
                     
 
                     nodeEntity.Write<Translation>(new Translation { Value = center });
-                    holyZone.Write<Translation>(new Translation { Value = center });
+                    
                     
                     if (!nodeEntity.Has<AttachMapIconsToEntity>())
                     {
@@ -118,7 +118,7 @@ namespace VPlus.Hooks
                     Plugin.Logger.LogInfo("Created and set node...");
                     infinite = nodeEntity;
                     string red = VPlus.Core.Toolbox.FontColors.Red("Warning");
-                    string message = $"{red}: holy radiation detected at the colosseum. The Church must be hiding something!";
+                    string message = $"{red}: anomaly detected at the Colosseum... ";
                     ServerChatUtils.SendSystemMessageToAllClients(ecb, message);
                 }
                 catch (Exception e)
@@ -133,40 +133,39 @@ namespace VPlus.Hooks
                 {
                     timer = 0; // reset while event is running
                     otherTimer += 1; // want to do stuff with this until it reaches 5 then nuke
+                    float3 center = new(-1000, 0, -515);
 
-                    
                     switch (otherTimer)
                     {
                         case 1:
-                            string message1 = $"The sacred node is becoming unstable. This won't go unnoticed... ";
-                            Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                            string message1 = $"The infinite node is becoming unstable... ";
+                            Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Cursed_Zone_Area01];
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
                             Entity holyZone = VWorld.Server.EntityManager.Instantiate(zone);
                             zones.Add(holyZone);
+                            holyZone.Write<Translation>(new Translation { Value = center });
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message1);
                             break;
                         case 2:
-                            string message2 = $"Dunley's militia has sent a dispatch requesting aid from Brighthaven.";
+                            string message2 = $"The people of Dunley have sent a missive requesting aid from Brighthaven.";
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
-                            Entity zone1 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
-                            Entity holyZone1 = VWorld.Server.EntityManager.Instantiate(zone1);
-                            zones.Add(holyZone1);
                             break;
                         case 3:
-                            string message3 = $"The Church of Luminance is amplifying the holy radiation to purge the area!";
+                            string message3 = $"The Church of Luminance is applying holy radiation to purge the area!";
                             Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
                             Entity holyZone2 = VWorld.Server.EntityManager.Instantiate(zone2);
                             zones.Add(holyZone2);
+                            holyZone2.Write<Translation>(new Translation { Value = center });
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message3);
                             break;
                         case 4:
                             CleanUp();
-                            string message4 = $"The area has been completely purged by the light. No anomalies remain.";
+                            string message4 = $"The area has been completely purged by the light.";
                             ServerChatUtils.SendSystemMessageToAllClients(ecb, message4);
                             timer = 0;
                             otherTimer = 0;
