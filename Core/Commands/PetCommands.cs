@@ -104,8 +104,19 @@ namespace VCreate.Core.Commands
             {
                 Entity unlocked = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[new(settings.Familiar)];
                 EntityCategory unitCategory = unlocked.Read<EntityCategory>();
-               
-                PrefabGUID gem = new(PetSystem.UnitTokenSystem.UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)unitCategory.UnitCategory]);
+                Plugin.Log.LogInfo(unitCategory.UnitCategory.ToString());
+                PrefabGUID gem;
+                if (unlocked.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
+                {
+                    gem = new(PetSystem.UnitTokenSystem.UnitToGemMapping.UnitCategoryToGemPrefab[UnitToGemMapping.UnitType.VBlood]);
+                }
+                else
+                {
+                    gem = new(PetSystem.UnitTokenSystem.UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)unitCategory.UnitCategory]);
+                }
+                
+                //Plugin.Log.LogInfo(gem.LookupName());
+                //Plugin.Log.LogInfo(gem.GuidHash.ToString());
                 UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(platformId);
                 var inventory = userModel.Inventory.Items;
                 foreach (var item in inventory)
@@ -113,7 +124,7 @@ namespace VCreate.Core.Commands
                     if (item.Item.PrefabGUID.GuidHash == gem.GuidHash)
                     {
                         flag = true;
-                        userModel.Inventory.Items.Remove(item);
+                        InventoryUtilitiesServer.TryRemoveItem(VWorld.Server.EntityManager, ctx.Event.SenderCharacterEntity, gem, 1);
                         break;
                     }
                 }
