@@ -325,21 +325,21 @@ namespace VCreate.Core.Commands
                     {
                         factionReference.FactionGuid._Value = player;
                     }
-                    if (!familiar.Has<Immortal>())
-                    {
-                        Utilities.AddComponentData(familiar, new Immortal { IsImmortal = false });
-                    }
+                    
 
-                    familiar.Write(new Immortal { IsImmortal = !profile.Combat });
+
+                    //familiar.Write(new Immortal { IsImmortal = !profile.Combat });
 
                     familiar.Write(factionReference);
                     BufferFromEntity<BuffBuffer> bufferFromEntity = VWorld.Server.EntityManager.GetBufferFromEntity<BuffBuffer>();
                     if (profile.Combat)
                     {
                         BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, familiar);
+                        BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.Admin_Invulnerable_Buff, familiar);
                     }
                     else
                     {
+                        OnHover.BuffNonPlayer(familiar, VCreate.Data.Prefabs.Admin_Invulnerable_Buff);
                         OnHover.BuffNonPlayer(familiar, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff);
                     }
 
