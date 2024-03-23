@@ -103,9 +103,9 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerSettings.TryGetValue(platformId, out var settings))
             {
                 Entity unlocked = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[new(settings.Familiar)];
-                UnitCategory unitCategory = unlocked.Read<UnitCategory>();
+                EntityCategory unitCategory = unlocked.Read<EntityCategory>();
                
-                PrefabGUID gem = new(PetSystem.UnitTokenSystem.UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)unitCategory]);
+                PrefabGUID gem = new(PetSystem.UnitTokenSystem.UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)unitCategory.UnitCategory]);
                 UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(platformId);
                 var inventory = userModel.Inventory.Items;
                 foreach (var item in inventory)
