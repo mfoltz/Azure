@@ -80,7 +80,7 @@ namespace VPlus.Hooks
             timer += 2; // want to run event every 2 hours and save happens every 2 minutes
             EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
             EntityCommandBuffer ecb = entityCommandBufferSystem.CreateCommandBuffer();
-            if (timer > 2)
+            if (timer > 120)
             {
                 timer = 0;
                 isRunning = true;
@@ -133,7 +133,7 @@ namespace VPlus.Hooks
                 if (proxy == 2)
                 {
                     timer = 0; // reset while event is running
-                    otherTimer += 1; // want to do stuff with this until it reaches 5 then nuke
+                    otherTimer += 1; // want to do stuff with this until it reaches 4 then reset
                     float3 center = new(-1000, 0, -513);
 
                     switch (otherTimer)
@@ -184,7 +184,7 @@ namespace VPlus.Hooks
                             //SystemPatchUtil.Destroy(zone);
                             break;
                         case 3:
-                            string message3 = $"The Church of Luminance is purging the area with holy radiation!";
+                            string message3 = $"The Church of Luminance is purging the area!";
                             Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                             //zone.LogComponentTypes();
                             //SystemPatchUtil.Destroy(zone);
