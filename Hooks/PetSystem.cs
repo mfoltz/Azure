@@ -254,8 +254,8 @@ namespace VCreate.Hooks
 
         public class UnitTokenSystem
         {
-            private static readonly float chance = 1f; // testing
-            private static readonly float vfactor = 2.5f;
+            private static readonly float chance = 0.01f; // testing
+            private static readonly float vfactor = 2f;
             public static readonly Random Random = new();
 
             public class UnitToGemMapping
@@ -272,7 +272,6 @@ namespace VCreate.Hooks
 
                 public static readonly Dictionary<UnitType, int> UnitCategoryToGemPrefab = new()
                 {
-                    // all siege stones because perfect gems hate me and refuse to not stack
                     { UnitType.Human, -2020212226 }, // Item_Ingredient_Gem_Sapphire_T04
                     { UnitType.Undead, 1354115931 }, // Item_Ingredient_Gem_Emerald_T04
                     { UnitType.Demon, 750542699 }, // Item_Ingredient_Gem_Miststone_T04
@@ -298,7 +297,7 @@ namespace VCreate.Hooks
                 else if (died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
                     gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[UnitToGemMapping.UnitType.VBlood]);
-                    HandleRoll(gem, chance, died, killer); //dont forget to divide by vfactor after testing
+                    HandleRoll(gem, chance/vfactor, died, killer); //dont forget to divide by vfactor after testing
                 }
                 else
                 {
