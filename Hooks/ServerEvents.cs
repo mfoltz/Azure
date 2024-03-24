@@ -80,6 +80,25 @@ namespace VCreate.Hooks
 
         public static void EnableFamiliarsOnQuit()
         {
+            var keys = DataStructures.PlayerPetsMap.Keys;
+            foreach (var key in keys)
+            {
+                var pet = DataStructures.PlayerPetsMap[key];
+                var otherkeys = pet.Keys;
+                foreach (var otherkey in otherkeys)
+                {
+                    if (pet.TryGetValue(otherkey, out var value))
+                    {
+                        if (!value.Combat)
+                        {
+                            value.Combat = true;
+                            pet[otherkey] = value;
+                            DataStructures.PlayerPetsMap[key] = pet;
+                            DataStructures.SavePetExperience();
+                        }
+                    }
+                }
+            }
             foreach (var key in PetCommands.PlayerFamiliarStasisMap.Keys)
             {
                 if (PetCommands.PlayerFamiliarStasisMap.TryGetValue(key, out FamiliarStasisState data))

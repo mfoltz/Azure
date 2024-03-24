@@ -4,6 +4,7 @@ using BepInEx.Unity.IL2CPP;
 using Bloodstone.API;
 using HarmonyLib;
 using ProjectM;
+using Steamworks;
 using System.Reflection;
 using System.Text.Json;
 using Unity.Entities;
@@ -24,7 +25,7 @@ namespace VCreate.Core
         internal static Plugin Instance { get; private set; }
 
         private static ManualLogSource Logger;
-        public static new ManualLogSource Log => Logger;
+        public new static ManualLogSource Log => Logger;
 
         public static readonly string ConfigPath = Path.Combine(Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
         public static readonly string PlayerSettingsJson = Path.Combine(Plugin.ConfigPath, "player_settings.json");
@@ -43,11 +44,31 @@ namespace VCreate.Core
             GameData.OnInitialize += GameDataOnInitialize;
             LoadData();
             Plugin.Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} is loaded!");
+            var keys = DataStructures.PlayerPetsMap.Keys;
+            foreach (var key in keys)
+            {
+                if (DataStructures.PlayerPetsMap.TryGetValue(key, out var value))
+                {
+                    var newkeys = value.Keys;
+                    foreach (var otherkey in newkeys)
+                    {
+                        if (value.TryGetValue(otherkey, out var data))
+                        {
+                            if (!data.Combat)
+                            {
+                                data.Combat = true;
+                                value[otherkey] = data;
+                                DataStructures.PlayerPetsMap[key] = value;
+                                DataStructures.SavePetExperience();
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void GameDataOnInitialize(World world)
         {
-            
         }
 
         private static void InitConfig()
@@ -72,16 +93,15 @@ namespace VCreate.Core
         {
             CastleTerritoryCache.Initialize();
             Plugin.Logger.LogInfo("TerritoryCache loaded");
-            
-
         }
-        
+
         public static void LoadData()
         {
             LoadPlayerSettings();
             LoadPetData();
             LoadUnlockedPets();
         }
+
         public static void LoadPlayerSettings()
         {
             if (!File.Exists(Plugin.PlayerSettingsJson))
@@ -118,7 +138,7 @@ namespace VCreate.Core
             Plugin.Logger.LogWarning($"PetData found: {json}");
             try
             {
-                var settings = JsonSerializer.Deserialize<Dictionary<ulong, Dictionary<string,PetExperienceProfile>>>(json);
+                var settings = JsonSerializer.Deserialize<Dictionary<ulong, Dictionary<string, PetExperienceProfile>>>(json);
                 VCreate.Core.DataStructures.PlayerPetsMap = settings ?? [];
                 Plugin.Logger.LogWarning("PetData Populated");
             }
@@ -129,6 +149,7 @@ namespace VCreate.Core
                 Plugin.Logger.LogWarning("PetData Created");
             }
         }
+
         public static void LoadUnlockedPets()
         {
             if (!File.Exists(Plugin.UnlockedPetsJson))
@@ -151,8 +172,6 @@ namespace VCreate.Core
                 VCreate.Core.DataStructures.UnlockedPets = [];
                 Plugin.Logger.LogWarning("UnlockedPets Created");
             }
-                   
-            
         }
     }
 }

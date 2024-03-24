@@ -33,6 +33,7 @@ public static class FollowerSystemPatchV2
         outerLoop:
             foreach (Entity entity in entities)
             {
+                //Plugin.Log.LogInfo($"{entities.m_Length}");
                 if (hashset.Contains(entity)) continue;
                 var buffer = entity.ReadBuffer<BuffBuffer>();
                 foreach (var buff in buffer)
@@ -42,8 +43,7 @@ public static class FollowerSystemPatchV2
                         Follower follower = entity.Read<Follower>();
                         Entity followed = follower.Followed._Value;
                         if (!followed.Has<PlayerCharacter>()) continue;
-                        //Plugin.Log.LogInfo("Charmed entity detected in SpawnReactSystem...");
-                        var buffs = followed.ReadBuffer<BuffBuffer>();
+                        //Plugin.Log.LogInfo("Charmed entity following player detected in SpawnReactSystem, checking for valid familiar to bind...");
                         if (DataStructures.PlayerPetsMap.TryGetValue(followed.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var pet))
                         {
                             var keys = pet.Keys;
@@ -53,45 +53,56 @@ public static class FollowerSystemPatchV2
                                 {
                                     if (!value.Combat)
                                     {
-                                        hashset.Add(entity);
-                                        goto outerLoop;
-                                    }
-                                    else if (value.Active)
-                                    {
+                                        //Plugin.Log.LogInfo("Pet not in combat, skipping...");
                                         hashset.Add(entity);
                                         goto outerLoop;
                                     }
                                 }
                             }
                         }
-                        
+                        Plugin.Log.LogInfo("Passed check for familiars not in combat, checking for unlocked/set...");
                         Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
 
                         int check = entity.Read<PrefabGUID>().GuidHash;
                         if (DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out var data))
                         {
-                            if (DataStructures.UnlockedPets.TryGetValue(userEntity.Read<User>().PlatformId, out var unlockedPets))
+                            
+                            Plugin.Log.LogInfo($"entityFromQuery: {check}, setFamiliar: {data.Familiar} ");
+
+                            if (!data.Familiar.Equals(check))
                             {
-                                Plugin.Log.LogInfo($"entityFromQuery: {check}, setFamiliar: {data.Familiar} ");
-                                if (!unlockedPets.Contains(check))
-                                {
-                                    hashset.Add(entity);
-                                    goto outerLoop;
-                                }
-                                else if (!data.Familiar.Equals(check))
-                                {
-                                    hashset.Add(entity);
-                                    goto outerLoop;
-                                }
-                                else
-                                {
-                                    Plugin.Log.LogInfo("Found inactive familiar, removing charm and binding...");
-                                    BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
-                                    OnHover.ConvertCharacter(userEntity, entity);
-                                    hashset.Add(entity);
-                                    goto outerLoop;
-                                }
+                                Plugin.Log.LogInfo("Failed set familiar check, not the set player familiar.");
+                                hashset.Add(entity);
+                                goto outerLoop;
                             }
+                            else if (DataStructures.PlayerPetsMap.TryGetValue(followed.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var keyValuePairs))
+                            {
+                                var keys = keyValuePairs.Keys;
+                                foreach (var key in keys)
+                                {
+                                    int intKey = int.Parse(key);
+                                    if (keyValuePairs.TryGetValue(intKey, out var value))
+                                    {
+                                        if (value.Active)
+                                        {
+                                            Plugin.Log.LogInfo("Found bound, active set familiar in combat mode, skipping...");
+                                            hashset.Add(entity);
+                                            goto outerLoop;
+                                        }
+                                    }
+                                }
+                                    
+                            }
+                            else
+                            {
+                                Plugin.Log.LogInfo("Found unbound, inactive set familiar, removing charm and binding...");
+                                BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
+                                OnHover.ConvertCharacter(userEntity, entity);
+                                //hashset.Add(entity);
+                                //goto outerLoop;
+                                return;
+                            }
+                            
                         }
                     }
                 }
