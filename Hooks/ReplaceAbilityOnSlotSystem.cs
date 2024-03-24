@@ -137,7 +137,10 @@ namespace VPlus.Hooks
                     AbilityGroupStartAbilitiesBuffer bufferItem = abilityEntity.ReadBuffer<AbilityGroupStartAbilitiesBuffer>()[0];
                     Entity castEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[bufferItem.PrefabGUID];
                     AbilityCooldownData abilityCooldownData = castEntity.Read<AbilityCooldownData>();
-
+                    AbilityCooldownState abilityCooldownState = castEntity.Read<AbilityCooldownState>();
+                    abilityCooldownState.CurrentCooldown = 30f; // Reset the last used time
+                    castEntity.Write(abilityCooldownState);
+                    
                     abilityCooldownData.Cooldown._Value = 30f; // Set the cooldown to 30 seconds
                     castEntity.Write(abilityCooldownData);
                     Plugin.Logger.LogInfo("Cooldown modified.");
