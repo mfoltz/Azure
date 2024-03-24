@@ -5,11 +5,13 @@ using ProjectM.Behaviours;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 using VCreate.Core;
 using VCreate.Core.Toolbox;
 using VRising.GameData.Methods;
 using VRising.GameData.Models;
 using static VCreate.Hooks.PetSystem.PetFocusSystem;
+using Random = System.Random;
 
 namespace VCreate.Hooks
 {
@@ -184,12 +186,13 @@ namespace VCreate.Hooks
                     {FocusToStatMap.StatType.PrimaryAttackSpeed, 2f},
                     {FocusToStatMap.StatType.PhysicalPower, 100f},
                     {FocusToStatMap.StatType.SpellPower, 100f},
-                    {FocusToStatMap.StatType.PhysicalCriticalStrikeChance, 0.05f * 40f},
-                    {FocusToStatMap.StatType.PhysicalCriticalStrikeDamage, 1f * 40f},
-                    {FocusToStatMap.StatType.SpellCriticalStrikeChance, 0.05f * 40f},
-                    {FocusToStatMap.StatType.SpellCriticalStrikeDamage, 1f * 40f}
+                    {FocusToStatMap.StatType.PhysicalCriticalStrikeChance, 0.05f * 40},
+                    {FocusToStatMap.StatType.PhysicalCriticalStrikeDamage, 1f * 40},
+                    {FocusToStatMap.StatType.SpellCriticalStrikeChance, 0.05f * 40},
+                    {FocusToStatMap.StatType.SpellCriticalStrikeDamage, 1f * 40}
                 };
             }
+
             public class StatIncreases
             {
                 public static readonly Dictionary<FocusToStatMap.StatType, float> Increases = new()
@@ -206,9 +209,9 @@ namespace VCreate.Hooks
                 };
             }
 
-
             public static void UnitStatSet(Entity entity)
             {
+                EntityManager entityManager = VWorld.Server.EntityManager;
                 // Assuming entity.Read<UnitStats>() is a way to access the UnitStats component of the entity.
                 UnitStats unitStats = entity.Read<UnitStats>();
                 Health health = entity.Read<Health>();
@@ -222,70 +225,81 @@ namespace VCreate.Hooks
                     if (profiles.TryGetValue(entity.Read<PrefabGUID>().LookupName().ToString(), out var profile))
                     {
                         FocusToStatMap.StatType otherStat = FocusToStatMap.FocusStatMap[profile.Focus];
-                        switch (otherStat)
+                        if (otherStat == FocusToStatMap.StatType.MaxHealth)
                         {
-                            case FocusToStatMap.StatType.MaxHealth:
-                                AdjustStatWithCap(health.MaxHealth._Value, 0.05f);
-                                //health.MaxHealth._Value += health.MaxHealth._Value * 0.05f;
-                                break;
-
-                            case FocusToStatMap.StatType.AttackSpeed:
-                                unitStats.AttackSpeed._Value += 0.01f;
-                                break;
-
-                            case FocusToStatMap.StatType.PrimaryAttackSpeed:
-                                unitStats.PrimaryAttackSpeed.Value += 0.02f;
-                                break;
-
-                            case FocusToStatMap.StatType.PhysicalPower:
-                                unitStats.PhysicalPower._Value += 2.5f;
-                                break;
-
-                            case FocusToStatMap.StatType.SpellPower:
-                                unitStats.SpellPower._Value += 2.5f;
-                                break;
+                            AdjustHealthWithCap(FocusToStatMap.StatType.MaxHealth, health, entity, entityManager);
+                        }
+                        else
+                        {
+                            AdjustStatWithCap(otherStat, unitStats, entity, entityManager);
                         }
                     }
                 }
-                switch (selectedStat)
+                if (selectedStat == FocusToStatMap.StatType.MaxHealth)
                 {
-                    case FocusToStatMap.StatType.MaxHealth:
-                        health.MaxHealth._Value += health.MaxHealth._Value * 0.05f;
-                        break;
-
-                    case FocusToStatMap.StatType.AttackSpeed:
-                        unitStats.AttackSpeed._Value += 0.01f;
-                        break;
-
-                    case FocusToStatMap.StatType.PrimaryAttackSpeed:
-                        unitStats.PrimaryAttackSpeed.Value += 0.02f;
-                        break;
-
-                    case FocusToStatMap.StatType.PhysicalPower:
-                        unitStats.PhysicalPower._Value += 1f;
-                        break;
-
-                    case FocusToStatMap.StatType.SpellPower:
-                        unitStats.SpellPower._Value += 1f;
-                        break;
+                    AdjustHealthWithCap(FocusToStatMap.StatType.MaxHealth, health, entity, entityManager);
+                }
+                else
+                {
+                    AdjustStatWithCap(selectedStat, unitStats, entity, entityManager);
                 }
 
-                // Assuming entity.Write<UnitStats>(unitStats) is a way to save the modified UnitStats back to the entity.
                 entity.Write(health);
                 entity.Write(unitStats);
             }
-            public static void AdjustStatWithCap(float stat, float increasePercentage)
+
+            public static void AdjustStatWithCap(FocusToStatMap.StatType stat, UnitStats stats, Entity entity, EntityManager entityManager)
             {
-                if (stat * (1 + increasePercentage) <= stat)
+                float increase = StatIncreases.Increases[stat];
+                float cap = StatCaps.Caps[stat];
+
+                switch (stat)
                 {
-                    stat += stat * increasePercentage;
-                }  
-                else
-                {
-                    stat = PetSystem.DeathEventHandlers.StatCaps[FocusToStatMap.StatType.MaxHealth];
+                    case FocusToStatMap.StatType.AttackSpeed:
+                        stats.AttackSpeed = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.AttackSpeed._Value + increase, cap));
+                        break;
+
+                    case FocusToStatMap.StatType.PrimaryAttackSpeed:
+                        stats.PrimaryAttackSpeed = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PrimaryAttackSpeed.Value + increase, cap));
+                        break;
+
+                    case FocusToStatMap.StatType.PhysicalPower:
+                        stats.PhysicalPower = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PhysicalPower._Value + increase, cap));
+                        break;
+
+                    case FocusToStatMap.StatType.SpellPower:
+                        stats.SpellPower = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.SpellPower._Value + increase, cap));
+                        break;
+
+                    case FocusToStatMap.StatType.PhysicalCriticalStrikeChance:
+                        stats.PhysicalCriticalStrikeChance = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PhysicalCriticalStrikeChance._Value + increase, cap));
+                        break;
+
+                    case FocusToStatMap.StatType.PhysicalCriticalStrikeDamage:
+                        stats.PhysicalCriticalStrikeDamage = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PhysicalCriticalStrikeDamage._Value + increase, cap));
+                        break;
+
+                    case FocusToStatMap.StatType.SpellCriticalStrikeChance:
+                        stats.SpellCriticalStrikeChance = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.SpellCriticalStrikeChance._Value + increase, cap));
+                        break;
+
+                    case FocusToStatMap.StatType.SpellCriticalStrikeDamage:
+                        stats.SpellCriticalStrikeDamage = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.SpellCriticalStrikeDamage._Value + increase, cap));
+                        break;
+
+                        // Add cases for other stats...
                 }
-                    
             }
+
+            public static void AdjustHealthWithCap(FocusToStatMap.StatType stat, Health health, Entity entity, EntityManager entityManager)
+            {
+                float increase = StatIncreases.Increases[stat];
+                float cap = StatCaps.Caps[stat];
+
+                health.MaxHealth = ModifiableFloat.Create(entity, entityManager, Mathf.Min(health.MaxHealth._Value + increase, cap));
+            }
+
+
         }
 
         public class UnitTokenSystem
@@ -334,7 +348,7 @@ namespace VCreate.Hooks
                 else if (died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
                     gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[UnitToGemMapping.UnitType.VBlood]);
-                    HandleRoll(gem, chance/vfactor, died, killer); //dont forget to divide by vfactor after testing
+                    HandleRoll(gem, chance / vfactor, died, killer); //dont forget to divide by vfactor after testing
                 }
                 else
                 {
