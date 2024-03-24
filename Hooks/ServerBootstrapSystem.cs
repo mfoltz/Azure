@@ -41,27 +41,10 @@ namespace VCreate.Hooks
                 VCreate.Core.DataStructures.PlayerPetsMap.Add(steamId, []);
                 DataStructures.SavePetExperience();
             }
+            /*
             if (PetCommands.PlayerFamiliarStasisMap.TryGetValue(steamId, out var familiarStasis))
             {
-                if (DataStructures.PlayerPetsMap.TryGetValue(steamId, out var data))
-                {
-                    var keys = data.Keys;
-                    foreach (var key in keys)
-                    {
-                        if (data.TryGetValue(key, out var value))
-                        {
-                           
-                            if (!value.Combat)
-                            {
-                                value.Combat = true;
-                                data[key] = value;
-                                DataStructures.PlayerPetsMap[steamId] = data;
-                                DataStructures.SavePetExperience();
-                            }
-                            
-                        }
-                    }
-                }
+                
                 Entity pet = familiarStasis.FamiliarEntity;
                 if (pet != Entity.Null && familiarStasis.IsInStasis)
                 {
@@ -73,6 +56,7 @@ namespace VCreate.Hooks
                 }
 
             }
+            */
             
         }
         [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserDisconnected))]
@@ -93,13 +77,7 @@ namespace VCreate.Hooks
                     {
                         if (value.Active)
                         {
-                            if (!value.Combat)
-                            {
-                                value.Combat = true;
-                                data[key] = value;
-                                DataStructures.PlayerPetsMap[steamId] = data;
-                                DataStructures.SavePetExperience();
-                            }
+                            
                             // put in stasis
                             PetCommands.PlayerFamiliarStasisMap.TryGetValue(steamId, out var stasis);
                             Entity pet = PetCommands.FindPlayerFamiliar(user.LocalCharacter._Entity);

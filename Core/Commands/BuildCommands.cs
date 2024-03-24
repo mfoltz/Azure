@@ -41,22 +41,33 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find omnitool data.");
             }
         }
+        [Command(name: "listFamiliarToggles", shortHand: "listemotes", adminOnly: false, usage: ".listemotes", description: "Displays functions of familiar emotes.")]
+        public static void ListFamiliarActions(ChatCommandContext ctx)
+        {
+            //User setter = ctx.Event.User;
+            //Entity userEntity = ctx.Event.SenderUserEntity;
+            foreach (var toggle in EmoteSystemPatch.emoteActionsArray[0].Keys)
+            {
+                PrefabGUID prefabGUID = new(toggle);
+                ctx.Reply($"{prefabGUID.LookupName()} | {EmoteSystemPatch.emoteActionsArray[0][toggle].Method.Name}");
+            }
+        }
 
-        [Command(name: "toggleEmotes", shortHand: "emotes", adminOnly: true, usage: ".emotes", description: "Toggles using the emote wheel to change action on Q when extra skills for unarmed are equipped.")]
+        [Command(name: "buildEmotes", shortHand: "build", adminOnly: true, usage: ".build", description: "Toggles using the emote wheel to change action on Q when extra skills for unarmed are equipped.")]
         public static void ToggleEmoteActions(ChatCommandContext ctx)
         {
-            User setter = ctx.Event.User;
+            //User setter = ctx.Event.User;
             Entity userEntity = ctx.Event.SenderUserEntity;
             User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
             if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
             {
                 // Toggle the CanEditTiles value
-                data.Emotes = !data.Emotes;
+                data.Build = !data.Build;
 
                 DataStructures.SavePlayerSettings();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"EmoteToggles: |{(data.Emotes ? enabledColor : disabledColor)}|");
+                ctx.Reply($"EmoteToggles: |{(data.Build ? enabledColor : disabledColor)}|");
             }
             else
             {
@@ -64,15 +75,15 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "listToggles", shortHand: "list", adminOnly: true, usage: ".list", description: "Displays what modes emotes will toggle if applicable.")]
-        public static void ListEmoteActions(ChatCommandContext ctx)
+        [Command(name: "listBuildToggles", shortHand: "listbuild", adminOnly: true, usage: ".listbuild", description: "Displays what modes emotes will toggle if applicable.")]
+        public static void ListBuildActions(ChatCommandContext ctx)
         {
-            User setter = ctx.Event.User;
-            Entity userEntity = ctx.Event.SenderUserEntity;
-            foreach (var toggle in EmoteSystemPatch.emoteActions.Keys)
+            //User setter = ctx.Event.User;
+            //Entity userEntity = ctx.Event.SenderUserEntity;
+            foreach (var toggle in EmoteSystemPatch.emoteActionsArray[1].Keys)
             {
                 PrefabGUID prefabGUID = new(toggle);
-                ctx.Reply($"{prefabGUID.LookupName()} | {EmoteSystemPatch.emoteActions[toggle].Method.Name}");
+                ctx.Reply($"{prefabGUID.LookupName()} | {EmoteSystemPatch.emoteActionsArray[1][toggle].Method.Name}");
             }
         }
 

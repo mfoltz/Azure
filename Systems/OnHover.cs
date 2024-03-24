@@ -198,7 +198,16 @@ namespace VCreate.Systems
         {
             FirstPhase(userEntity, hoveredEntity);
             SecondPhase(userEntity, hoveredEntity);
-
+            ulong steamId = userEntity.Read<User>().PlatformId;
+            if (DataStructures.PlayerSettings.TryGetValue(steamId, out Omnitool data) && data.Binding)
+            {
+                data.Binding = false;
+                DataStructures.SavePlayerSettings();
+            }
+            else
+            {
+                SystemPatchUtil.Destroy(hoveredEntity);
+            }
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Summoned familiar from soul gem.");
         }
 

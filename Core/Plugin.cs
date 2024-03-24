@@ -45,26 +45,7 @@ namespace VCreate.Core
             LoadData();
             Plugin.Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} is loaded!");
             var keys = DataStructures.PlayerPetsMap.Keys;
-            foreach (var key in keys)
-            {
-                if (DataStructures.PlayerPetsMap.TryGetValue(key, out var value))
-                {
-                    var newkeys = value.Keys;
-                    foreach (var otherkey in newkeys)
-                    {
-                        if (value.TryGetValue(otherkey, out var data))
-                        {
-                            if (!data.Combat)
-                            {
-                                data.Combat = true;
-                                value[otherkey] = data;
-                                DataStructures.PlayerPetsMap[key] = value;
-                                DataStructures.SavePetExperience();
-                            }
-                        }
-                    }
-                }
-            }
+            
         }
 
         private void GameDataOnInitialize(World world)

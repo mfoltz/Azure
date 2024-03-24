@@ -2,13 +2,16 @@
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.Scripting;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
 using VampireCommandFramework;
 using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
 using VCreate.Systems;
+using static VCreate.Core.Commands.PetCommands;
 using static VCreate.Core.Services.PlayerService;
 using User = ProjectM.Network.User;
 
@@ -19,26 +22,11 @@ internal class EmoteSystemPatch
 {
     private static readonly string enabledColor = VCreate.Core.Toolbox.FontColors.Green("enabled");
     private static readonly string disabledColor = VCreate.Core.Toolbox.FontColors.Red("disabled");
+    private static int index = 0; // 0 familiar commands by default, if buildemotes active then 1
 
-    public static readonly Dictionary<int, Action<Player, ulong>> emoteActions = new Dictionary<int, Action<Player, ulong>>()
-        {
-            { -658066984, ToggleTileMode }, // Beckon
-            { -1462274656, ToggleTileRotation }, // Bow
-            { -26826346, ToggleConvert }, // Clap
-            { -452406649, ToggleInspectMode }, // Point
-            { -53273186, ToggleDestroyMode }, // No
-            { -370061286, ToggleCopyMode }, // Salute
-            { -578764388, ToggleImmortalTiles }, // Shrug
-            { 808904257, ToggleBuffMode }, // Sit
-            { -1064533554, ToggleMapIconPlacement}, // Surrender
-            { -158502505, ToggleDebuffMode }, // Taunt
-            { 1177797340, ResetToggles }, // Wave
-            { -1525577000, ToggleSnapping } // Yes
-        };
-
-    static EmoteSystemPatch()
+    public static readonly Dictionary<int, Action<Player, ulong>>[] emoteActionsArray = new Dictionary<int, Action<Player, ulong>>[]
     {
-        emoteActions = new Dictionary<int, Action<Player, ulong>>()
+        new Dictionary<int, Action<Player, ulong>>() // Dictionary 1
         {
             { -658066984, ToggleTileMode }, // Beckon
             { -1462274656, ToggleTileRotation }, // Bow
@@ -52,8 +40,24 @@ internal class EmoteSystemPatch
             { -158502505, ToggleDebuffMode }, // Taunt
             { 1177797340, ResetToggles }, // Wave
             { -1525577000, ToggleSnapping } // Yes
+        },
+        new Dictionary<int, Action<Player, ulong>>() // Dictionary 2
+        {
+            //{ -658066984, ToggleTileMode }, // Beckon
+            //{ -1462274656, ToggleTileRotation }, // Bow
+            { -26826346, CallDismiss }, // Clap to call/dismiss
+            //{ -452406649, ToggleInspectMode }, // Point
+            //{ -53273186, ToggleDestroyMode }, // No
+            { -370061286, ToggleCombat }, // Salute to toggle combat mode
+            //{ -578764388, ToggleImmortalTiles }, // Shrug
+            //{ 808904257, ToggleBuffMode }, // Sit
+            //{ -1064533554, ToggleMapIconPlacement}, // Surrender
+            //{ -158502505, ToggleDebuffMode }, // Taunt
+            //{ 1177797340, ResetToggles }, // Wave
+            //{ -1525577000, ToggleSnapping } // Yes
+        },
+        // Add more dictionaries as needed
     };
-    }
 
     [HarmonyPatch(typeof(EmoteSystem), nameof(EmoteSystem.OnUpdate))]
     [HarmonyPrefix]
@@ -69,16 +73,145 @@ internal class EmoteSystemPatch
             Player _player = new Player(_from.User);
             ulong _playerId = _player.SteamID;
             if (!_player.IsAdmin) continue;
-            if (DataStructures.PlayerSettings.TryGetValue(_playerId, out Omnitool data) && !data.Emotes) continue;
-            
-            if (emoteActions.TryGetValue(_event.Action.GuidHash, out var action))
+            if (DataStructures.PlayerSettings.TryGetValue(_playerId, out Omnitool data))
             {
-                // Execute the associated action
-                action.Invoke(_player, _playerId);
+                index = data.Build ? 1 : 0; // if active index is 1 for building emotes, if inactive index is 0 for familiar emotes
+                if (emoteActionsArray[index].TryGetValue(_event.Action.GuidHash, out var action))
+                {
+                    // Execute the associated action
+                    action.Invoke(_player, _playerId);
+                }
             }
         }
 
         _entities.Dispose();
+    }
+
+    private static void CallDismiss(Player player, ulong playerId)
+    {
+        ulong platformId = playerId;
+        EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+        EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
+        if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
+        {
+            if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
+            {
+                SystemPatchUtil.Enable(familiarStasisState.FamiliarEntity);
+                Follower follower = familiarStasisState.FamiliarEntity.Read<Follower>();
+                follower.Followed._Value = player.Character;
+                familiarStasisState.FamiliarEntity.Write(follower);
+                familiarStasisState.FamiliarEntity.Write(new Translation { Value = player.Character.Read<Translation>().Value });
+                familiarStasisState.IsInStasis = false;
+                familiarStasisState.FamiliarEntity = Entity.Null;
+                PlayerFamiliarStasisMap[platformId] = familiarStasisState;
+                ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "Your familiar has been summoned.");
+            }
+            else if (!familiarStasisState.IsInStasis)
+            {
+                Entity familiar = FindPlayerFamiliar(player.Character);
+                if (familiar.Equals(Entity.Null))
+                {
+                    ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "You don't have an active familiar.");
+                }
+                if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
+                {
+                    Follower follower = familiar.Read<Follower>();
+                    follower.Followed._Value = Entity.Null;
+                    familiar.Write(follower);
+                    SystemPatchUtil.Disable(familiar);
+                    PlayerFamiliarStasisMap[platformId] = new FamiliarStasisState(familiar, true);
+                    ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "Your familar has been placed in stasis.");
+                    //DataStructures.SavePetExperience();
+                }
+                else
+                {
+                    ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "Couldn't verify familiar to dismiss.");
+                }
+            }
+            else
+            {
+                ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "Failed to toggle familiar presence, make sure it's bound and active.");
+            }
+        }
+        else
+        {
+            ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "No bound familiar to summon.");
+        }
+    }
+
+    private static void ToggleCombat(Player player, ulong playerId)
+    {
+        EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
+        EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
+        ulong platformId = player.SteamID;
+        var buffs = player.Character.ReadBuffer<BuffBuffer>();
+        foreach (var buff in buffs)
+        {
+            if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.Buff_InCombat.GuidHash)
+            {
+                ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "You cannot toggle combat mode during combat.");
+                return;
+            }
+        }
+        if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
+        {
+            ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
+            BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
+
+            Entity familiar = FindPlayerFamiliar(player.Character);
+            if (familiar.Equals(Entity.Null))
+            {
+                ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "Summon your familiar before toggling this.");
+                return;
+            }
+            if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
+            {
+                profile.Combat = !profile.Combat; // this will be false when first triggered
+                FactionReference factionReference = familiar.Read<FactionReference>();
+                PrefabGUID ignored = new(-1430861195);
+                PrefabGUID playerfaction = new(1106458752);
+                if (!profile.Combat)
+                {
+                    factionReference.FactionGuid._Value = ignored;
+                }
+                else
+                {
+                    factionReference.FactionGuid._Value = playerfaction;
+                }
+
+                familiar.Write(factionReference);
+                BufferFromEntity<BuffBuffer> bufferFromEntity = VWorld.Server.EntityManager.GetBufferFromEntity<BuffBuffer>();
+                if (profile.Combat)
+                {
+                    BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff, familiar);
+                    BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, VCreate.Data.Prefabs.Admin_Invulnerable_Buff, familiar);
+                }
+                else
+                {
+                    OnHover.BuffNonPlayer(familiar, VCreate.Data.Prefabs.Admin_Invulnerable_Buff);
+                    OnHover.BuffNonPlayer(familiar, VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff);
+                }
+
+                data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
+                DataStructures.PlayerPetsMap[platformId] = data;
+                DataStructures.SavePetExperience();
+                if (!profile.Combat)
+                {
+                    string disabledColor = VCreate.Core.Toolbox.FontColors.Pink("disabled");
+                    ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), $"Combat for familiar is {disabledColor}. It cannot die and won't participate, however, no experience will be gained.");
+                }
+                else
+                {
+                    string enabledColor = VCreate.Core.Toolbox.FontColors.Green("enabled");
+                    ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), $"Combat for familiar is {enabledColor}. It will fight till glory or death and gain experience.");
+                }
+            }
+        }
+        else
+        {
+            ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "You don't have any familiars.");
+            return;
+        }
     }
 
     private static void ToggleCopyMode(Player player, ulong playerId)
@@ -301,8 +434,8 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"TileRotation: {rotation}°");
         }
     }
+
     //[Command(name: "returnToBody", shortHand: "return", adminOnly: true, usage: ".return", description: "Backup method to return to body on hover.")]
-    
 
     private static void ResetToggles(Player player, ulong playerId)
     {
@@ -319,7 +452,6 @@ internal class EmoteSystemPatch
             settings.SetMode("DebuffToggle", false);
             settings.SetMode("ConvertToggle", false);
             settings.SetMode("BuffToggle", false);
-
 
             // Enable the exceptToggle, if specified
 
@@ -358,8 +490,6 @@ internal class EmoteSystemPatch
         }
     }
 
-    
-
     private static void UndoLastTilePlacement(Player player, ulong playerId)
     {
         EntityManager entityManager = VWorld.Server.EntityManager;
@@ -384,7 +514,6 @@ internal class EmoteSystemPatch
                     {
                         ServerChatUtils.SendSystemMessageToClient(entityManager, player.User.Read<User>(), "Failed to find the last tile placed.");
                     }
-                    
                 }
                 else
                 {

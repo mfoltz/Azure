@@ -16,6 +16,7 @@ using static VCreate.Systems.Enablers.HorseFunctions;
 using ProjectM.Scripting;
 using static VCreate.Hooks.PetSystem.UnitTokenSystem;
 using Unity.Transforms;
+using Unity.Collections;
 
 namespace VCreate.Core.Commands
 {
@@ -131,7 +132,16 @@ namespace VCreate.Core.Commands
                 }
                 if (flag)
                 {
-                    OnHover.SummonFamiliar(ctx.Event.SenderCharacterEntity.Read<PlayerCharacter>().UserEntity, new(settings.Familiar));
+                    if (DataStructures.PlayerSettings.TryGetValue(platformId, out var Settings))
+                    {
+                        Settings.Binding = true;
+                        
+                        
+                        OnHover.SummonFamiliar(ctx.Event.SenderCharacterEntity.Read<PlayerCharacter>().UserEntity, new(settings.Familiar));
+                        
+                        
+                    }
+                    
                 }
                 else
                 {
@@ -244,6 +254,10 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
             {
                 Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
+                if (familiar.Equals(Entity.Null))
+                {
+                    ctx.Reply("You don't have any familiars to disable.");
+                }
                 if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
                 {
                     Follower follower = familiar.Read<Follower>();
@@ -388,36 +402,21 @@ namespace VCreate.Core.Commands
         
         public static Entity FindPlayerFamiliar(Entity characterEntity)
         {
-            Dictionary<Entity, bool> keyValuePairs = [];
             var followers = characterEntity.ReadBuffer<FollowerBuffer>();
             foreach (var follower in followers)
             {
-                keyValuePairs.Add(follower.Entity._Entity, false);
-                var buffs = follower.Entity._Entity.ReadBuffer<BuffBuffer>();
-                foreach (var buff in buffs)
+                if (!follower.Entity._Entity.Has<PrefabGUID>()) continue;
+                PrefabGUID prefabGUID = follower.Entity._Entity.Read<PrefabGUID>();
+                ulong platformId = characterEntity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data))
                 {
-                    if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff.GuidHash)
+                    if (data.Familiar.Equals(prefabGUID.GuidHash))
                     {
-                        DataStructures.PlayerPetsMap.TryGetValue(characterEntity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var data);
-                        if (data.TryGetValue(follower.Entity._Entity.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && !profile.Combat)
-                        {
-                            // if charmed and not in combat mode probably familiar
-                            continue;
-                        }
-                        else
-                        {
-                            keyValuePairs[follower.Entity._Entity] = true;
-                        }
+                        return follower.Entity._Entity;
                     }
                 }
             }
-            foreach (var pair in keyValuePairs)
-            {
-                if (!pair.Value)
-                {
-                    return pair.Key;
-                }
-            }
+            
 
             return Entity.Null;
         }
