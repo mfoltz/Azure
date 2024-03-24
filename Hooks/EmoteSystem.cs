@@ -30,11 +30,11 @@ internal class EmoteSystemPatch
         {
             { -658066984, ToggleTileMode }, // Beckon
             { -1462274656, ToggleTileRotation }, // Bow
-            { -26826346, ToggleConvert }, // Clap
+            { -26826346, ToggleImmortalTiles }, // Clap
             { -452406649, ToggleInspectMode }, // Point
             { -53273186, ToggleDestroyMode }, // No
-            { -370061286, ToggleCopyMode }, // Salute
-            { -578764388, ToggleImmortalTiles }, // Shrug
+            { -370061286, CycleGridSize }, // Salute
+            { -578764388, UndoLastTilePlacement }, // Shrug
             { 808904257, ToggleBuffMode }, // Sit
             { -1064533554, ToggleMapIconPlacement}, // Surrender
             { -158502505, ToggleDebuffMode }, // Taunt
@@ -45,7 +45,7 @@ internal class EmoteSystemPatch
         {
             //{ -658066984, ToggleTileMode }, // Beckon
             //{ -1462274656, ToggleTileRotation }, // Bow
-            { -26826346, CallDismiss }, // Clap to call/dismiss
+            //{ -26826346, CallDismiss }, // Clap to call/dismiss
             //{ -452406649, ToggleInspectMode }, // Point
             //{ -53273186, ToggleDestroyMode }, // No
             { -370061286, ToggleCombat }, // Salute to toggle combat mode
@@ -53,7 +53,7 @@ internal class EmoteSystemPatch
             //{ 808904257, ToggleBuffMode }, // Sit
             //{ -1064533554, ToggleMapIconPlacement}, // Surrender
             //{ -158502505, ToggleDebuffMode }, // Taunt
-            //{ 1177797340, ResetToggles }, // Wave
+            { 1177797340, CallDismiss }, // Wave
             //{ -1525577000, ToggleSnapping } // Yes
         },
         // Add more dictionaries as needed
@@ -75,7 +75,7 @@ internal class EmoteSystemPatch
             if (!_player.IsAdmin) continue;
             if (DataStructures.PlayerSettings.TryGetValue(_playerId, out Omnitool data))
             {
-                index = data.Build ? 1 : 0; // if active index is 1 for building emotes, if inactive index is 0 for familiar emotes
+                index = data.Build ? 0 : 1; // if active index is 1 for building emotes, if inactive index is 0 for familiar emotes
                 if (emoteActionsArray[index].TryGetValue(_event.Action.GuidHash, out var action))
                 {
                     // Execute the associated action
@@ -234,15 +234,7 @@ internal class EmoteSystemPatch
         }
     }
 
-    private static void ToggleLinkMode(Player player, ulong playerId)
-    {
-        ResetAllToggles(playerId, "LinkToggle");
-        if (DataStructures.PlayerSettings.TryGetValue(playerId, out Omnitool settings))
-        {
-            string stateMessage = settings.GetMode("LinkToggle") ? enabledColor : disabledColor;
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"LinkMode: |{stateMessage}|");
-        }
-    }
+ 
 
     private static void ToggleTileMode(Player player, ulong playerId)
     {
