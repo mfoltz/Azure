@@ -89,7 +89,7 @@ namespace VCreate.Core.Commands
                 DataStructures.SavePlayerSettings();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"EmoteToggles: |{(data.Build ? enabledColor : disabledColor)}|");
+                ctx.Reply($"BuildToggle: |{(data.Build ? enabledColor : disabledColor)}|");
             }
             else
             {

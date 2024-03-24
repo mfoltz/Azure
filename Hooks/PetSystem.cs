@@ -106,8 +106,12 @@ namespace VCreate.Hooks
                             float primaryattackspeed = unitStats.PrimaryAttackSpeed._Value;
                             float physicalpower = unitStats.PhysicalPower._Value;
                             float spellpower = unitStats.SpellPower._Value;
+                            float physicalcrit = unitStats.PhysicalCriticalStrikeChance._Value;
+                            float physicalcritdmg = unitStats.PhysicalCriticalStrikeDamage._Value;
+                            float spellcrit = unitStats.SpellCriticalStrikeChance._Value;
+                            float spellcritdmg = unitStats.SpellCriticalStrikeDamage._Value;
                             profile.Stats.Clear();
-                            profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                            profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower, physicalcrit, physicalcritdmg, spellcrit, spellcritdmg]);
                             profiles[follower.Read<PrefabGUID>().LookupName().ToString()] = profile;
                             DataStructures.PlayerPetsMap[killer.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = profiles;
                             DataStructures.SavePetExperience();
@@ -161,8 +165,12 @@ namespace VCreate.Hooks
                         float primaryattackspeed = unitStats.PrimaryAttackSpeed._Value;
                         float physicalpower = unitStats.PhysicalPower._Value;
                         float spellpower = unitStats.SpellPower._Value;
+                        float physicalcrit = unitStats.PhysicalCriticalStrikeChance._Value;
+                        float physicalcritdmg = unitStats.PhysicalCriticalStrikeDamage._Value;
+                        float spellcrit = unitStats.SpellCriticalStrikeChance._Value;
+                        float spellcritdmg = unitStats.SpellCriticalStrikeDamage._Value;
                         profile.Stats.Clear();
-                        profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                        profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower, physicalcrit, physicalcritdmg, spellcrit, spellcritdmg]);
                         profiles[pet.Read<PrefabGUID>().LookupName().ToString()] = profile;
                         DataStructures.PlayerPetsMap[platformId] = profiles;
                         DataStructures.SavePetExperience();

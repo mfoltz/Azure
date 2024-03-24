@@ -195,6 +195,7 @@ namespace VCreate.Core.Commands
                     profile.Active = false;
                     profile.Combat = true;
                     data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
+                    DataStructures.PlayerPetsMap[platformId] = data;
                     DataStructures.SavePetExperience();
                     SystemPatchUtil.Destroy(familiar);
                     ctx.Reply("Familiar profile deactivated, stats saved and familiar unbound. You may now bind to another.");
@@ -228,7 +229,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        //[Command(name: "enableFamiliar", shortHand: "call", usage: ".call", description: "Summons familar if found in stasis.", adminOnly: false)]
+        [Command(name: "enableFamiliar", shortHand: "call", usage: ".call", description: "Summons familar if found in stasis.", adminOnly: false)]
         public static void EnableFamiliar(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
@@ -257,7 +258,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        //[Command(name: "disableFamiliar", shortHand: "dismiss", adminOnly: false, usage: ".dismiss", description: "Puts summoned familiar in stasis.")]
+        [Command(name: "disableFamiliar", shortHand: "dismiss", adminOnly: false, usage: ".dismiss", description: "Puts summoned familiar in stasis.")]
         public static void MethodThree(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
@@ -319,7 +320,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        //[Command(name: "combatModeToggle", shortHand: "combat", adminOnly: false, usage: ".combat", description: "Toggles combat mode for familiar.")]
+        [Command(name: "combatModeToggle", shortHand: "combat", adminOnly: false, usage: ".combat", description: "Toggles combat mode for familiar.")]
         public static void MethodFive(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
