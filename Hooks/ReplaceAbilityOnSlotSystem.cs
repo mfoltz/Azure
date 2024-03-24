@@ -219,7 +219,7 @@ namespace VPlus.Hooks
 
         private static void HandleSpellChange(EntityManager entityManager, Entity entity, Entity owner)
         {
-            Plugin.Logger.LogInfo("Spell change detected...");
+            //Plugin.Logger.LogInfo("Spell change detected...");
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
             ulong steamID = user.PlatformId;
