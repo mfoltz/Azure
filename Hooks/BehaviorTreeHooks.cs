@@ -21,6 +21,7 @@ public static class RepairDoubleVBloodSpawnedSystemPatch
         return false;
     }
 }
+
 /*
 [HarmonyPatch(typeof(TeleportBuffSystem_Server), nameof(TeleportBuffSystem_Server.OnUpdate))]
 public static class TeleportBuffSystem_ServerPatch
@@ -88,7 +89,6 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                 }
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Combat)
                 {
-                    // if target has pvp protection buff, set this to follow instead
                     if (!entity.Has<AggroConsumer>()) continue;
                     AggroConsumer aggroConsumer = entity.Read<AggroConsumer>();
                     Entity aggroTarget = aggroConsumer.AggroTarget._Entity;
@@ -100,10 +100,10 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                         {
                             if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.Buff_General_PvPProtected.GuidHash)
                             {
-                                BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
-                                behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
-                                entity.Write(behaviourTreeStateChangedEvent);
-                            }
+                        BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
+                        behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
+                        entity.Write(behaviourTreeStateChangedEvent);
+                    }
                         }
                         var alertBuffer = alertTarget.ReadBuffer<BuffBuffer>();
                         foreach (var buff in alertBuffer)
@@ -130,7 +130,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Follow)
                 {
                     var distance = UnityEngine.Vector3.Distance(entity.Read<Translation>().Value, entity.Read<Follower>().Followed._Value.Read<Translation>().Value);
-                    if (distance < 3f)
+                    if (distance < 1f)
                     {
                         BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                         behaviourTreeStateChangedEvent.Value = GenericEnemyState.Idle;

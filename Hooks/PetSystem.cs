@@ -1,6 +1,7 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
 using ProjectM;
+using ProjectM.Behaviours;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
@@ -174,6 +175,38 @@ namespace VCreate.Hooks
                 }
             }
 
+            public class StatCaps
+            {
+                public static readonly Dictionary<FocusToStatMap.StatType, float> Caps = new()
+                {
+                    {FocusToStatMap.StatType.MaxHealth, 2500f},
+                    {FocusToStatMap.StatType.AttackSpeed, 2f},
+                    {FocusToStatMap.StatType.PrimaryAttackSpeed, 2f},
+                    {FocusToStatMap.StatType.PhysicalPower, 100f},
+                    {FocusToStatMap.StatType.SpellPower, 100f},
+                    {FocusToStatMap.StatType.PhysicalCriticalStrikeChance, 0.05f * 40f},
+                    {FocusToStatMap.StatType.PhysicalCriticalStrikeDamage, 1f * 40f},
+                    {FocusToStatMap.StatType.SpellCriticalStrikeChance, 0.05f * 40f},
+                    {FocusToStatMap.StatType.SpellCriticalStrikeDamage, 1f * 40f}
+                };
+            }
+            public class StatIncreases
+            {
+                public static readonly Dictionary<FocusToStatMap.StatType, float> Increases = new()
+                {
+                    {FocusToStatMap.StatType.MaxHealth, 0.05f},
+                    {FocusToStatMap.StatType.AttackSpeed, 0.01f},
+                    {FocusToStatMap.StatType.PrimaryAttackSpeed, 0.02f},
+                    {FocusToStatMap.StatType.PhysicalPower, 1f},
+                    {FocusToStatMap.StatType.SpellPower, 1f},
+                    {FocusToStatMap.StatType.PhysicalCriticalStrikeChance, 0.01f},
+                    {FocusToStatMap.StatType.PhysicalCriticalStrikeDamage, 0.05f},
+                    {FocusToStatMap.StatType.SpellCriticalStrikeChance, 0.01f},
+                    {FocusToStatMap.StatType.SpellCriticalStrikeDamage, 0.05f}
+                };
+            }
+
+
             public static void UnitStatSet(Entity entity)
             {
                 // Assuming entity.Read<UnitStats>() is a way to access the UnitStats component of the entity.
@@ -192,7 +225,8 @@ namespace VCreate.Hooks
                         switch (otherStat)
                         {
                             case FocusToStatMap.StatType.MaxHealth:
-                                health.MaxHealth._Value += health.MaxHealth._Value * 0.05f;
+                                AdjustStatWithCap(health.MaxHealth._Value, 0.05f);
+                                //health.MaxHealth._Value += health.MaxHealth._Value * 0.05f;
                                 break;
 
                             case FocusToStatMap.StatType.AttackSpeed:
@@ -240,12 +274,24 @@ namespace VCreate.Hooks
                 entity.Write(health);
                 entity.Write(unitStats);
             }
+            public static void AdjustStatWithCap(float stat, float increasePercentage)
+            {
+                if (stat * (1 + increasePercentage) <= stat)
+                {
+                    stat += stat * increasePercentage;
+                }  
+                else
+                {
+                    stat = PetSystem.DeathEventHandlers.StatCaps[FocusToStatMap.StatType.MaxHealth];
+                }
+                    
+            }
         }
 
         public class UnitTokenSystem
         {
             private static readonly float chance = 0.01f; // testing
-            private static readonly float vfactor = 2f;
+            private static readonly float vfactor = 3f;
             public static readonly Random Random = new();
 
             public class UnitToGemMapping
@@ -367,16 +413,24 @@ namespace VCreate.Hooks
                     AttackSpeed,
                     PrimaryAttackSpeed,
                     PhysicalPower,
-                    SpellPower
+                    SpellPower,
+                    PhysicalCriticalStrikeChance,
+                    PhysicalCriticalStrikeDamage,
+                    SpellCriticalStrikeChance,
+                    SpellCriticalStrikeDamage
                 }
 
                 public static readonly Dictionary<int, StatType> FocusStatMap = new()
-                {
+{
                     { 0, StatType.MaxHealth },
                     { 1, StatType.AttackSpeed },
                     { 2, StatType.PrimaryAttackSpeed },
                     { 3, StatType.PhysicalPower },
-                    { 4, StatType.SpellPower }
+                    { 4, StatType.SpellPower },
+                    { 5, StatType.PhysicalCriticalStrikeChance },
+                    { 6, StatType.PhysicalCriticalStrikeDamage },
+                    { 7, StatType.SpellCriticalStrikeChance },
+                    { 8, StatType.SpellCriticalStrikeDamage }
                 };
             }
         }

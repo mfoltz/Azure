@@ -86,7 +86,13 @@ namespace VCreate.Core.Commands
             // verify states before proceeding, make sure no active profiles and no familiars in stasis
             if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out var data))
             {
+                int limit = 9;
                 var profiles = data.Values;
+                if (profiles.Count > limit)
+                {
+                    ctx.Reply("You have too many familiar profiles to bind to another, you'll have to remove one first.");
+                    return;
+                }
                 foreach (var profile in profiles)
                 {
                     if (profile.Active)
@@ -218,7 +224,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "enableFamiliar", shortHand: "call", usage: ".call", description: "Summons familar if found in stasis.", adminOnly: false)]
+        //[Command(name: "enableFamiliar", shortHand: "call", usage: ".call", description: "Summons familar if found in stasis.", adminOnly: false)]
         public static void EnableFamiliar(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
@@ -247,7 +253,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "disableFamiliar", shortHand: "dismiss", adminOnly: false, usage: ".dismiss", description: "Puts summoned familiar in stasis.")]
+        //[Command(name: "disableFamiliar", shortHand: "dismiss", adminOnly: false, usage: ".dismiss", description: "Puts summoned familiar in stasis.")]
         public static void MethodThree(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
@@ -309,7 +315,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "combatModeToggle", shortHand: "combat", adminOnly: false, usage: ".combat", description: "Toggles combat mode for familiar.")]
+        //[Command(name: "combatModeToggle", shortHand: "combat", adminOnly: false, usage: ".combat", description: "Toggles combat mode for familiar.")]
         public static void MethodFive(ChatCommandContext ctx)
         {
             ulong platformId = ctx.User.PlatformId;
