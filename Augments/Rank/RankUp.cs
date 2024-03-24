@@ -207,9 +207,9 @@ namespace VPlus.Augments.Rank
 
             if (Databases.playerRanks.TryGetValue(SteamID, out RankData rankData))
             {
-                if (DateTime.UtcNow - rankData.LastAbilityUse < TimeSpan.FromSeconds(30))
+                if (DateTime.UtcNow - rankData.LastAbilityUse < TimeSpan.FromSeconds(15))
                 {
-                    ctx.Reply("You must wait before changing abilities.");
+                    ctx.Reply("You must 15s before changing abilities.");
                     return;
                 }
                 var classInstance = ClassFactory.CreateClassInstance(rankData.ClassChoice);
