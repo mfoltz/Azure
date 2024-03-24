@@ -133,7 +133,7 @@ namespace VPlus.Hooks
                     {
                         float3 center = new(-1549, 0, -56);
                         string message1 = $"The Sacred Node at the Transcendum Mine is now active.";
-                        Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Cursed_Zone_Area01];
+                        Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                         Entity holyZone = VWorld.Server.EntityManager.Instantiate(zone);
                         Entity node1 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity1 = entityManager.Instantiate(node1);
@@ -147,7 +147,7 @@ namespace VPlus.Hooks
                     {
                         string message2 = $"The Sacred Node at the Quartz Quarry is now active.";
                         ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
-                        float3 otherfloat = new(-1743, 0, -438); //quartzmines
+                        float3 otherfloat = new(-1743, -5, -438); //quartzmines
                         Entity zone3 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                         Entity holyZone3 = VWorld.Server.EntityManager.Instantiate(zone3);
                         holyZone3.Write<Translation>(new Translation { Value = otherfloat });
