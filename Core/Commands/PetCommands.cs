@@ -186,8 +186,12 @@ namespace VCreate.Core.Commands
                     float primaryattackspeed = stats.PrimaryAttackSpeed._Value;
                     float physicalpower = stats.PhysicalPower._Value;
                     float spellpower = stats.SpellPower._Value;
+                    float physcritchance = stats.PhysicalCriticalStrikeChance._Value;
+                    float physcritdamage = stats.PhysicalCriticalStrikeDamage._Value;
+                    float spellcritchance = stats.SpellCriticalStrikeChance._Value;
+                    float spellcritdamage = stats.SpellCriticalStrikeDamage._Value;
                     profile.Stats.Clear();
-                    profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower]);
+                    profile.Stats.AddRange([maxhealth, attackspeed, primaryattackspeed, physicalpower, spellpower, physcritchance, physcritdamage, spellcritchance, spellcritdamage]);
                     profile.Active = false;
                     profile.Combat = true;
                     data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;

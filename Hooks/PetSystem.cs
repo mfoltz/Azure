@@ -177,6 +177,20 @@ namespace VCreate.Hooks
                 }
             }
 
+            public static readonly PrefabGUID[] RandomPrefabs = new PrefabGUID[]
+            {
+                new PrefabGUID(-646796985),   // BloodBuff_Assault
+                new PrefabGUID(1536493953),    // BloodBuff_CriticalStrike
+                new PrefabGUID(1096233037)     // BloodBuff_Empower also do lightning weapon, etc.
+                // Add more prefabs as needed
+            };
+
+            public static PrefabGUID GetRandomPrefab()
+            {
+                Random random = UnitTokenSystem.Random;
+                return RandomPrefabs[random.Next(RandomPrefabs.Length)];
+            }
+
             public class StatCaps
             {
                 public static readonly Dictionary<FocusToStatMap.StatType, float> Caps = new()

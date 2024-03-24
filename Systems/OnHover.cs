@@ -8,6 +8,7 @@ using Unity.Transforms;
 using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
+using VCreate.Hooks;
 using User = ProjectM.Network.User;
 
 namespace VCreate.Systems
@@ -246,23 +247,33 @@ namespace VCreate.Systems
             //familiar.Write(genericCombatMovementData);
         }
 
+        public static ModifiableFloat CreateModifiableFloat(Entity entity, EntityManager entityManager, float value)
+        {
+            ModifiableFloat modifiableFloat = ModifiableFloat.Create(entity, entityManager, value);
+            return modifiableFloat;
+        }
+
         public static void SecondPhase(Entity userEntity, Entity familiar)
         {
+            EntityManager entityManager = VWorld.Server.EntityManager;
             familiar.Write<UnitLevel>(new UnitLevel { Level = 0 });
+
             UnitStats unitStats = familiar.Read<UnitStats>();
-            // set initial stats
             Health healthUnit = familiar.Read<Health>();
-            healthUnit.MaxHealth._Value = 1000f;
-            healthUnit.MaxRecoveryHealth = 1f;
-            healthUnit.Value = 1000f;
-            ModifiableFloat modifiableFloat = ModifiableFloat.CreateFixed(10f);
-            unitStats.PhysicalPower = modifiableFloat; // 
-            unitStats.SpellPower = modifiableFloat; // 
-            
+
+            healthUnit.MaxHealth = CreateModifiableFloat(familiar, entityManager, 250f);
+            healthUnit.Value = 250f;
+
+            unitStats.PhysicalPower = CreateModifiableFloat(familiar, entityManager, 10f); // 
+            unitStats.SpellPower = CreateModifiableFloat(familiar, entityManager, 10f);  // 
+            unitStats.PhysicalCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f); //
+            unitStats.SpellCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f); //
+            unitStats.PhysicalCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f); //
+            unitStats.SpellCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f); //
             if (familiar.Has<DamageCategoryStats>())
             {
                 DamageCategoryStats damageCategoryStats = familiar.Read<DamageCategoryStats>();
-                damageCategoryStats.DamageVsPlayerVampires._Value = 0f;
+                damageCategoryStats.DamageVsPlayerVampires = CreateModifiableFloat(familiar, entityManager, 0.1f);
                 familiar.Write(damageCategoryStats);
             }
             
@@ -279,37 +290,44 @@ namespace VCreate.Systems
             };
 
             // if structure already present, add pet here, if pet profile not created, then do that
-            DataStructures.PlayerPetsMap.TryGetValue(userEntity.Read<User>().PlatformId, out Dictionary<string, PetExperienceProfile> data);
-            if (!data.ContainsKey(familiar.Read<PrefabGUID>().LookupName().ToString()))
+            if (DataStructures.PlayerPetsMap.TryGetValue(userEntity.Read<User>().PlatformId, out Dictionary<string, PetExperienceProfile> data))
             {
-                data[familiar.Read<PrefabGUID>().LookupName().ToString()] = petExperience;
-                DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
-                DataStructures.SavePetExperience();
+                if (!data.ContainsKey(familiar.Read<PrefabGUID>().LookupName().ToString()))
+                {
+                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = petExperience;
+                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
+                    DataStructures.SavePetExperience();
+                }
+                else
+                {
+                    data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile);
+                    profile.Active = true;
+                    UnitStats stats = familiar.Read<UnitStats>();
+                    UnitLevel level = familiar.Read<UnitLevel>();
+                    Health health = familiar.Read<Health>();
+                    health.MaxHealth = CreateModifiableFloat(familiar, entityManager, profile.Stats[0]);
+                    health.Value = profile.Stats[0];
+                    stats.AttackSpeed._Value = profile.Stats[1];
+                    stats.PrimaryAttackSpeed._Value = profile.Stats[2];
+                    stats.PhysicalPower._Value = profile.Stats[3];
+                    stats.SpellPower._Value = profile.Stats[4];
+                    stats.PhysicalCriticalStrikeChance._Value = profile.Stats[5];
+                    stats.SpellCriticalStrikeChance._Value = profile.Stats[6];
+                    stats.PhysicalCriticalStrikeDamage._Value = profile.Stats[7];
+                    stats.SpellCriticalStrikeDamage._Value = profile.Stats[8];
+                    level.Level = profile.Level;
+                    familiar.Write(stats);
+                    familiar.Write(health);
+                    familiar.Write(level);
+
+                    data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
+                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
+                    DataStructures.SavePetExperience();
+                    // load/set pet stat method here
+                }
             }
-            else
-            {
-                // only one profile per prefab, need to find way to store pet stats and load again for bind/unbind
-                data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile);
-                profile.Active = true;
-                UnitStats stats = familiar.Read<UnitStats>();
-                UnitLevel level = familiar.Read<UnitLevel>();
-                Health health = familiar.Read<Health>();
-                health.MaxHealth._Value = profile.Stats[0];
-                health.Value = profile.Stats[0];
-                stats.AttackSpeed._Value = profile.Stats[1];
-                stats.PrimaryAttackSpeed._Value = profile.Stats[2];
-                stats.PhysicalPower._Value = profile.Stats[3];
-                stats.SpellPower._Value = profile.Stats[4];
-                level.Level = profile.Level;
-                familiar.Write(stats);
-                familiar.Write(health);
-                familiar.Write(level);
-                    
-                data[familiar.Read<PrefabGUID>().LookupName().ToString()] = profile;
-                DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
-                DataStructures.SavePetExperience();
-                // load/set pet stat method here
-            }
+            
+            
             
         }
 
