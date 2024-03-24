@@ -72,6 +72,7 @@ public static class FollowerSystemPatchV2
                         {
                             if (DataStructures.UnlockedPets.TryGetValue(userEntity.Read<User>().PlatformId, out var unlockedPets))
                             {
+                                Plugin.Log.LogInfo($"entityFromQuery: {check}, setFamiliar: {data.Familiar} ");
                                 if (!unlockedPets.Contains(check))
                                 {
                                     hashset.Add(entity);
