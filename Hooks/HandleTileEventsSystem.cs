@@ -83,7 +83,7 @@ namespace WorldBuild.Hooks
             {
                 return; // or handle the case of missing settings
             }
-            if (!settings.Build)
+            if (!settings.Emotes)
             {
                 return;
             }

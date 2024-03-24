@@ -53,8 +53,30 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "buildEmotes", shortHand: "build", adminOnly: true, usage: ".build", description: "Toggles using the emote wheel to change action on Q when extra skills for unarmed are equipped.")]
+        [Command(name: "emotesToggle", shortHand: "emotes", adminOnly: true, usage: ".emotes", description: "Familiar commands on emotes toggle.")]
         public static void ToggleEmoteActions(ChatCommandContext ctx)
+        {
+            //User setter = ctx.Event.User;
+            Entity userEntity = ctx.Event.SenderUserEntity;
+            User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
+            {
+                // Toggle the CanEditTiles value
+                data.Emotes = !data.Emotes;
+
+                DataStructures.SavePlayerSettings();
+                string enabledColor = FontColors.Green("enabled");
+                string disabledColor = FontColors.Red("disabled");
+                ctx.Reply($"EmoteToggles: |{(data.Emotes ? enabledColor : disabledColor)}|");
+            }
+            else
+            {
+                ctx.Reply("Couldn't find omnitool data.");
+            }
+        }
+
+        [Command(name: "buildEmotes", shortHand: "build", adminOnly: true, usage: ".build", description: "Toggles using the emote wheel to change action on Q when extra skills for unarmed are equipped.")]
+        public static void ToggleBuilding(ChatCommandContext ctx)
         {
             //User setter = ctx.Event.User;
             Entity userEntity = ctx.Event.SenderUserEntity;
