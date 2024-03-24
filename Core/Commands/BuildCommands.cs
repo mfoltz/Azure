@@ -433,6 +433,8 @@ namespace VCreate.Core.Commands
                                 Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
                             });
                             NativeArray<Entity> heartEntities = heartQuery.ToEntityArray(Allocator.Temp);
+                            
+                            
                             try
                             {
                                 foreach (var heartEntity in heartEntities)
@@ -449,6 +451,7 @@ namespace VCreate.Core.Commands
                                         CastleHeartConnection heartConnection = entity.Read<CastleHeartConnection>();
                                         heartConnection.CastleHeartEntity._Entity = transplantHeart;
                                         entity.Write(heartConnection);
+                                        
                                         //hashset.Add(heartEntity);
                                         Plugin.Log.LogInfo("Cloned heart entity to missing connection.");
                                     }

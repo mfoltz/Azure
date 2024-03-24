@@ -15,6 +15,7 @@ using VCreate.Hooks;
 using static VCreate.Systems.Enablers.HorseFunctions;
 using ProjectM.Scripting;
 using static VCreate.Hooks.PetSystem.UnitTokenSystem;
+using Unity.Transforms;
 
 namespace VCreate.Core.Commands
 {
@@ -216,6 +217,10 @@ namespace VCreate.Core.Commands
                 if (PlayerFamiliarStasisMap.TryGetValue(platformId, out FamiliarStasisState familiarStasisState) && familiarStasisState.IsInStasis)
                 {
                     SystemPatchUtil.Enable(familiarStasisState.FamiliarEntity);
+                    Follower follower = familiarStasisState.FamiliarEntity.Read<Follower>();
+                    follower.Followed._Value = ctx.Event.SenderCharacterEntity;
+                    familiarStasisState.FamiliarEntity.Write(follower);
+                    familiarStasisState.FamiliarEntity.Write(new Translation { Value = ctx.Event.SenderCharacterEntity.Read<Translation>().Value });
                     familiarStasisState.IsInStasis = false;
                     familiarStasisState.FamiliarEntity = Entity.Null;
                     PlayerFamiliarStasisMap[platformId] = familiarStasisState;
@@ -241,6 +246,9 @@ namespace VCreate.Core.Commands
                 Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
                 if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
                 {
+                    Follower follower = familiar.Read<Follower>();
+                    follower.Followed._Value = Entity.Null;
+                    familiar.Write(follower);
                     SystemPatchUtil.Disable(familiar);
                     PlayerFamiliarStasisMap[platformId] = new FamiliarStasisState(familiar, true);
                     ctx.Reply("Your familiar has been put in stasis.");
@@ -377,7 +385,7 @@ namespace VCreate.Core.Commands
                 IsInStasis = isInStasis;
             }
         }
-
+        
         public static Entity FindPlayerFamiliar(Entity characterEntity)
         {
             Dictionary<Entity, bool> keyValuePairs = [];

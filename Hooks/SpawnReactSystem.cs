@@ -66,7 +66,7 @@ public static class FollowerSystemPatchV2
                         }
                         foreach (var item in buffs)
                         {
-                            if (item.PrefabGuid.GuidHash.Equals(VCreate.Data.Prefabs.AB_Charm_Owner_HasCharmedTarget_Buff.GuidHash))
+                            if (item.PrefabGuid.GuidHash.Equals(VCreate.Data.Prefabs.AB_Charm_CaptureBuff_Human.GuidHash))
                             {
                                 //Plugin.Log.LogInfo("Player is charming a human, skip.");
                                 
@@ -75,8 +75,18 @@ public static class FollowerSystemPatchV2
                             }
                         }
                         Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
-                        
-                        
+
+                        int check = entity.Read<PrefabGUID>().GuidHash;
+                        if (DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out var data))
+                        {
+                            var against = data.Familiar;
+                            if (against != check)
+                            {
+                                // want to make sure only valid familiars are able to be used
+                                hashset.Add(entity);
+                                goto outerLoop;
+                            }
+                        }
                         Plugin.Log.LogInfo("Found inactive familiar, removing charm and binding...");
 
                         BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
