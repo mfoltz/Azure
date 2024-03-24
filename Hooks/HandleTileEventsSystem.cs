@@ -36,7 +36,6 @@ namespace WorldBuild.Hooks
                         if (!WorldBuildToggle.WbFlag) continue;
                         CancelCastleHeartPlacement(entityManager, job);
                     }
-                    
                 }
             }
             finally
@@ -68,9 +67,6 @@ namespace WorldBuild.Hooks
                             HandleAbilityCast(userEntity);
                         }
                     }
-                    
-
-                    
                 }
             }
             finally
@@ -189,20 +185,19 @@ namespace WorldBuild.Hooks
 
             Plugin.Log.LogInfo("Verifying dismantle event...");
 
-
-
             bool canDismantle = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
 
             //__result = canDismantle;
-
-            if (!canDismantle)
+            if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
             {
-                Plugin.Log.LogInfo("Disallowed based on permissions and ownership.");
-                __result = false;
-            }
-            else if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
-            {
+                Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
                 __result = true;
+                
+            }
+            else if (!canDismantle)
+            {
+                Plugin.Log.LogInfo("Disallowing dismantle based on ownership.");
+                __result = false;
             }
             else
             {
@@ -223,15 +218,15 @@ namespace WorldBuild.Hooks
 
             bool canMove = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
             //__result = canMove;
-
-            if (!canMove)
+            if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
             {
-                Plugin.Log.LogInfo("Disallowing movement based on permissions and ownership.");
-                __result = false;
-            }
-            else if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
-            {
+                Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
                 __result = true;
+            }
+            else if (!canMove)
+            {
+                Plugin.Log.LogInfo("Disallowing movement based on ownership.");
+                __result = false;
             }
             else
             {
@@ -240,8 +235,6 @@ namespace WorldBuild.Hooks
             }
         }
     }
-
-   
 
     public static class TileOperationUtility
     {

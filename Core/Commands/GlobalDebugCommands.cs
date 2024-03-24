@@ -113,7 +113,7 @@ namespace VCreate.Core.Commands
             Value = false
         };
 
-        //[Command(name: "toggleCastleHeartConnectionRequirement", shortHand: "tchc", adminOnly: true, usage: ".tchc", description: "Toggles the Castle Heart connection requirement for structures. Handy for testing.")]
+        [Command(name: "toggleCastleHeartConnectionRequirement", shortHand: "tchc", adminOnly: true, usage: ".tchc", description: "Toggles the Castle Heart connection requirement for structures. Handy for testing.")]
         public static void ToggleCastleHeartConnectionCommand(ChatCommandContext ctx)
         {
             User user = ctx.Event.User;

@@ -19,9 +19,9 @@ public static class FollowerSystemPatchV2
 {
     private static readonly PrefabGUID charm = VCreate.Data.Prefabs.AB_Charm_Active_Human_Buff;
     private static HashSet<Entity> hashset = new();
+
     public static void Prefix(FollowerSystem __instance)
     {
-        
         ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
         BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
         EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
@@ -30,7 +30,7 @@ public static class FollowerSystemPatchV2
         NativeArray<Entity> entities = __instance.__OnUpdate_LambdaJob0_entityQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
         try
         {
-            outerLoop:
+        outerLoop:
             foreach (Entity entity in entities)
             {
                 if (hashset.Contains(entity)) continue;
@@ -64,38 +64,34 @@ public static class FollowerSystemPatchV2
                                 }
                             }
                         }
-                        foreach (var item in buffs)
-                        {
-                            if (item.PrefabGuid.GuidHash.Equals(VCreate.Data.Prefabs.AB_Charm_CaptureBuff_Human.GuidHash))
-                            {
-                                //Plugin.Log.LogInfo("Player is charming a human, skip.");
-                                
-                                hashset.Add(entity);
-                                goto outerLoop;
-                            }
-                        }
+                        
                         Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
 
                         int check = entity.Read<PrefabGUID>().GuidHash;
                         if (DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out var data))
                         {
-                            var against = data.Familiar;
-                            if (against != check)
+                            if (DataStructures.UnlockedPets.TryGetValue(userEntity.Read<User>().PlatformId, out var unlockedPets))
                             {
-                                // want to make sure only valid familiars are able to be used
-                                hashset.Add(entity);
-                                goto outerLoop;
+                                if (!unlockedPets.Contains(check))
+                                {
+                                    hashset.Add(entity);
+                                    goto outerLoop;
+                                }
+                                else if (!data.Familiar.Equals(check))
+                                {
+                                    hashset.Add(entity);
+                                    goto outerLoop;
+                                }
+                                else
+                                {
+                                    Plugin.Log.LogInfo("Found inactive familiar, removing charm and binding...");
+                                    BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
+                                    OnHover.ConvertCharacter(userEntity, entity);
+                                    hashset.Add(entity);
+                                    goto outerLoop;
+                                }
                             }
                         }
-                        Plugin.Log.LogInfo("Found inactive familiar, removing charm and binding...");
-
-                        BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
-                        OnHover.ConvertCharacter(userEntity, entity);
-                        hashset.Add(entity);
-                        goto outerLoop;
-                            
-                           
-                        
                     }
                 }
             }

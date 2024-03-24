@@ -433,25 +433,20 @@ namespace VCreate.Core.Commands
                                 Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
                             });
                             NativeArray<Entity> heartEntities = heartQuery.ToEntityArray(Allocator.Temp);
-                            
-                            
+
                             try
                             {
                                 foreach (var heartEntity in heartEntities)
                                 {
                                     if (heartEntity.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.TM_BloodFountain_Pylon_Station.GuidHash))
                                     {
-                                        if (!heartEntity.Read<UserOwner>().Equals(userOwner))
-                                        {
-                                            Plugin.Log.LogInfo("Heart doesn't match owner, skipping...");
-                                            continue;
-                                        }
-                                        Plugin.Log.LogInfo("Valid heart found..");
+                                        
+                                        Plugin.Log.LogInfo("Valid heart found.");
                                         Entity transplantHeart = heartEntity.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
                                         CastleHeartConnection heartConnection = entity.Read<CastleHeartConnection>();
                                         heartConnection.CastleHeartEntity._Entity = transplantHeart;
                                         entity.Write(heartConnection);
-                                        
+
                                         //hashset.Add(heartEntity);
                                         Plugin.Log.LogInfo("Cloned heart entity to missing connection.");
                                     }
@@ -474,6 +469,49 @@ namespace VCreate.Core.Commands
             finally
             {
                 decayEntities.Dispose();
+            }
+        }
+
+        [Command(name: "logUnitStats", shortHand: "logunitstats", adminOnly: true, usage: "logunitstats", description: "WIP")]
+        public static void LogUnitStats(ChatCommandContext ctx)
+        {
+            HashSet<Entity> hashset = [];
+            //method for query
+            Plugin.Log.LogInfo("querying for units...");
+            bool includeDisabled = true;
+            EntityQuery statsQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            {
+                All = new ComponentType[]
+                {
+                                ComponentType.ReadOnly<PrefabGUID>(),
+                                ComponentType.ReadOnly<UnitLevel>(),
+                                ComponentType.ReadOnly<UnitStats>(),
+                                ComponentType.ReadOnly<Health>()
+                },
+                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
+            });
+            NativeArray<Entity> statsEntities = statsQuery.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (var entity in statsEntities)
+                {
+                    if (hashset.Contains(entity)) continue;
+                    //Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
+                    UnitLevel unitLevel = entity.Read<UnitLevel>();
+                    UnitStats stats = entity.Read<UnitStats>();
+                    Health health = entity.Read<Health>();
+                    hashset.Add(entity);
+                    int level = unitLevel.Level;
+                    int unithealth = (int)health.Value;
+                    int attack = (int)stats.PhysicalPower._Value;
+                    int spell = (int)stats.SpellPower._Value;
+                    Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
+                    Plugin.Log.LogInfo($"Level: {level} | Health: {unithealth} | Attack: {attack} | Spell: {spell}");
+                }
+            }
+            finally
+            {
+                statsEntities.Dispose();
             }
         }
 
