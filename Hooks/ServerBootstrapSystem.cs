@@ -14,6 +14,7 @@ using VCreate.Core.Toolbox;
 using VRising.GameData.Utils;
 using VPlus.Data;
 using VRising.GameData.Models;
+using RPGMods;
 
 namespace VPlus.Hooks
 {
@@ -94,22 +95,14 @@ namespace VPlus.Hooks
                 //VPlus.Core.Logger.Log(VPlus.Core.Logger.Level.Error, ex);
             }
         }
-        /*
+        
         [HarmonyPatch(typeof(SpawnCharacterSystem), nameof(SpawnCharacterSystem.OnUpdate))]
         [HarmonyPostfix]
         private static void SpawnKitPostfix(SpawnCharacterSystem __instance)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
             HashSet<Entity> hash = [];
-            Dictionary<PrefabGUID, int> keyValuePairs = new()
-            {
-                { new(862477668), 2500 },
-                { new(-1531666018), 2500 },
-                { new(-1593377811), 2500 },
-                { new(429052660), 25 },
-                { new(28625845), 200 }
-            };
-
+            
             NativeArray<Entity> entities = __instance._SpawnCharacterQuery.ToEntityArray(Allocator.Temp);
             try
             {
@@ -120,21 +113,19 @@ namespace VPlus.Hooks
                     SpawnCharacter spawnCharacter = entity.Read<SpawnCharacter>();
 
                     Entity character = spawnCharacter.PostSpawn_Character;
-                    var keys = keyValuePairs.Keys.ToList();
-                    UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(spawnCharacter.User.Read<User>().PlatformId);
-                    if (Databases.playerDivinity.TryGetValue(spawnCharacter.User.Read<User>().PlatformId, out DivineData divineData) && divineData.Spawned)
+                    if (!character.Has<Vision>())
                     {
-                        return;
+                        continue;
                     }
                     else
                     {
-                        foreach (var key in keys)
+                        Vision vision = character.Read<Vision>();
+                        if (vision.Range._Value != 5000f)
                         {
-
+                            Plugin.Logger.LogInfo(vision.Range._Value.ToString());
+                            vision.Range._Value = 5000f;
+                            character.Write(vision);
                         }
-                        divineData.Spawned = true;
-                        Databases.playerDivinity[spawnCharacter.User.Read<User>().PlatformId] = divineData;
-                        ChatCommands.SavePlayerDivinity();
                     }
 
                 }
@@ -144,6 +135,6 @@ namespace VPlus.Hooks
                 entities.Dispose();
             }
         }
-        */
+        
     }
 }

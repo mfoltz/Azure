@@ -24,6 +24,17 @@ namespace VPlus.Core.Commands
     {
         private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
 
+        [Command(name: "resetVision", shortHand: "vision", adminOnly: false, usage: ".vision", description: "Removes farsight.")]
+
+        public static void ResetVision(ChatCommandContext ctx)
+        {
+            Entity character = ctx.Event.SenderCharacterEntity;
+            Vision vision = character.Read<Vision>();
+            vision.Range._Value = 40f;
+            character.Write(vision);
+            ctx.Reply("Farsight removed.");
+        }
+
         [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".redeem", description: "Redeems all VTokens for the crystal equivalent, drops if inventory full.")]
         public static void RedeemPoints(ChatCommandContext ctx)
         {
