@@ -33,6 +33,7 @@ namespace VCreate.Hooks
             if (!VCreate.Core.DataStructures.PlayerSettings.ContainsKey(steamId))
             {
                 Omnitool newdata = new();
+                newdata.Build = false;
                 VCreate.Core.DataStructures.PlayerSettings.Add(steamId, newdata);
                 DataStructures.SavePlayerSettings();
             }

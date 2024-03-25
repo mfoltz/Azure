@@ -150,7 +150,7 @@ internal static class Enablers
                     }
                     else
                     {
-                        return true;
+                        return false;
                     }
                 }
                 else
