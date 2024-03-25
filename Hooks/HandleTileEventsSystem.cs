@@ -191,30 +191,34 @@ namespace WorldBuild.Hooks
             {
                 
                 EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
-                Entity interactor = editableTileModel.CurrentEditor._Entity;
-                interactor.LogComponentTypes();
-                /*
-                User user = interactor.Read<User>();
-                if (!interactor.Equals(Entity.Null))
+                NetworkedEntity interactor = editableTileModel.CurrentEditor;
+
+                if (interactor.TryGetSyncedEntity(out Entity entity))
                 {
-                    ulong platformId = user.PlatformId;
-                    if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
+                    if (!entity.Equals(Entity.Null))
                     {
-                        Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
-                        __result = true;
-                    }
-                    else if (!TileOperationUtility.HasValidCastleHeartConnection(user, tileModelEntity)) // returns false if the interactor is not the owner of the castle heart
-                    {
-                        Plugin.Log.LogInfo("Disallowing dismantle based on ownership.");
-                        __result = false;
-                    }
-                    else
-                    {
-                        Plugin.Log.LogInfo("Allowing normal game handling for dismantle event.");
-                        return;
+                        entity.LogComponentTypes();
+                        ulong platformId = entity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                        if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
+                        {
+                            Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
+                            __result = true;
+                        }
+                        else if (!TileOperationUtility.HasValidCastleHeartConnection(entity.Read<PlayerCharacter>().UserEntity.Read<User>(), tileModelEntity)) // returns false if the interactor is not the owner of the castle heart
+                        {
+                            Plugin.Log.LogInfo("Disallowing dismantle based on ownership.");
+                            __result = false;
+                        }
+                        else
+                        {
+                            Plugin.Log.LogInfo("Allowing normal game handling for dismantle event.");
+                            return;
+                        }
                     }
                 }
-                */
+                
+                
+                
             }
             else
             {

@@ -90,30 +90,8 @@ internal static class Enablers
                 Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
             });
 
-            int batchSize = 1000;
-            int total = nodeQuery.CalculateEntityCount();
-            int processed = 0;
-
-            while (processed < total)
-            {
-                int remainingCount = total - processed;
-                int currentBatchSize = Mathf.Min(batchSize, remainingCount);
-
-                NativeArray<Entity> resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
-                for (int i = 0; i < currentBatchSize; i++)
-                {
-                    Entity node = resourceNodeEntities[i];
-                    if (ShouldRemoveNodeBasedOnTerritory(node))
-                    {
-                        counter++;
-                        DestroyUtility.CreateDestroyEvent(commandBuffer, node, DestroyReason.Default, DestroyDebugReason.None);
-                    }
-                }
-                resourceNodeEntities.Dispose();
-
-                processed += currentBatchSize;
-            }
-            /*
+            
+            
             NativeArray<Entity> resourceNodeEntities = nodeQuery.ToEntityArray(Allocator.Temp);
             foreach (Entity node in resourceNodeEntities)
             {
@@ -124,7 +102,7 @@ internal static class Enablers
                 }
             }
             resourceNodeEntities.Dispose();
-            */
+            
             EntityQuery cleanUp = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
             {
                 All = new ComponentType[]
