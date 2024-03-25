@@ -288,8 +288,8 @@ namespace VPlus.Hooks
             for (int i = 0; i < buffer.Length; i++)
             {
                 var item = buffer[i];
-                //item.Amount = (int)item.Amount/5;
-                item.AmountTaken = (int)item.AmountTaken*5;
+                item.ItemType;
+               
                 buffer[i] = item;
                 
             }
