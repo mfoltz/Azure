@@ -51,7 +51,6 @@ internal static class Enablers
                 foreach (var tile in tiles)
                 {
                     // filter for tile models to make this slightly more user-friendly
-                    if (!tileGUID.LookupName().ToLower().Contains("tm")) continue;
                     var position = VWorld.Server.EntityManager.GetComponentData<LocalToWorld>(tile).Position;
                     var distance = UnityEngine.Vector3.Distance(origin, position);
                     var em = VWorld.Server.EntityManager;

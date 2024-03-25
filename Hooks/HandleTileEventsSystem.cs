@@ -189,9 +189,11 @@ namespace WorldBuild.Hooks
 
             if (Utilities.HasComponent<EditableTileModel>(tileModelEntity))
             {
+                
                 EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
                 Entity interactor = editableTileModel.CurrentEditor._Entity;
-                //User user = interactor.Read<PlayerCharacter>().UserEntity.Read<User>();
+                interactor.LogComponentTypes();
+                /*
                 User user = interactor.Read<User>();
                 if (!interactor.Equals(Entity.Null))
                 {
@@ -212,6 +214,7 @@ namespace WorldBuild.Hooks
                         return;
                     }
                 }
+                */
             }
             else
             {
@@ -234,7 +237,8 @@ namespace WorldBuild.Hooks
             {
                 EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
                 Entity interactor = editableTileModel.CurrentEditor._Entity;
-                //User user = interactor.Read<PlayerCharacter>().UserEntity.Read<User>();
+                interactor.LogComponentTypes();
+                /*
                 User user = interactor.Read<User>();
                 if (!interactor.Equals(Entity.Null))
                 {
@@ -255,6 +259,7 @@ namespace WorldBuild.Hooks
                         return;
                     }
                 }
+                */
             }
             else
             {
