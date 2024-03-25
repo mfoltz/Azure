@@ -284,17 +284,12 @@ namespace VPlus.Hooks
         }
         public static void ModifyResourceBuffer(Entity entity)
         {
-            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             var buffer = entity.ReadBuffer<YieldResourcesOnDamageTaken>();
-            entity.Remove<YieldResourcesOnDamageTaken>();
-            var newBuffer = entityManager.AddBuffer<YieldResourcesOnDamageTaken>(entity);
+            buffer.Clear();
+            buffer.Add(new YieldResourcesOnDamageTaken { Amount = 1, AmountTaken = 50, ItemType = VCreate.Data.Prefabs.Item_Ingredient_Crystal });
             // Create a new buffer with modified Amount values
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                var item = buffer[i];
-                item.Amount = 1;  // Modify the Amount value here
-                newBuffer.Add(item);
-            }
+            
+            
 
             Plugin.Logger.LogInfo("Modified resource buffer.");
         }
