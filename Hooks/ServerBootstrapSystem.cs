@@ -122,7 +122,6 @@ namespace VPlus.Hooks
                         Vision vision = character.Read<Vision>();
                         if (vision.Range._Value != 5000f)
                         {
-                            Plugin.Logger.LogInfo(vision.Range._Value.ToString());
                             vision.Range._Value = 5000f;
                             character.Write(vision);
                         }

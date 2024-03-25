@@ -131,7 +131,7 @@ namespace VPlus.Hooks
 
         private static void EquipIronOrHigherWeapon(EntityManager entityManager, Entity _, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {
-            Plugin.Logger.LogInfo("Player equipping iron<= weapon, adding rank spell to shift if not necrodagger...");
+            //Plugin.Logger.LogInfo("Player equipping iron<= weapon, adding rank spell to shift if not necrodagger...");
             if (buffer[0].NewGroupId.GuidHash == VCreate.Data.Prefabs.AB_NecromancyDagger_Primary_AbilityGroup.GuidHash) return; //necro already OP, no shift spell for necro
             ReplaceAbilityOnSlotBuff newItem = buffer[2]; // shift slot
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
@@ -145,7 +145,7 @@ namespace VPlus.Hooks
                 newItem.Slot = 3; // Assuming slot 3 is where the rank spell should go
                 buffer.Add(newItem);
 
-                Plugin.Logger.LogInfo("Ability added, attempting to modify cooldown...");
+                //Plugin.Logger.LogInfo("Ability added, attempting to modify cooldown...");
                 try
                 {
                     Entity abilityEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[prefabGUID];
@@ -176,7 +176,7 @@ namespace VPlus.Hooks
 
         private static void HandleFishingPole(EntityManager entityManager, Entity _, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {
-            Plugin.Logger.LogInfo("Fishing pole unequipped, modifiying unarmed slots...");
+            //Plugin.Logger.LogInfo("Fishing pole unequipped, modifiying unarmed slots...");
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
             ulong steamID = user.PlatformId;
@@ -185,7 +185,7 @@ namespace VPlus.Hooks
             {
                 if (!rankData.FishingPole)
                 {
-                    Plugin.Logger.LogInfo("No adjustments needed, fishing pole not previously equipped.");
+                    //Plugin.Logger.LogInfo("No adjustments needed, fishing pole not previously equipped.");
                     return;
                 }
                 else
@@ -221,7 +221,7 @@ namespace VPlus.Hooks
                         rankData.FishingPole = false; // Reset the flag as the fishing pole is being unequipped
                         ChatCommands.SavePlayerRanks();
                         // Optionally, add more logic here for additional adjustments
-                        Plugin.Logger.LogInfo("Abilities adjusted.");
+                        //Plugin.Logger.LogInfo("Abilities adjusted.");
                     }
                     else
                     {
