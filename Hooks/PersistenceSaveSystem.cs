@@ -93,7 +93,8 @@ namespace VPlus.Hooks
                 {
                     
                     string red = VPlus.Core.Toolbox.FontColors.Red("Warning");
-                    string message = $"{red}: The Sacred Nodes will be active soon... ";
+                    string cyancrystal = VPlus.Core.Toolbox.FontColors.Cyan("Crystal");
+                    string message = $"{red}: the {cyancrystal} Nodes will be active soon... ";
                     ServerChatUtils.SendSystemMessageToAllClients(ecb, message);
                 }
                 catch (Exception e)
@@ -132,20 +133,31 @@ namespace VPlus.Hooks
                     void HandleCase1()
                     {
                         float3 center = new(-1549, 0, -56);
-                        string message1 = $"The Sacred Node at the Transcendum Mine is now active.";
-                        Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                        string greencursed = VPlus.Core.Toolbox.FontColors.Green("Cursed");
+                        string message1 = $"The {greencursed} Node at the Transcendum Mine is now active.";
+                        Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Cursed_Zone_Area01];
                         Entity holyZone = VWorld.Server.EntityManager.Instantiate(zone);
                         Entity node1 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity1 = entityManager.Instantiate(node1);
                         holyZone.Write<Translation>(new Translation { Value = center });
-                        SetupMapIcon(nodeEntity1, VCreate.Data.Prefabs.MapIcon_POI_Resource_QuartzMine);
+                        SetupMapIcon(nodeEntity1, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
+                        zones.Add(nodeEntity1);
                         zones.Add(holyZone);
                         ServerChatUtils.SendSystemMessageToAllClients(ecb, message1);
                     }
 
                     void HandleCase2()
                     {
-                        string message2 = $"The Sacred Node at the Quartz Quarry is now active.";
+                        if (!entityManager.Exists(zones.First()))
+                        {
+                            var second = zones[1];
+                            if (entityManager.Exists(second))
+                            {
+                                SystemPatchUtil.Destroy(second);
+                            }
+                        }
+                        string yellowholy = VPlus.Core.Toolbox.FontColors.Yellow("Holy");
+                        string message2 = $"The {yellowholy} Node at the Quartz Quarry is now active.";
                         ServerChatUtils.SendSystemMessageToAllClients(ecb, message2);
                         float3 otherfloat = new(-1743, -5, -438); //quartzmines
                         Entity zone3 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
@@ -154,24 +166,37 @@ namespace VPlus.Hooks
                         Entity node2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity2 = entityManager.Instantiate(node2);
                         nodeEntity2.Write<Translation>(new Translation { Value = otherfloat });
-                        SetupMapIcon(nodeEntity2, VCreate.Data.Prefabs.MapIcon_POI_Resource_QuartzMine);
-                        zones.Add(holyZone3);
+                        SetupMapIcon(nodeEntity2, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
                         zones.Add(nodeEntity2);
+                        zones.Add(holyZone3);
+                        
                     }
 
                     void HandleCase3()
                     {
-                        string message3 = $"The Sacred Node at the Silver Mine is now active.";
+                        if (!entityManager.Exists(zones[2]))
+                        {
+                            var third = zones[2];
+                            if (entityManager.Exists(third))
+                            {
+                                SystemPatchUtil.Destroy(third);
+                            }
+                        }
+                        string purpleblursed = VPlus.Core.Toolbox.FontColors.Purple("Blursed");
+                        string message3 = $"The {purpleblursed} Node at the Silver Mine is now active.";
                         ServerChatUtils.SendSystemMessageToAllClients(ecb, message3);
                         float3 float3 = new(-2326, 15, -390); //silvermines
-                        Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                        Entity zone2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Cursed_Zone_Area01];
                         Entity holyZone2 = VWorld.Server.EntityManager.Instantiate(zone2);
+                        Entity zone4 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
+                        Entity holyZone4 = VWorld.Server.EntityManager.Instantiate(zone4);
                         holyZone2.Write<Translation>(new Translation { Value = float3 });
                         Entity node3 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity3 = entityManager.Instantiate(node3);
                         nodeEntity3.Write<Translation>(new Translation { Value = float3 });
-                        SetupMapIcon(nodeEntity3, VCreate.Data.Prefabs.MapIcon_POI_Resource_QuartzMine);
+                        SetupMapIcon(nodeEntity3, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
                         zones.Add(holyZone2);
+                        zones.Add(holyZone4);
                         zones.Add(nodeEntity3);
                     }
 
@@ -207,6 +232,7 @@ namespace VPlus.Hooks
                     Plugin.Logger.LogInfo("Failed to destroy zone.");
                 }
             }
+            zones.Clear();
         }
     }
 }
