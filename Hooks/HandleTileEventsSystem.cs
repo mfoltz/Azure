@@ -184,12 +184,10 @@ namespace WorldBuild.Hooks
         {
             //if (!__result) return;
 
-            Plugin.Log.LogInfo("Verifying dismantle event...");
-
+            //Plugin.Log.LogInfo("Verifying dismantle event...");
 
             if (Utilities.HasComponent<EditableTileModel>(tileModelEntity))
             {
-                
                 EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
                 NetworkedEntity interactor = editableTileModel.CurrentEditor;
 
@@ -197,7 +195,7 @@ namespace WorldBuild.Hooks
                 {
                     if (!entity.Equals(Entity.Null))
                     {
-                        entity.LogComponentTypes();
+                        //entity.LogComponentTypes();
                         ulong platformId = entity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
                         if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
                         {
@@ -216,9 +214,6 @@ namespace WorldBuild.Hooks
                         }
                     }
                 }
-                
-                
-                
             }
             else
             {
@@ -235,39 +230,40 @@ namespace WorldBuild.Hooks
         {
             //if (!__result) return;
 
-            Plugin.Log.LogInfo("Verifying move event...");
+            //Plugin.Log.LogInfo("Verifying move event...");
 
             if (Utilities.HasComponent<EditableTileModel>(tileModelEntity))
             {
                 EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
-                Entity interactor = editableTileModel.CurrentEditor._Entity;
-                interactor.LogComponentTypes();
-                /*
-                User user = interactor.Read<User>();
-                if (!interactor.Equals(Entity.Null))
+                NetworkedEntity interactor = editableTileModel.CurrentEditor;
+
+                if (interactor.TryGetSyncedEntity(out Entity entity))
                 {
-                    ulong platformId = user.PlatformId;
-                    if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
+                    if (!entity.Equals(Entity.Null))
                     {
-                        Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
-                        __result = true;
-                    }
-                    else if (!TileOperationUtility.HasValidCastleHeartConnection(user, tileModelEntity)) // returns false if the interactor is not the owner of the castle heart
-                    {
-                        Plugin.Log.LogInfo("Disallowing move based on ownership.");
-                        __result = false;
-                    }
-                    else
-                    {
-                        Plugin.Log.LogInfo("Allowing normal game handling for moveTile event.");
-                        return;
+                        //entity.LogComponentTypes();
+                        ulong platformId = entity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                        if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
+                        {
+                            Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
+                            __result = true;
+                        }
+                        else if (!TileOperationUtility.HasValidCastleHeartConnection(entity.Read<PlayerCharacter>().UserEntity.Read<User>(), tileModelEntity)) // returns false if the interactor is not the owner of the castle heart
+                        {
+                            Plugin.Log.LogInfo("Disallowing moveme based on ownership.");
+                            __result = false;
+                        }
+                        else
+                        {
+                            Plugin.Log.LogInfo("Allowing normal game handling for movement event.");
+                            return;
+                        }
                     }
                 }
-                */
             }
             else
             {
-                Plugin.Log.LogInfo("No editableTileModel component, allowing normal game handling for moveTile event.");
+                Plugin.Log.LogInfo("No editableTileModel component, allowing normal game handling for movement event.");
                 return;
             }
         }
@@ -288,7 +284,7 @@ namespace WorldBuild.Hooks
                 {
                     Plugin.Log.LogInfo("Castle heart entity not null. Checking owner...");
                     Entity userOwner = castleHeart.Read<UserOwner>().Owner._Entity;
-                    ulong platformId = userOwner.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                    ulong platformId = userOwner.Read<User>().PlatformId;
                     if (!user.PlatformId.Equals(platformId)) return false;
                     return true;
                 }
