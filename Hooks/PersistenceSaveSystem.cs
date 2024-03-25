@@ -76,7 +76,7 @@ namespace VPlus.Hooks
         public static void RunMethods()
         {
             Tokens.UpdateTokens(); //
-            timer += 1; // want to run event every 2 hours and save happens every 2 minutes
+            timer += 1; 
             EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
             EntityCommandBuffer ecb = entityCommandBufferSystem.CreateCommandBuffer();
             if (timer > 180)
