@@ -53,7 +53,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "emotesToggle", shortHand: "emotes", adminOnly: true, usage: ".emotes", description: "Familiar commands on emotes toggle.")]
+        [Command(name: "emotesToggle", shortHand: "emotes", adminOnly: false, usage: ".emotes", description: "Familiar commands on emotes toggle.")]
         public static void ToggleEmoteActions(ChatCommandContext ctx)
         {
             //User setter = ctx.Event.User;
