@@ -79,7 +79,7 @@ namespace VPlus.Hooks
             timer += 1; 
             EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
             EntityCommandBuffer ecb = entityCommandBufferSystem.CreateCommandBuffer();
-            if (timer > 1)
+            if (timer > 180)
             {
                 timer = 0;
                 isRunning = true;
