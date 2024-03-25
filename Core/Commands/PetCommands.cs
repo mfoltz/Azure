@@ -265,7 +265,7 @@ namespace VCreate.Core.Commands
             if (DataStructures.PlayerPetsMap.TryGetValue(platformId, out Dictionary<string, PetExperienceProfile> data))
             {
                 Entity familiar = FindPlayerFamiliar(ctx.Event.SenderCharacterEntity);
-                if (familiar.Equals(Entity.Null))
+                if (familiar.Equals(Entity.Null) || !familiar.Has<PrefabGUID>())
                 {
                     ctx.Reply("You don't have any familiars to disable.");
                 }

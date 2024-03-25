@@ -303,6 +303,7 @@ namespace VCreate.Systems
                 PetExperienceProfile profile = data[familiarName];
                 if (profile.Level == 0)
                 {
+                    profile.Active = true;
                     float maxHealth = healthUnit.MaxHealth._Value;
                     float attackSpeed = unitStats.AttackSpeed._Value;
                     float primaryAttackSpeed = unitStats.PrimaryAttackSpeed._Value;
