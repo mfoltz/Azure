@@ -1,6 +1,7 @@
 ﻿using Bloodstone.API;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using ProjectM;
+using ProjectM.CastleBuilding;
 using ProjectM.Network;
 using ProjectM.Shared;
 using ProjectM.Tiles;
@@ -130,20 +131,32 @@ internal static class Enablers
         {
             if (CastleTerritoryCache.TryGetCastleTerritory(node, out var territory))
             {
-                if (Utilities.HasComponent<UserOwner>(territory))
+                if (Utilities.HasComponent<CastleTerritory>(territory))
                 {
-                    UserOwner userOwner = territory.Read<UserOwner>();
-                    ulong platformId = userOwner.Owner._Entity.Read<User>().PlatformId;
-                    if (DataStructures.PlayerSettings.TryGetValue(platformId, out Omnitool data))
+                    CastleTerritory castleTerritory = territory.Read<CastleTerritory>();
+                    Entity heart = castleTerritory.CastleHeart;
+                    if (!heart.Equals(Entity.Null))
                     {
-                        return data.RemoveNodes;
+                        Entity userOwner = heart.Read<UserOwner>().Owner._Entity;
+                        ulong platformId = userOwner.Read<User>().PlatformId;
+                        if (DataStructures.PlayerSettings.TryGetValue(platformId, out Omnitool data) && data.RemoveNodes)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return true;
                     }
                 }
                 else
                 {
                     return true;
                 }
-                
             }
             return false;
         }
