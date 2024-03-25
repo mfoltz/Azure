@@ -284,12 +284,21 @@ namespace VPlus.Hooks
         }
         public static void ModifyResourceBuffer(Entity entity)
         {
-            var buffer = entity.ReadBuffer<YieldResourcesOnDamageTaken>();
-            buffer.Clear();
-            buffer.Add(new YieldResourcesOnDamageTaken { Amount = 1, AmountTaken = 50, ItemType = VCreate.Data.Prefabs.Item_Ingredient_Crystal });
+            
             // Create a new buffer with modified Amount values
-            
-            
+            Health health = entity.Read<Health>();
+            health.MaxHealth._Value *= 5f;
+            health.Value *= 5f;
+            entity.Write(health);
+
+            var buffer = entity.ReadBuffer<YieldResourcesOnDamageTaken>();
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                var item = buffer[i];
+                var newItem = item;
+                newItem.ItemType = VCreate.Data.Prefabs.Resource_Drop_OnyxTear;
+                buffer[i] = newItem;
+            }
 
             Plugin.Logger.LogInfo("Modified resource buffer.");
         }
