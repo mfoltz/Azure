@@ -158,10 +158,10 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("BatStorm", VCreate.Data.Prefabs.AB_Militia_Leader_Whirlwind_v2_AbilityGroup.GuidHash, 5) },
+                    { 5, new RankSpellConstructor("Whirlwind", VCreate.Data.Prefabs.AB_Militia_Leader_Whirlwind_v2_AbilityGroup.GuidHash, 5) },
                     { 4, new RankSpellConstructor("Avalanche", VCreate.Data.Prefabs.AB_Winter_Yeti_Avalanche_AbilityGroup.GuidHash, 4) },
-                    { 3, new RankSpellConstructor("LightningBeam", VCreate.Data.Prefabs.AB_Monster_BeamLine_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("Dig", VCreate.Data.Prefabs.AB_WormTerror_Dig_Travel_AbilityGroup.GuidHash, 2) },
+                    { 3, new RankSpellConstructor("LightningSpinner", VCreate.Data.Prefabs.AB_Monster_BeamLine_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("Burrow", VCreate.Data.Prefabs.AB_WormTerror_Dig_Travel_AbilityGroup.GuidHash, 2) },
                     { 1, new RankSpellConstructor("Backstep", VCreate.Data.Prefabs.AB_Spider_Forest_BackStep_AbilityGroup.GuidHash, 1) },
                 };
             }

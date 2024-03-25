@@ -233,7 +233,7 @@ namespace VPlus.Hooks
                         Entity zone5 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Holy_Zone_Area_T02];
                         Entity holyZone5 = VWorld.Server.EntityManager.Instantiate(zone5);
                         Entity zone6 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Garlic_Zone_Area01];
-                        Entity holyZone6 = VWorld.Server.EntityManager.Instantiate(zone5);
+                        Entity holyZone6 = VWorld.Server.EntityManager.Instantiate(zone6);
                         holyZone3.Write<Translation>(new Translation { Value = float3 });
 
                         Entity node4 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
