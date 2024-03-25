@@ -128,9 +128,22 @@ internal static class Enablers
 
         private static bool ShouldRemoveNodeBasedOnTerritory(Entity node)
         {
-            if (CastleTerritoryCache.TryGetCastleTerritory(node, out _))
+            if (CastleTerritoryCache.TryGetCastleTerritory(node, out var territory))
             {
-                return true;
+                if (Utilities.HasComponent<UserOwner>(territory))
+                {
+                    UserOwner userOwner = territory.Read<UserOwner>();
+                    ulong platformId = userOwner.Owner._Entity.Read<User>().PlatformId;
+                    if (DataStructures.PlayerSettings.TryGetValue(platformId, out Omnitool data))
+                    {
+                        return data.RemoveNodes;
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                
             }
             return false;
         }

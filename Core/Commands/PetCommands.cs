@@ -103,6 +103,11 @@ namespace VCreate.Core.Commands
             ulong platformId = ctx.User.PlatformId;
             if (DataStructures.UnlockedPets.TryGetValue(platformId, out var data))
             {
+                if (data.Count == 0)
+                {
+                    ctx.Reply("You don't have any unlocked familiars yet.");
+                    return;
+                }
                 int counter = 0;
                 foreach (var unlock in data)
                 {

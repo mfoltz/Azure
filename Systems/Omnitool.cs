@@ -31,6 +31,8 @@ namespace VCreate.Systems
         public bool Binding { get; set; }
         public int Familiar { get; set; }
         public bool EquipSkills { get; set; }
+
+        public bool RemoveNodes { get; set; }
         public Stack<string> LastPlaced { get; set; } = new Stack<string>();
 
         // Constructor

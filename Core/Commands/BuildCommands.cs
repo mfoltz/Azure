@@ -15,11 +15,34 @@ using VCreate.Core.Converters;
 using VCreate.Core.Services;
 using ProjectM.CastleBuilding;
 using Unity.Collections;
+using VRising.GameData.Utils;
 
 namespace VCreate.Core.Commands
 {
     public class CoreCommands
     {
+
+        [Command(name: "optInDestroyNodes", shortHand: "nodes", adminOnly: false, usage: ".nodes", description: "Toggles if destroy nodes will target player territory if found.")]
+
+        public static void ToggleDestroyMyNodes(ChatCommandContext ctx)
+        {
+            Entity userEntity = ctx.Event.SenderUserEntity;
+            User user = VWorld.Server.EntityManager.GetComponentData<User>(userEntity);
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
+            {
+                data.RemoveNodes = !data.RemoveNodes;
+
+                DataStructures.SavePlayerSettings();
+                string enabledColor = FontColors.Green("enabled");
+                string disabledColor = FontColors.Red("disabled");
+                ctx.Reply($"DestroyMyNodes: |{(data.RemoveNodes ? enabledColor : disabledColor)}|");
+            }
+            else
+            {
+                ctx.Reply("Couldn't find omnitool data.");
+            }
+        }
+
         [Command(name: "equipUnarmedSkills", shortHand: "equip", adminOnly: true, usage: ".equip", description: "Toggles extra skills when switching to unarmed.")]
         public static void ToggleSkillEquip(ChatCommandContext ctx)
         {
@@ -505,46 +528,28 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "logUnitStats", shortHand: "logunitstats", adminOnly: true, usage: "logunitstats", description: "WIP")]
-        public static void LogUnitStats(ChatCommandContext ctx)
+        [Command(name: "logPrefabComponents", shortHand: "logprefab", adminOnly: true, usage: ".logprefab [#]", description: "WIP")]
+        public static void LogUnitStats(ChatCommandContext ctx, int prefab)
         {
-            HashSet<Entity> hashset = [];
-            //method for query
-            Plugin.Log.LogInfo("querying for units...");
-            bool includeDisabled = true;
-            EntityQuery statsQuery = VWorld.Server.EntityManager.CreateEntityQuery(new EntityQueryDesc()
+            PrefabGUID toLog = new(prefab);
+            if (toLog.GetPrefabName().Equals(""))
             {
-                All = new ComponentType[]
-                {
-                                ComponentType.ReadOnly<PrefabGUID>(),
-                                ComponentType.ReadOnly<UnitLevel>(),
-                                ComponentType.ReadOnly<UnitStats>(),
-                                ComponentType.ReadOnly<Health>()
-                },
-                Options = includeDisabled ? EntityQueryOptions.IncludeDisabled : EntityQueryOptions.Default
-            });
-            NativeArray<Entity> statsEntities = statsQuery.ToEntityArray(Allocator.Temp);
-            try
-            {
-                foreach (var entity in statsEntities)
-                {
-                    if (hashset.Contains(entity)) continue;
-                    //Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
-                    UnitLevel unitLevel = entity.Read<UnitLevel>();
-                    UnitStats stats = entity.Read<UnitStats>();
-                    Health health = entity.Read<Health>();
-                    hashset.Add(entity);
-                    int level = unitLevel.Level;
-                    int unithealth = (int)health.Value;
-                    int attack = (int)stats.PhysicalPower._Value;
-                    int spell = (int)stats.SpellPower._Value;
-                    Plugin.Log.LogInfo(entity.Read<PrefabGUID>().LookupName());
-                    Plugin.Log.LogInfo($"Level: {level} | Health: {unithealth} | Attack: {attack} | Spell: {spell}");
-                }
+                ctx.Reply("Invalid prefab.");
+                return;
             }
-            finally
+            else
             {
-                statsEntities.Dispose();
+                Entity entity = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[toLog];
+                if (entity == Entity.Null)
+                {
+                    ctx.Reply("Entity not found.");
+                    return;
+                }
+                else
+                {
+                    entity.LogComponentTypes();
+                    ctx.Reply("Components logged.");
+                }
             }
         }
 
