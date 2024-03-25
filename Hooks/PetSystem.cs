@@ -400,10 +400,14 @@ namespace VCreate.Hooks
                         UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
                         if (Helper.AddItemToInventory(userModel.FromCharacter.Character, gem, 1, out Entity test, false))
                         {
-                            if (!DataStructures.UnlockedPets[playerId].Contains(died.Read<PrefabGUID>().GuidHash))
+                            if (!DataStructures.UnlockedPets[playerId].Contains(died.Read<PrefabGUID>().GuidHash) && DataStructures.UnlockedPets[playerId].Count < 10)
                             {
                                 DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
                                 DataStructures.SaveUnlockedPets();
+                            }
+                            else
+                            {
+                                Plugin.Log.LogInfo("Player unlocks full (10), not adding to unlocked pets.");
                             }
 
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer.Read<PlayerCharacter>().UserEntity.Read<User>(), "Your bag feels slightly heavier...");

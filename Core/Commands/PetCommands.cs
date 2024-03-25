@@ -56,6 +56,47 @@ namespace VCreate.Core.Commands
             }
         }
 
+        [Command(name: "removeUnlocked", shortHand: "remove", adminOnly: false, usage: ".remove [#]", description: "Removes choice from list of unlocked familiars to bind to.")]
+        public static void RemoveUnlocked(ChatCommandContext ctx, int choice)
+        {
+            ulong platformId = ctx.User.PlatformId;
+            if (DataStructures.UnlockedPets.TryGetValue(platformId, out var data))
+            {
+                if (choice < 1 || choice > data.Count)
+                {
+                    ctx.Reply($"Invalid choice, please use 1 to {data.Count} for removing.");
+                    return;
+                }
+                if (DataStructures.PlayerSettings.TryGetValue(platformId, out var settings))
+                {
+                    var toRemove = data[choice - 1];
+                    if (data.Contains(toRemove))
+                    {
+                        data.Remove(toRemove);
+                        DataStructures.UnlockedPets[platformId] = data;
+                        DataStructures.SaveUnlockedPets();
+                        
+                        ctx.Reply($"Familiar removed from list of unlocked units.");
+                    }
+                    else
+                    {
+                        ctx.Reply("Failed to remove unlocked unit.");
+                        return;
+                    }
+                 
+                }
+                else
+                {
+                    ctx.Reply("Couldn't find data to remove unlocked unit.");
+                    return;
+                }
+            }
+            else
+            {
+                ctx.Reply("You don't have any unlocked familiars yet.");
+            }
+        }
+
         [Command(name: "listFamiliars", shortHand: "listfam", adminOnly: false, usage: ".listfam", description: "Lists unlocked familiars.")]
         public static void MethodZero(ChatCommandContext ctx)
         {
