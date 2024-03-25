@@ -158,11 +158,11 @@ namespace VPlus.Augments.Rank
             {
                 Spells = new Dictionary<int, RankSpellConstructor>
                 {
-                    { 5, new RankSpellConstructor("BatStorm", VCreate.Data.Prefabs.AB_BatVampire_BatStorm_AbilityGroup.GuidHash, 5) },
-                    { 4, new RankSpellConstructor("NightDash", VCreate.Data.Prefabs.AB_BatVampire_NightDash_Dash_AbilityGroup.GuidHash, 4) },
-                    { 3, new RankSpellConstructor("AngelicAscent", VCreate.Data.Prefabs.AB_ChurchOfLight_Paladin_AngelicAscent_AbilityGroup.GuidHash, 3) },
-                    { 2, new RankSpellConstructor("DirectionalShield", VCreate.Data.Prefabs.AB_Gloomrot_TractorBeamer_DirectionalShield_AbilityGroup.GuidHash, 2) },
-                    { 1, new RankSpellConstructor("BatSwarm", VCreate.Data.Prefabs.AB_BatVampire_BatSwarm_AbilityGroup.GuidHash, 1) },
+                    { 5, new RankSpellConstructor("BatStorm", VCreate.Data.Prefabs.AB_Militia_Leader_Whirlwind_v2_AbilityGroup.GuidHash, 5) },
+                    { 4, new RankSpellConstructor("Avalanche", VCreate.Data.Prefabs.AB_Winter_Yeti_Avalanche_AbilityGroup.GuidHash, 4) },
+                    { 3, new RankSpellConstructor("LightningBeam", VCreate.Data.Prefabs.AB_Monster_BeamLine_AbilityGroup.GuidHash, 3) },
+                    { 2, new RankSpellConstructor("Dig", VCreate.Data.Prefabs.AB_WormTerror_Dig_Travel_AbilityGroup.GuidHash, 2) },
+                    { 1, new RankSpellConstructor("Backstep", VCreate.Data.Prefabs.AB_Spider_Forest_BackStep_AbilityGroup.GuidHash, 1) },
                 };
             }
 
@@ -209,7 +209,7 @@ namespace VPlus.Augments.Rank
             {
                 if (DateTime.UtcNow - rankData.LastAbilityUse < TimeSpan.FromSeconds(15))
                 {
-                    ctx.Reply("You must 15s before changing abilities.");
+                    ctx.Reply("You must wait 15s before changing abilities.");
                     return;
                 }
                 var classInstance = ClassFactory.CreateClassInstance(rankData.ClassChoice);
