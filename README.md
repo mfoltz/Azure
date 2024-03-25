@@ -1,4 +1,5 @@
 # 🌠 VCreate
+*so uh this might also be a familiar mod now lol, that deserves it's own writeup which I will do *sooooon*
 
 Collection of tools and features for V Rising. Consider this an open-beta; it's mostly stable and ready for stress-testing. If you like what you see and want to support development, my Kofi can be found here: https://ko-fi.com/zfolmt
 
