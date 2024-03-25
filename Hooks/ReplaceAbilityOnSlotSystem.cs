@@ -140,7 +140,7 @@ namespace VPlus.Hooks
                 newItem.Slot = 3; // Assuming slot 3 is where the rank spell should go
                 buffer.Add(newItem);
                 // spell rank * 6 cd in seconds
-                float cooldown =  data.SpellRank * 12;
+                float cooldown =  data.SpellRank * 14;
                 //Plugin.Logger.LogInfo("Ability added, attempting to modify cooldown...");
                 try
                 {

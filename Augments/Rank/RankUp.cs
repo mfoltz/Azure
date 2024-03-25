@@ -420,7 +420,7 @@ namespace VPlus.Augments.Rank
             {
                 if (DateTime.UtcNow - rankData.LastAbilityUse < TimeSpan.FromSeconds(30))
                 {
-                    ctx.Reply("You must wait 15s before changing abilities.");
+                    ctx.Reply("You must wait 30s before changing abilities.");
                     return;
                 }
                 var classInstance = ClassFactory.CreateClassInstance(rankData.ClassChoice);
