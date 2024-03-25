@@ -287,18 +287,11 @@ namespace VPlus.Hooks
             
             // Create a new buffer with modified Amount values
             Health health = entity.Read<Health>();
-            health.MaxHealth._Value *= 5f;
-            health.Value *= 5f;
+            health.MaxHealth._Value = 99999f;
+            health.Value = 99999f;
             entity.Write(health);
 
-            var buffer = entity.ReadBuffer<YieldResourcesOnDamageTaken>();
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                var item = buffer[i];
-                var newItem = item;
-                newItem.ItemType = VCreate.Data.Prefabs.Resource_Drop_OnyxTear;
-                buffer[i] = newItem;
-            }
+            
 
             Plugin.Logger.LogInfo("Modified resource buffer.");
         }
