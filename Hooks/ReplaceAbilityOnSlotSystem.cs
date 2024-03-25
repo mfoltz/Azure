@@ -3,19 +3,15 @@ using ProjectM;
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
-using VPlus.Augments.Rank;
-using VPlus.Core;
-using VPlus.Core.Commands;
-using Plugin = VPlus.Core.Plugin;
-using VPlus.Core.Toolbox;
-using ProjectM.UI;
-using VPlus.Data;
 using VCreate.Core.Toolbox;
-using Bloodstone.API;
-using Utilities = VPlus.Core.Toolbox.Utilities;
 using VPlus.Augments;
-using VRising.GameData.Models;
+using VPlus.Augments.Rank;
+using VPlus.Core.Commands;
+using VPlus.Data;
 using VRising.GameData.Methods;
+using VRising.GameData.Models;
+using Plugin = VPlus.Core.Plugin;
+using Utilities = VPlus.Core.Toolbox.Utilities;
 
 // almost ready for live maybe
 // wow, famoust last words huh ^
@@ -132,7 +128,6 @@ namespace VPlus.Hooks
         private static void EquipIronOrHigherWeapon(EntityManager entityManager, Entity _, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {
             //Plugin.Logger.LogInfo("Player equipping iron<= weapon, adding rank spell to shift if not necrodagger...");
-            if (buffer[0].NewGroupId.GuidHash == VCreate.Data.Prefabs.AB_NecromancyDagger_Primary_AbilityGroup.GuidHash) return; //necro already OP, no shift spell for necro
             ReplaceAbilityOnSlotBuff newItem = buffer[2]; // shift slot
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
@@ -144,7 +139,8 @@ namespace VPlus.Hooks
 
                 newItem.Slot = 3; // Assuming slot 3 is where the rank spell should go
                 buffer.Add(newItem);
-
+                // spell rank * 6 cd in seconds
+                float cooldown =  data.SpellRank * 12;
                 //Plugin.Logger.LogInfo("Ability added, attempting to modify cooldown...");
                 try
                 {
@@ -155,10 +151,10 @@ namespace VPlus.Hooks
                     Entity castEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[bufferItem.PrefabGUID];
                     AbilityCooldownData abilityCooldownData = castEntity.Read<AbilityCooldownData>();
                     AbilityCooldownState abilityCooldownState = castEntity.Read<AbilityCooldownState>();
-                    abilityCooldownState.CurrentCooldown = 30f; // Reset the last used time
+                    abilityCooldownState.CurrentCooldown = cooldown; // Reset the last used time
                     castEntity.Write(abilityCooldownState);
 
-                    abilityCooldownData.Cooldown._Value = 30f; // Set the cooldown to 30 seconds
+                    abilityCooldownData.Cooldown._Value = cooldown; // Set the cooldown to 30 seconds
                     castEntity.Write(abilityCooldownData);
                     Plugin.Logger.LogInfo("Cooldown modified.");
                     // need to get the ability cast entity to modify the cooldown, so first get the cast for an ability group somehow

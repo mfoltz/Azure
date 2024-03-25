@@ -144,7 +144,7 @@ namespace VPlus.Hooks
                         ModifyResourceBuffer(nodeEntity1);
                         nodeEntity1.Write<Translation>(new Translation { Value = center });
                         holyZone.Write<Translation>(new Translation { Value = center });
-                        SetupMapIcon(nodeEntity1, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
+                        SetupMapIcon(nodeEntity1, VCreate.Data.Prefabs.MapIcon_POI_Resource_IronVein);
                         zones.Add(nodeEntity1);
                         zones.Add(holyZone);
                         ServerChatUtils.SendSystemMessageToAllClients(ecb, message1);
@@ -171,7 +171,7 @@ namespace VPlus.Hooks
                         Entity nodeEntity2 = entityManager.Instantiate(node2);
                         ModifyResourceBuffer(nodeEntity2);
                         nodeEntity2.Write<Translation>(new Translation { Value = otherfloat });
-                        SetupMapIcon(nodeEntity2, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
+                        SetupMapIcon(nodeEntity2, VCreate.Data.Prefabs.MapIcon_POI_Resource_IronVein);
                         zones.Add(nodeEntity2);
                         zones.Add(holyZone3);
                         
@@ -202,7 +202,7 @@ namespace VPlus.Hooks
                         ModifyResourceBuffer(nodeEntity3);
                         nodeEntity3.Write<Translation>(new Translation { Value = float3 });
                         holyZone4.Write<Translation>(new Translation { Value = float3 });
-                        SetupMapIcon(nodeEntity3, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
+                        SetupMapIcon(nodeEntity3, VCreate.Data.Prefabs.MapIcon_POI_Resource_IronVein);
                         zones.Add(nodeEntity3);
                         zones.Add(holyZone2);
                         zones.Add(holyZone4);
@@ -241,7 +241,7 @@ namespace VPlus.Hooks
                         nodeEntity4.Write<Translation>(new Translation { Value = float3 });
                         holyZone5.Write<Translation>(new Translation { Value = float3 });
                         holyZone6.Write<Translation>(new Translation { Value = float3 });
-                        SetupMapIcon(nodeEntity4, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
+                        SetupMapIcon(nodeEntity4, VCreate.Data.Prefabs.MapIcon_POI_Resource_IronVein);
                         zones.Add(holyZone3);
                         zones.Add(holyZone5);
                         zones.Add(nodeEntity4);
@@ -287,8 +287,8 @@ namespace VPlus.Hooks
             
             // Create a new buffer with modified Amount values
             Health health = entity.Read<Health>();
-            health.MaxHealth._Value = 99999f;
-            health.Value = 99999f;
+            health.MaxHealth._Value *= 10f;
+            health.Value *= 10f;
             entity.Write(health);
 
             
