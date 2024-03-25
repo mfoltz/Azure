@@ -79,7 +79,7 @@ namespace VPlus.Hooks
             timer += 1; 
             EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
             EntityCommandBuffer ecb = entityCommandBufferSystem.CreateCommandBuffer();
-            if (timer > 180)
+            if (timer > 1)
             {
                 timer = 0;
                 isRunning = true;
@@ -141,6 +141,7 @@ namespace VPlus.Hooks
                         Entity holyZone = VWorld.Server.EntityManager.Instantiate(zone);
                         Entity node1 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity1 = entityManager.Instantiate(node1);
+                        ModifyResourceBuffer(nodeEntity1);
                         nodeEntity1.Write<Translation>(new Translation { Value = center });
                         holyZone.Write<Translation>(new Translation { Value = center });
                         SetupMapIcon(nodeEntity1, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
@@ -168,6 +169,7 @@ namespace VPlus.Hooks
                         holyZone3.Write<Translation>(new Translation { Value = otherfloat });
                         Entity node2 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity2 = entityManager.Instantiate(node2);
+                        ModifyResourceBuffer(nodeEntity2);
                         nodeEntity2.Write<Translation>(new Translation { Value = otherfloat });
                         SetupMapIcon(nodeEntity2, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
                         zones.Add(nodeEntity2);
@@ -197,6 +199,7 @@ namespace VPlus.Hooks
                         holyZone2.Write<Translation>(new Translation { Value = float3 });
                         Entity node3 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity3 = entityManager.Instantiate(node3);
+                        ModifyResourceBuffer(nodeEntity3);
                         nodeEntity3.Write<Translation>(new Translation { Value = float3 });
                         holyZone4.Write<Translation>(new Translation { Value = float3 });
                         SetupMapIcon(nodeEntity3, VCreate.Data.Prefabs.MapIcon_POI_Resource_CoalMine);
@@ -234,6 +237,7 @@ namespace VPlus.Hooks
 
                         Entity node4 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity4 = entityManager.Instantiate(node4);
+                        ModifyResourceBuffer(nodeEntity4);
                         nodeEntity4.Write<Translation>(new Translation { Value = float3 });
                         holyZone5.Write<Translation>(new Translation { Value = float3 });
                         holyZone6.Write<Translation>(new Translation { Value = float3 });
@@ -277,6 +281,18 @@ namespace VPlus.Hooks
                 }
             }
             zones.Clear();
+        }
+        public static void ModifyResourceBuffer(Entity entity)
+        {
+            var buffer =  entity.ReadBuffer<YieldResourcesOnDamageTaken>();
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                var item = buffer[i];
+                item.Amount = (int)item.Amount/5;
+                buffer[i] = item;
+                
+            }
+            Plugin.Logger.LogInfo("Modified resource buffer.");
         }
         
     }
