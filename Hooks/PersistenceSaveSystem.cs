@@ -1,22 +1,17 @@
 ﻿using Bloodstone.API;
 using HarmonyLib;
-using Il2CppSystem;
 using ProjectM;
-using ProjectM.Behaviours;
 using ProjectM.Network;
-using ProjectM.Terrain;
-using RPGMods.Utils;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using V.Augments;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
+using VPlus.Augments;
 using VPlus.Core;
 using VPlus.Core.Commands;
 using VPlus.Data;
 using VRising.GameData.Models;
-using static Il2CppSystem.Linq.Expressions.Interpreter.NullableMethodCallInstruction;
 using Exception = System.Exception;
 
 namespace VPlus.Hooks

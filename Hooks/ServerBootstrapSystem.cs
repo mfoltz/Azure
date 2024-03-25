@@ -3,13 +3,17 @@ using ProjectM;
 using ProjectM.Network;
 using Stunlock.Network;
 using Unity.Entities;
-using V.Augments;
 using VPlus.Augments.Rank;
 using VPlus.Core.Commands;
 using VPlus.Augments;
 using Bloodstone.API;
-using VampireCommandFramework;
 using VPlus.Core.Toolbox;
+using ProjectM.Gameplay.Systems;
+using Unity.Collections;
+using VCreate.Core.Toolbox;
+using VRising.GameData.Utils;
+using VPlus.Data;
+using VRising.GameData.Models;
 
 namespace VPlus.Hooks
 {
@@ -90,7 +94,56 @@ namespace VPlus.Hooks
                 //VPlus.Core.Logger.Log(VPlus.Core.Logger.Level.Error, ex);
             }
         }
-    }
+        /*
+        [HarmonyPatch(typeof(SpawnCharacterSystem), nameof(SpawnCharacterSystem.OnUpdate))]
+        [HarmonyPostfix]
+        private static void SpawnKitPostfix(SpawnCharacterSystem __instance)
+        {
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            HashSet<Entity> hash = [];
+            Dictionary<PrefabGUID, int> keyValuePairs = new()
+            {
+                { new(862477668), 2500 },
+                { new(-1531666018), 2500 },
+                { new(-1593377811), 2500 },
+                { new(429052660), 25 },
+                { new(28625845), 200 }
+            };
 
-    
+            NativeArray<Entity> entities = __instance._SpawnCharacterQuery.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (Entity entity in entities)
+                {
+                    if (hash.Contains(entity)) continue;
+                    if (!entity.Has<SpawnCharacter>()) continue;
+                    SpawnCharacter spawnCharacter = entity.Read<SpawnCharacter>();
+
+                    Entity character = spawnCharacter.PostSpawn_Character;
+                    var keys = keyValuePairs.Keys.ToList();
+                    UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(spawnCharacter.User.Read<User>().PlatformId);
+                    if (Databases.playerDivinity.TryGetValue(spawnCharacter.User.Read<User>().PlatformId, out DivineData divineData) && divineData.Spawned)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        foreach (var key in keys)
+                        {
+
+                        }
+                        divineData.Spawned = true;
+                        Databases.playerDivinity[spawnCharacter.User.Read<User>().PlatformId] = divineData;
+                        ChatCommands.SavePlayerDivinity();
+                    }
+
+                }
+            }
+            finally
+            {
+                entities.Dispose();
+            }
+        }
+        */
+    }
 }

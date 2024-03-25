@@ -9,7 +9,7 @@ using ProjectM;
 using Bloodstone.API;
 using VPlus.Hooks;
 
-namespace V.Augments
+namespace VPlus.Augments
 {
     public class DivineData
     {
@@ -18,6 +18,8 @@ namespace V.Augments
         public int VTokens { get; set; }
         public DateTime LastConnectionTime { get; private set; }
         public DateTime LastAwardTime { get; private set; }
+
+        public bool Spawned { get; set; }
 
         public DivineData(int divinity, int vtokens)
         {

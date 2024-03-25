@@ -13,6 +13,9 @@ using VPlus.Data;
 using VCreate.Core.Toolbox;
 using Bloodstone.API;
 using Utilities = VPlus.Core.Toolbox.Utilities;
+using VPlus.Augments;
+using VRising.GameData.Models;
+using VRising.GameData.Methods;
 
 // almost ready for live maybe
 // wow, famoust last words huh ^
@@ -21,6 +24,15 @@ namespace VPlus.Hooks
     [HarmonyPatch(typeof(ReplaceAbilityOnSlotSystem), "OnUpdate")]
     public class ReplaceAbilityOnSlotSystem_Patch
     {
+        public static readonly Dictionary<PrefabGUID, int> keyValuePairs = new()
+            {
+                { new(862477668), 2500 },
+                { new(-1531666018), 2500 },
+                { new(-1593377811), 2500 },
+                { new(429052660), 25 },
+                { new(28625845), 200 }
+            };
+
         private static readonly PrefabGUID fishingPole = new(-1016182556); //as you might have guessed, this is -REDACTED-
 
         private static void Prefix(ReplaceAbilityOnSlotSystem __instance)
@@ -29,8 +41,8 @@ namespace VPlus.Hooks
             try
             {
                 EntityManager entityManager = __instance.EntityManager;
-                
-                Plugin.Logger.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
+
+                //Plugin.Logger.LogInfo("ReplaceAbilityOnSlotSystem Prefix called...");
 
                 foreach (Entity entity in entities)
                 {
@@ -50,12 +62,23 @@ namespace VPlus.Hooks
         {
             Entity owner = entityManager.GetComponentData<EntityOwner>(entity).Owner;
             if (!entityManager.HasComponent<PlayerCharacter>(owner)) return;
-
+            ulong steamdId = owner.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
             //ulong steamID = user.PlatformId;
-
-            if (entityManager.HasComponent<WeaponLevel>(entity))
+            if (Databases.playerDivinity.TryGetValue(steamdId, out DivineData data) && !data.Spawned)
+            {
+                data.Spawned = true;
+                Databases.playerDivinity[steamdId] = data;
+                ChatCommands.SavePlayerDivinity();
+                UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(user.PlatformId);
+                foreach (var item in keyValuePairs.Keys)
+                {
+                    userModel.TryGiveItem(item, keyValuePairs[item], out var _);
+                }
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "You've received a starting kit with blood essence, stone, wood, coins, and health potions!");
+            }
+            else if (entityManager.HasComponent<WeaponLevel>(entity))
             {
                 HandleWeaponEquipOrUnequip(entityManager, entity, owner);
             }
@@ -99,10 +122,9 @@ namespace VPlus.Hooks
             }
             else if (bufferLength == 3)
             {
-
                 // I think the buffer here refers to the abilities possessed by the weapon (primary auto, weapon skill 1, and weapon skill 2)
                 // if necro want to return here
-                
+
                 EquipIronOrHigherWeapon(entityManager, entity, owner, buffer);
             }
         }
@@ -114,23 +136,18 @@ namespace VPlus.Hooks
             ReplaceAbilityOnSlotBuff newItem = buffer[2]; // shift slot
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
-            
+
             if (Databases.playerRanks.TryGetValue(user.PlatformId, out RankData data) && data.RankSpell != 0)
             {
                 PrefabGUID prefabGUID = new PrefabGUID(data.RankSpell);
                 newItem.NewGroupId = prefabGUID;
-                
-                
-
-
 
                 newItem.Slot = 3; // Assuming slot 3 is where the rank spell should go
                 buffer.Add(newItem);
-                
+
                 Plugin.Logger.LogInfo("Ability added, attempting to modify cooldown...");
                 try
                 {
-
                     Entity abilityEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[prefabGUID];
                     //if (!abilityEntity.Has<AbilityGroupStartAbilitiesBuffer>() || abilityEntity.ReadBuffer<AbilityGroupStartAbilitiesBuffer>().Length == 0) return;
 
@@ -140,18 +157,15 @@ namespace VPlus.Hooks
                     AbilityCooldownState abilityCooldownState = castEntity.Read<AbilityCooldownState>();
                     abilityCooldownState.CurrentCooldown = 30f; // Reset the last used time
                     castEntity.Write(abilityCooldownState);
-                    
+
                     abilityCooldownData.Cooldown._Value = 30f; // Set the cooldown to 30 seconds
                     castEntity.Write(abilityCooldownData);
                     Plugin.Logger.LogInfo("Cooldown modified.");
                     // need to get the ability cast entity to modify the cooldown, so first get the cast for an ability group somehow
-
-
                 }
                 catch (System.Exception ex)
                 {
-                    Plugin.Logger.LogInfo("Error setting cooldown."+ex.Message);
-
+                    Plugin.Logger.LogInfo("Error setting cooldown." + ex.Message);
                 }
             }
             else
@@ -159,8 +173,6 @@ namespace VPlus.Hooks
                 Plugin.Logger.LogInfo("Player rank not found.");
             }
         }
-
-       
 
         private static void HandleFishingPole(EntityManager entityManager, Entity _, Entity owner, DynamicBuffer<ReplaceAbilityOnSlotBuff> buffer)
         {

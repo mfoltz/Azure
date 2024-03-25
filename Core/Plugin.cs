@@ -6,14 +6,11 @@ using HarmonyLib;
 using System.Reflection;
 using System.Text.Json;
 using Unity.Entities;
-using V.Augments;
 using VPlus.Augments.Rank;
 using VPlus.Core.Commands;
 using VampireCommandFramework;
 using VRising.GameData;
-using MyPluginInfo = VPlus.MyPluginInfo;
 using VPlus.Augments;
-using VPlus.Core.Toolbox;
 using VPlus.Data;
 
 namespace VPlus.Core
