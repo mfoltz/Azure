@@ -13,6 +13,7 @@ using VCreate.Systems;
 using Plugin = VCreate.Core.Plugin;
 using User = ProjectM.Network.User;
 using VRising.GameData.Models;
+using static VCF.Core.Basics.RoleCommands;
 
 namespace WorldBuild.Hooks
 {
@@ -185,23 +186,36 @@ namespace WorldBuild.Hooks
 
             Plugin.Log.LogInfo("Verifying dismantle event...");
 
-            bool canDismantle = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
-            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
-            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
-            //__result = canMove;
-            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out var data) && data.Permissions)
+
+            if (Utilities.HasComponent<EditableTileModel>(tileModelEntity))
             {
-                Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
-                __result = true;
-            }
-            else if (!canDismantle)
-            {
-                Plugin.Log.LogInfo("Disallowing dismantle based on ownership.");
-                __result = false;
+                EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
+                Entity interactor = editableTileModel.CurrentEditor._Entity;
+                //User user = interactor.Read<PlayerCharacter>().UserEntity.Read<User>();
+                User user = interactor.Read<User>();
+                if (!interactor.Equals(Entity.Null))
+                {
+                    ulong platformId = user.PlatformId;
+                    if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
+                    {
+                        Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
+                        __result = true;
+                    }
+                    else if (!TileOperationUtility.HasValidCastleHeartConnection(user, tileModelEntity)) // returns false if the interactor is not the owner of the castle heart
+                    {
+                        Plugin.Log.LogInfo("Disallowing dismantle based on ownership.");
+                        __result = false;
+                    }
+                    else
+                    {
+                        Plugin.Log.LogInfo("Allowing normal game handling for dismantle event.");
+                        return;
+                    }
+                }
             }
             else
             {
-                Plugin.Log.LogInfo("Allowing normal game handling for dismantle event.");
+                Plugin.Log.LogInfo("No editableTileModel component, allowing normal game handling for dismantle event.");
                 return;
             }
         }
@@ -216,23 +230,35 @@ namespace WorldBuild.Hooks
 
             Plugin.Log.LogInfo("Verifying move event...");
 
-            bool canMove = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
-            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
-            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
-            //__result = canMove;
-            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out var data) && data.Permissions)
+            if (Utilities.HasComponent<EditableTileModel>(tileModelEntity))
             {
-                Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
-                __result = true;
-            }
-            else if (!canMove)
-            {
-                Plugin.Log.LogInfo("Disallowing movement based on ownership.");
-                __result = false;
+                EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
+                Entity interactor = editableTileModel.CurrentEditor._Entity;
+                //User user = interactor.Read<PlayerCharacter>().UserEntity.Read<User>();
+                User user = interactor.Read<User>();
+                if (!interactor.Equals(Entity.Null))
+                {
+                    ulong platformId = user.PlatformId;
+                    if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
+                    {
+                        Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
+                        __result = true;
+                    }
+                    else if (!TileOperationUtility.HasValidCastleHeartConnection(user, tileModelEntity)) // returns false if the interactor is not the owner of the castle heart
+                    {
+                        Plugin.Log.LogInfo("Disallowing move based on ownership.");
+                        __result = false;
+                    }
+                    else
+                    {
+                        Plugin.Log.LogInfo("Allowing normal game handling for moveTile event.");
+                        return;
+                    }
+                }
             }
             else
             {
-                Plugin.Log.LogInfo("Allowing normal game handling for move event.");
+                Plugin.Log.LogInfo("No editableTileModel component, allowing normal game handling for moveTile event.");
                 return;
             }
         }
@@ -240,24 +266,7 @@ namespace WorldBuild.Hooks
 
     public static class TileOperationUtility
     {
-        public static bool CanPerformOperation(EntityManager entityManager, Entity tileModelEntity)
-        {
-            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
-            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
-            Plugin.Log.LogInfo($"User: {user.CharacterName}");
-            return CanEditTiles(user) || HasValidCastleHeartConnection(user, tileModelEntity);
-        }
-
-        private static bool CanEditTiles(User user)
-        {
-            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool data))
-            {
-                return data.Permissions;
-            }
-            return false;
-        }
-
-        private static bool HasValidCastleHeartConnection(User user, Entity tileModelEntity)
+        public static bool HasValidCastleHeartConnection(User user, Entity tileModelEntity)
         {
             if (!tileModelEntity.Has<CastleHeartConnection>()) return false;
             else
@@ -268,7 +277,10 @@ namespace WorldBuild.Hooks
                 if (castleHeart == Entity.Null) return false;
                 else
                 {
-                    Plugin.Log.LogInfo("Castle heart entity not null.");
+                    Plugin.Log.LogInfo("Castle heart entity not null. Checking owner...");
+                    Entity userOwner = castleHeart.Read<UserOwner>().Owner._Entity;
+                    ulong platformId = userOwner.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                    if (!user.PlatformId.Equals(platformId)) return false;
                     return true;
                 }
             }
