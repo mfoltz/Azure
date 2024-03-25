@@ -125,7 +125,7 @@ namespace VPlus.Core
 
             BuffRewardsPrestige = Config.Bind("Config", "BuffRewardsReset", true, "Grants permanent buff to players when prestiging if enabled.").Value;
             BuffRewardsRankUp = Config.Bind("Config", "BuffRewardsPrestige", true, "Grants permanent buff to players when ranking up if enabled.").Value;
-            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsPrestige", "[-1124645803,1163490655,1520432556,-1559874083,1425734039]", "Buff prefabs to give players when prestiging, leave as 0 to skip.").Value;
+            BuffPrefabsPrestige = Config.Bind("Config", "BuffPrefabsPrestige", "[1491093272,-1572696947,1520432556,-1559874083,1425734039]", "Buff prefabs to give players when prestiging, leave as 0 to skip.").Value;
             BuffPrefabsRankUp = Config.Bind("Config", "BuffPrefabsRank", "[476186894,-1703886455,-238197495,1068709119,-1161197991]", "Buff prefabs to give players when ranking up, leave as 0 to skip.").Value;
 
             modifyDeathSetStats = Config.Bind("Config", "ModifyDeathSetStats", true, "Modify the stats of the death set").Value;
