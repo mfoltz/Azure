@@ -186,13 +186,13 @@ namespace WorldBuild.Hooks
             Plugin.Log.LogInfo("Verifying dismantle event...");
 
             bool canDismantle = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
-
-            //__result = canDismantle;
-            if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
+            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
+            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
+            //__result = canMove;
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out var data) && data.Permissions)
             {
                 Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
                 __result = true;
-                
             }
             else if (!canDismantle)
             {
@@ -217,8 +217,10 @@ namespace WorldBuild.Hooks
             Plugin.Log.LogInfo("Verifying move event...");
 
             bool canMove = TileOperationUtility.CanPerformOperation(entityManager, tileModelEntity);
+            var userOwner = Utilities.GetComponentData<UserOwner>(tileModelEntity);
+            var user = Utilities.GetComponentData<User>(userOwner.Owner._Entity);
             //__result = canMove;
-            if (DataStructures.PlayerSettings.TryGetValue(tileModelEntity.Read<UserOwner>().Owner._Entity.Read<User>().PlatformId, out var data) && data.Permissions)
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out var data) && data.Permissions)
             {
                 Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
                 __result = true;
