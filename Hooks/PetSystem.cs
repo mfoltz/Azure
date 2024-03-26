@@ -287,35 +287,35 @@ namespace VCreate.Hooks
                 switch (stat)
                 {
                     case FocusToStatMap.StatType.AttackSpeed:
-                        stats.AttackSpeed = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.AttackSpeed._Value + increase, cap));
+                        stats.AttackSpeed._Value = Mathf.Min(stats.AttackSpeed._Value + increase, cap);
                         break;
 
                     case FocusToStatMap.StatType.PrimaryAttackSpeed:
-                        stats.PrimaryAttackSpeed = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PrimaryAttackSpeed.Value + increase, cap));
+                        stats.PrimaryAttackSpeed._Value = Mathf.Min(stats.PrimaryAttackSpeed.Value + increase, cap);
                         break;
 
                     case FocusToStatMap.StatType.PhysicalPower:
-                        stats.PhysicalPower = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PhysicalPower._Value + increase, cap));
+                        stats.PhysicalPower._Value = Mathf.Min(stats.PhysicalPower._Value + increase, cap);
                         break;
 
                     case FocusToStatMap.StatType.SpellPower:
-                        stats.SpellPower = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.SpellPower._Value + increase, cap));
+                        stats.SpellPower._Value = Mathf.Min(stats.SpellPower._Value + increase, cap);
                         break;
 
                     case FocusToStatMap.StatType.PhysicalCriticalStrikeChance:
-                        stats.PhysicalCriticalStrikeChance = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PhysicalCriticalStrikeChance._Value + increase, cap));
+                        stats.PhysicalCriticalStrikeChance._Value = Mathf.Min(stats.PhysicalCriticalStrikeChance._Value + increase, cap);
                         break;
 
                     case FocusToStatMap.StatType.PhysicalCriticalStrikeDamage:
-                        stats.PhysicalCriticalStrikeDamage = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.PhysicalCriticalStrikeDamage._Value + increase, cap));
+                        stats.PhysicalCriticalStrikeDamage._Value = Mathf.Min(stats.PhysicalCriticalStrikeDamage._Value + increase, cap);
                         break;
 
                     case FocusToStatMap.StatType.SpellCriticalStrikeChance:
-                        stats.SpellCriticalStrikeChance = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.SpellCriticalStrikeChance._Value + increase, cap));
+                        stats.SpellCriticalStrikeChance._Value = Mathf.Min(stats.SpellCriticalStrikeChance._Value + increase, cap);
                         break;
 
                     case FocusToStatMap.StatType.SpellCriticalStrikeDamage:
-                        stats.SpellCriticalStrikeDamage = ModifiableFloat.Create(entity, entityManager, Mathf.Min(stats.SpellCriticalStrikeDamage._Value + increase, cap));
+                        stats.SpellCriticalStrikeDamage._Value = Mathf.Min(stats.SpellCriticalStrikeDamage._Value + increase, cap);
                         break;
 
                         // Add cases for other stats...
@@ -327,7 +327,7 @@ namespace VCreate.Hooks
                 float increase = StatIncreases.Increases[stat];
                 float cap = StatCaps.Caps[stat];
 
-                health.MaxHealth = ModifiableFloat.Create(entity, entityManager, Mathf.Min(health.MaxHealth._Value + increase, cap));
+                health.MaxHealth._Value = Mathf.Min(health.MaxHealth._Value + increase, cap);
             }
 
 
@@ -439,6 +439,25 @@ namespace VCreate.Hooks
                         else
                         {
                             userModel.DropItemNearby(gem, 1);
+                            if (!DataStructures.UnlockedPets[playerId].Contains(died.Read<PrefabGUID>().GuidHash) && DataStructures.UnlockedPets[playerId].Count < 10)
+                            {
+                                DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
+                                /*
+                                int randInt = UnitTokenSystem.Random.Next(0, 100);
+                                if (randInt < 20)
+                                {
+                                    DataStructures.PetBuffMap[playerId].Add(died.Read<PrefabGUID>().GuidHash, []);
+                                    PrefabGUID prefabGUID = DeathEventHandlers.GetRandomPrefab();
+                                    DataStructures.PetBuffMap[playerId][died.Read<PrefabGUID>().GuidHash].Add(prefabGUID.GuidHash);
+                                    DataStructures.SavePetBuffMap();
+                                }
+                                */
+                                DataStructures.SaveUnlockedPets();
+                            }
+                            else
+                            {
+                                Plugin.Log.LogInfo("Player unlocks full (10), not adding to unlocked pets.");
+                            }
                             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, killer.Read<PlayerCharacter>().UserEntity.Read<User>(), "Something fell out of your bag!");
                         }
                     }
