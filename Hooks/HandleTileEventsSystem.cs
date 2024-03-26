@@ -14,16 +14,16 @@ using Plugin = VCreate.Core.Plugin;
 using User = ProjectM.Network.User;
 using VRising.GameData.Models;
 using static VCF.Core.Basics.RoleCommands;
+using static VCreate.Core.Services.PlayerService;
 
 namespace WorldBuild.Hooks
 {
     [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.OnUpdate))]
     public static class CastleHeartPlacementPatch
     {
-        private static HashSet<Entity> hashset = [];
         private static readonly PrefabGUID CastleHeartPrefabGUID = new(-485210554); // castle heart prefab
 
-        public static void Prefix(PlaceTileModelSystem __instance)
+        public static bool Prefix(PlaceTileModelSystem __instance)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
 
@@ -42,7 +42,6 @@ namespace WorldBuild.Hooks
             finally
             {
                 jobs.Dispose();
-                hashset.Clear();
             }
 
             jobs = __instance._AbilityCastFinishedQuery.ToEntityArray(Allocator.Temp);
@@ -74,6 +73,42 @@ namespace WorldBuild.Hooks
             {
                 jobs.Dispose();
             }
+            jobs = __instance._MoveTileQuery.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (var entity in jobs)
+                {
+                    MoveTileModelEvent moveTileModelEvent = entity.Read<MoveTileModelEvent>();
+                    moveTileModelEvent.Target.GetNetworkedEntity(VWorld.Server.GetExistingSystem<NetworkIdSystem>()._NetworkIdToEntityMap).TryGetSyncedEntity(out Entity tileEntity);
+                    if (!tileEntity.Equals(Entity.Null))
+                    {
+                        EditableTileModel editableTileModel = tileEntity.Read<EditableTileModel>();
+                        editableTileModel.CurrentEditor.TryGetSyncedEntity(out Entity editorEntity);
+                        User user = entity.Read<PlayerCharacter>().UserEntity.Read<User>();
+                        if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out var data) && data.Permissions)
+                        {
+                            Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
+                            return true;
+                        }
+                        else if (TileOperationUtility.HasValidCastleHeartConnection(user, tileEntity))
+                        {
+                            Plugin.Log.LogInfo("Allowing normal game handling for move event.");
+                            return true;
+                        }
+                        else
+                        {
+                            Plugin.Log.LogInfo("Disallowing move based on ownership.");
+                            return false;
+                        }
+
+                    }
+                }
+            }
+            finally
+            {
+                jobs.Dispose();
+            }
+            return true;
         }
 
         public static void HandleAbilityCast(Entity userEntity)
@@ -218,52 +253,6 @@ namespace WorldBuild.Hooks
             else
             {
                 Plugin.Log.LogInfo("No editableTileModel component, allowing normal game handling for dismantle event.");
-                return;
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(PlaceTileModelSystem), nameof(PlaceTileModelSystem.VerifyIfCanMoveOrRotateAfterBuilt))]
-    public static class VerifyCanMovePatch
-    {
-        public static void Postfix(ref bool __result, EntityManager entityManager, Entity tileModelEntity)
-        {
-            //if (!__result) return;
-
-            //Plugin.Log.LogInfo("Verifying move event...");
-
-            if (Utilities.HasComponent<EditableTileModel>(tileModelEntity))
-            {
-                EditableTileModel editableTileModel = tileModelEntity.Read<EditableTileModel>();
-                NetworkedEntity interactor = editableTileModel.CurrentEditor;
-
-                if (interactor.TryGetSyncedEntity(out Entity entity))
-                {
-                    if (!entity.Equals(Entity.Null))
-                    {
-                        //entity.LogComponentTypes();
-                        ulong platformId = entity.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
-                        if (DataStructures.PlayerSettings.TryGetValue(platformId, out var data) && data.Permissions)
-                        {
-                            Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
-                            __result = true;
-                        }
-                        else if (!TileOperationUtility.HasValidCastleHeartConnection(entity.Read<PlayerCharacter>().UserEntity.Read<User>(), tileModelEntity)) // returns false if the interactor is not the owner of the castle heart
-                        {
-                            Plugin.Log.LogInfo("Disallowing moveme based on ownership.");
-                            __result = false;
-                        }
-                        else
-                        {
-                            Plugin.Log.LogInfo("Allowing normal game handling for movement event.");
-                            return;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Plugin.Log.LogInfo("No editableTileModel component, allowing normal game handling for movement event.");
                 return;
             }
         }

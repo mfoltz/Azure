@@ -132,10 +132,7 @@ namespace VCreate.Core.Toolbox
             }
         }
 
-        public static bool TryGetCastleTerritory(Player player, out Entity territoryEntity)
-        {
-            return TryGetCastleTerritory(player.Character, out territoryEntity);
-        }
+        
 
         public static bool TryGetCastleTerritory(Entity entity, out Entity territoryEntity)
         {
