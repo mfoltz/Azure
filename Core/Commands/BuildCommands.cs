@@ -35,7 +35,7 @@ namespace VCreate.Core.Commands
                 DataStructures.SavePlayerSettings();
                 string enabledColor = FontColors.Green("enabled");
                 string disabledColor = FontColors.Red("disabled");
-                ctx.Reply($"DestroyMyNodes: |{(data.RemoveNodes ? enabledColor : disabledColor)}|");
+                ctx.Reply($"DestroyMyNodes when an admin runs the command opt-in: |{(data.RemoveNodes ? enabledColor : disabledColor)}|");
             }
             else
             {
@@ -189,7 +189,7 @@ namespace VCreate.Core.Commands
             }
         }
 
-        [Command(name: "setCharacterUnit", shortHand: "char", adminOnly: true, usage: ".char [PrefabGUID]", description: "Sets cloned unit prefab.")]
+        //[Command(name: "setCharacterUnit", shortHand: "char", adminOnly: true, usage: ".char [PrefabGUID]", description: "Sets cloned unit prefab.")]
         public static void SetUnit(ChatCommandContext ctx, int choice)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
