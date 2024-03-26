@@ -98,8 +98,8 @@ namespace WorldBuild.Hooks
                         }
                         else
                         {
-                            
-                            SystemPatchUtil.Destroy(job);
+                            Plugin.Log.LogInfo("Allowing normal game handling for movement.");
+                            continue;
                         }
 
                     }
