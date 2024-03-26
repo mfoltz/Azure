@@ -88,21 +88,17 @@ namespace VPlus.Augments
                 //first validate input from user
                 if (buff > 0 && buff <= buffList.Count)
                 {
-                    if (buff == 1)
+                    // always grant first unlocked buff after first prestige
+
+                    // check if high enough prestige
+                    if (data.Prestiges >= buff * 2)
                     {
-                        // always grant first unlocked buff after first prestige
-                        if (data.Prestiges < 1)
-                        {
-                            ctx.Reply("You must prestige at least once to unlock this buff.");
-                            return;
-                        }
-                        // but for every buff application first check if they already have one and remove it if they do
                         if (data.PlayerBuff == 0)
                         {
-                            PrefabGUID buffguid = new(buffList[buff]);
+                            PrefabGUID buffguid = new(buffList[buff - 1]);
                             // buff good to apply, 0 means no buff
                             Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
-                            data.PlayerBuff = buffList[buff];
+                            data.PlayerBuff = buffList[buff - 1];
                             ChatCommands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");
                             return;
@@ -112,9 +108,9 @@ namespace VPlus.Augments
                             // remove buff using buffs data before applying new buff
                             PrefabGUID buffguidold = new(data.PlayerBuff);
                             Helper.UnbuffCharacter(ctx.Event.SenderCharacterEntity, buffguidold);
-                            PrefabGUID buffguidnew = new(buffList[buff]);
+                            PrefabGUID buffguidnew = new(buffList[buff - 1]);
                             Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
-                            data.PlayerBuff = buffList[buff];
+                            data.PlayerBuff = buffList[buff - 1];
                             ChatCommands.SavePlayerPrestige();
                             ctx.Reply($"Visual buff #{buff} has been applied.");
                             return;
@@ -122,36 +118,7 @@ namespace VPlus.Augments
                     }
                     else
                     {
-                        // check if high enough prestige
-                        if (data.Prestiges >= buff * 2)
-                        {
-                            if (data.PlayerBuff == 0)
-                            {
-                                PrefabGUID buffguid = new(buffList[buff - 1]);
-                                // buff good to apply, 0 means no buff
-                                Helper.BuffPlayerByName(ctx.Name, buffguid, 0, true);
-                                data.PlayerBuff = buffList[buff - 1];
-                                ChatCommands.SavePlayerPrestige();
-                                ctx.Reply($"Visual buff #{buff} has been applied.");
-                                return;
-                            }
-                            else
-                            {
-                                // remove buff using buffs data before applying new buff
-                                PrefabGUID buffguidold = new(data.PlayerBuff);
-                                Helper.UnbuffCharacter(ctx.Event.SenderCharacterEntity, buffguidold);
-                                PrefabGUID buffguidnew = new(buffList[buff - 1]);
-                                Helper.BuffPlayerByName(ctx.Name, buffguidnew, 0, true);
-                                data.PlayerBuff = buffList[buff - 1];
-                                ChatCommands.SavePlayerPrestige();
-                                ctx.Reply($"Visual buff #{buff} has been applied.");
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            ctx.Reply($"This visual buff requires prestige {buff * 3}.");
-                        }
+                        ctx.Reply($"This visual buff requires prestige {buff * 2}.");
                     }
                 }
                 else
@@ -200,8 +167,6 @@ namespace VPlus.Augments
                 ChatCommands.SavePlayerPrestige();
                 return;
             }
-            
         }
     }
 }
-            
