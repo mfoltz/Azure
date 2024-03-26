@@ -83,7 +83,7 @@ internal class EmoteSystemPatch
             }
             else
             {
-                continue;
+                return;
             }
         }
 
@@ -104,19 +104,21 @@ internal class EmoteSystemPatch
                 follower.Followed._Value = player.Character;
                 familiarStasisState.FamiliarEntity.Write(follower);
                 familiarStasisState.FamiliarEntity.Write(new Translation { Value = player.Character.Read<Translation>().Value });
+                familiarStasisState.FamiliarEntity.Write(new LastTranslation { Value = player.Character.Read<Translation>().Value });
                 familiarStasisState.IsInStasis = false;
                 familiarStasisState.FamiliarEntity = Entity.Null;
                 PlayerFamiliarStasisMap[platformId] = familiarStasisState;
                 ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "Your familiar has been summoned.");
+                return;
             }
             else if (!familiarStasisState.IsInStasis)
             {
                 Entity familiar = FindPlayerFamiliar(player.Character);
                 if (familiar.Equals(Entity.Null))
                 {
-                    ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "You don't have an active familiar.");
+                    ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "You don't have an active familiar following you.");
                 }
-                if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
+                else if (data.TryGetValue(familiar.Read<PrefabGUID>().LookupName().ToString(), out PetExperienceProfile profile) && profile.Active)
                 {
                     Follower follower = familiar.Read<Follower>();
                     follower.Followed._Value = Entity.Null;
@@ -124,7 +126,6 @@ internal class EmoteSystemPatch
                     SystemPatchUtil.Disable(familiar);
                     PlayerFamiliarStasisMap[platformId] = new FamiliarStasisState(familiar, true);
                     ServerChatUtils.SendSystemMessageToClient(entityCommandBuffer, player.User.Read<User>(), "Your familar has been placed in stasis.");
-                    //DataStructures.SavePetExperience();
                 }
                 else
                 {
@@ -236,8 +237,6 @@ internal class EmoteSystemPatch
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, player.User.Read<User>(), $"BuffMode: |{stateMessage}|");
         }
     }
-
- 
 
     private static void ToggleTileMode(Player player, ulong playerId)
     {

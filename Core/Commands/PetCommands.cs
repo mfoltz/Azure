@@ -284,6 +284,7 @@ namespace VCreate.Core.Commands
                     follower.Followed._Value = ctx.Event.SenderCharacterEntity;
                     familiarStasisState.FamiliarEntity.Write(follower);
                     familiarStasisState.FamiliarEntity.Write(new Translation { Value = ctx.Event.SenderCharacterEntity.Read<Translation>().Value });
+                    familiarStasisState.FamiliarEntity.Write(new LastTranslation { Value = ctx.Event.SenderCharacterEntity.Read<Translation>().Value });
                     familiarStasisState.IsInStasis = false;
                     familiarStasisState.FamiliarEntity = Entity.Null;
                     PlayerFamiliarStasisMap[platformId] = familiarStasisState;
