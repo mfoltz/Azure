@@ -77,7 +77,6 @@ namespace VCreate.Hooks
             }
             entityArray.Dispose();
         }
-
         public static void EnableFamiliarsOnQuit()
         {
             var keys = DataStructures.PlayerPetsMap.Keys;

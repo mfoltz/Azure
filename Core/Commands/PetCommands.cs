@@ -23,6 +23,7 @@ namespace VCreate.Core.Commands
     internal class PetCommands
     {
         internal static Dictionary<ulong, FamiliarStasisState> PlayerFamiliarStasisMap = [];
+        
 
         [Command(name: "setUnlocked", shortHand: "set", adminOnly: false, usage: ".set [#]", description: "Sets familiar to attempt binding to from unlocked units.")]
         public static void MethodMinusOne(ChatCommandContext ctx, int choice)
@@ -114,6 +115,7 @@ namespace VCreate.Core.Commands
                     counter++;
                     string colornum = VCreate.Core.Toolbox.FontColors.Green(counter.ToString());
                     PrefabGUID prefabGUID = new(unlock);
+                    // want real name from guid
                     string colorfam = VCreate.Core.Toolbox.FontColors.Pink(prefabGUID.LookupName());
                     ctx.Reply($"{colornum}: {colorfam}");
                 }
