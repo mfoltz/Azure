@@ -23,7 +23,7 @@ namespace WorldBuild.Hooks
     {
         private static readonly PrefabGUID CastleHeartPrefabGUID = new(-485210554); // castle heart prefab
 
-        public static bool Prefix(PlaceTileModelSystem __instance)
+        public static void Prefix(PlaceTileModelSystem __instance)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
 
@@ -76,29 +76,30 @@ namespace WorldBuild.Hooks
             jobs = __instance._MoveTileQuery.ToEntityArray(Allocator.Temp);
             try
             {
-                foreach (var entity in jobs)
+
+                foreach (var job in jobs)
                 {
-                    MoveTileModelEvent moveTileModelEvent = entity.Read<MoveTileModelEvent>();
+                    MoveTileModelEvent moveTileModelEvent = job.Read<MoveTileModelEvent>();
                     moveTileModelEvent.Target.GetNetworkedEntity(VWorld.Server.GetExistingSystem<NetworkIdSystem>()._NetworkIdToEntityMap).TryGetSyncedEntity(out Entity tileEntity);
                     if (!tileEntity.Equals(Entity.Null))
                     {
                         EditableTileModel editableTileModel = tileEntity.Read<EditableTileModel>();
                         editableTileModel.CurrentEditor.TryGetSyncedEntity(out Entity editorEntity);
-                        User user = entity.Read<PlayerCharacter>().UserEntity.Read<User>();
+                        User user = editorEntity.Read<PlayerCharacter>().UserEntity.Read<User>(); // error
                         if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out var data) && data.Permissions)
                         {
                             Plugin.Log.LogInfo("Permissions >> ownership, allowed.");
-                            return true;
+                            continue;
                         }
-                        else if (TileOperationUtility.HasValidCastleHeartConnection(user, tileEntity))
+                        else if (!TileOperationUtility.HasValidCastleHeartConnection(user, tileEntity))
                         {
-                            Plugin.Log.LogInfo("Allowing normal game handling for move event.");
-                            return true;
+                            Plugin.Log.LogInfo("Disallowing move based on ownership.");
+                            SystemPatchUtil.Destroy(job);
                         }
                         else
                         {
-                            Plugin.Log.LogInfo("Disallowing move based on ownership.");
-                            return false;
+                            
+                            SystemPatchUtil.Destroy(job);
                         }
 
                     }
@@ -106,9 +107,9 @@ namespace WorldBuild.Hooks
             }
             finally
             {
+
                 jobs.Dispose();
             }
-            return true;
         }
 
         public static void HandleAbilityCast(Entity userEntity)
