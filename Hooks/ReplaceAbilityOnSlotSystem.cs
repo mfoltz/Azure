@@ -62,19 +62,8 @@ namespace VPlus.Hooks
             Entity userEntity = entityManager.GetComponentData<PlayerCharacter>(owner).UserEntity;
             User user = entityManager.GetComponentData<User>(userEntity);
             //ulong steamID = user.PlatformId;
-            if (Databases.playerDivinity.TryGetValue(steamdId, out DivineData data) && !data.Spawned)
-            {
-                data.Spawned = true;
-                Databases.playerDivinity[steamdId] = data;
-                ChatCommands.SavePlayerDivinity();
-                UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(user.PlatformId);
-                foreach (var item in keyValuePairs.Keys)
-                {
-                    userModel.TryGiveItem(item, keyValuePairs[item], out var _);
-                }
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "You've received a starting kit with blood essence, stone, wood, coins, and health potions!");
-            }
-            else if (entityManager.HasComponent<WeaponLevel>(entity))
+            
+            if (entityManager.HasComponent<WeaponLevel>(entity))
             {
                 HandleWeaponEquipOrUnequip(entityManager, entity, owner);
             }

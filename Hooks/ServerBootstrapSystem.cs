@@ -15,6 +15,10 @@ using VRising.GameData.Utils;
 using VPlus.Data;
 using VRising.GameData.Models;
 using RPGMods;
+using static VCF.Core.Basics.RoleCommands;
+using Steamworks;
+using VRising.GameData.Methods;
+using User = ProjectM.Network.User;
 
 namespace VPlus.Hooks
 {
@@ -124,6 +128,18 @@ namespace VPlus.Hooks
                         {
                             vision.Range._Value = 5000f;
                             character.Write(vision);
+                            if (Databases.playerDivinity.TryGetValue(spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out DivineData data) && !data.Spawned)
+                            {
+                                data.Spawned = true;
+                                Databases.playerDivinity[spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = data;
+                                ChatCommands.SavePlayerDivinity();
+                                UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId);
+                                foreach (var item in VPlus.Hooks.ReplaceAbilityOnSlotSystem_Patch.keyValuePairs.Keys)
+                                {
+                                    userModel.TryGiveItem(item, VPlus.Hooks.ReplaceAbilityOnSlotSystem_Patch.keyValuePairs[item], out var _);
+                                }
+                                ServerChatUtils.SendSystemMessageToClient(entityManager, spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>(), "You've received a starting kit with blood essence, stone, wood, coins, and health potions!");
+                            }
                         }
                     }
 
