@@ -24,6 +24,7 @@ public static class FollowerSystemPatchV2
     {
         ServerGameManager serverGameManager = VWorld.Server.GetExistingSystem<ServerScriptMapper>()._ServerGameManager;
         BuffUtility.BuffSpawner buffSpawner = BuffUtility.BuffSpawner.Create(serverGameManager);
+        
         EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EntityCommandBufferSystem>();
         EntityCommandBuffer entityCommandBuffer = entityCommandBufferSystem.CreateCommandBuffer();
 
@@ -45,7 +46,7 @@ public static class FollowerSystemPatchV2
                         if (!followed.Has<PlayerCharacter>()) continue;
                         if (DataStructures.PlayerSettings.TryGetValue(followed.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, out var data) && !data.Binding) return;
                         
-                        Plugin.Log.LogInfo("Charmed entity following player detected in SpawnReactSystem, checking for valid familiar to bind...");
+                        Plugin.Log.LogInfo("Charmed entity following player with binding flag detected in SpawnReactSystem, checking for valid familiar to bind...");
                         
                         Entity userEntity = followed.Read<PlayerCharacter>().UserEntity;
 
@@ -66,6 +67,7 @@ public static class FollowerSystemPatchV2
                             {
                                 Plugin.Log.LogInfo("Found unbound, inactive set familiar, removing charm and binding...");
                                 BuffUtility.TryRemoveBuff(ref buffSpawner, entityCommandBuffer, charm, entity);
+                                
                                 OnHover.ConvertCharacter(userEntity, entity);
                                 hashset.Add(entity);
                                 goto outerLoop;

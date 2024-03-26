@@ -141,6 +141,7 @@ internal static class Enablers
                     if (!heart.Equals(Entity.Null))
                     {
                         Entity userOwner = heart.Read<UserOwner>().Owner._Entity;
+                        if (!userOwner.Has<User>()) return false;
                         ulong platformId = userOwner.Read<User>().PlatformId;
                         if (DataStructures.PlayerSettings.TryGetValue(platformId, out Omnitool data) && data.RemoveNodes)
                         {

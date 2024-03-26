@@ -72,8 +72,7 @@ internal class EmoteSystemPatch
 
             Player _player = new Player(_from.User);
             ulong _playerId = _player.SteamID;
-            if (!_player.IsAdmin) continue;
-            if (DataStructures.PlayerSettings.TryGetValue(_playerId, out Omnitool data))
+            if (DataStructures.PlayerSettings.TryGetValue(_playerId, out Omnitool data) && data.Emotes)
             {
                 index = data.Build ? 0 : 1; // if active index is 1 for building emotes, if inactive index is 0 for familiar emotes
                 if (emoteActionsArray[index].TryGetValue(_event.Action.GuidHash, out var action))
@@ -81,6 +80,10 @@ internal class EmoteSystemPatch
                     // Execute the associated action
                     action.Invoke(_player, _playerId);
                 }
+            }
+            else
+            {
+                continue;
             }
         }
 

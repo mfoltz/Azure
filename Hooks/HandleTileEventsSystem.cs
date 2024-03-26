@@ -116,19 +116,21 @@ namespace WorldBuild.Hooks
         {
             var user = Utilities.GetComponentData<User>(userEntity);
 
-            if (!DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool settings))
+            if (DataStructures.PlayerSettings.TryGetValue(user.PlatformId, out Omnitool settings))
             {
-                return; // or handle the case of missing settings
+                if (!settings.Emotes) return;
+                var action = DecideAction(settings);
+                action?.Invoke(userEntity, settings);
             }
-            if (!settings.Emotes)
+            else
             {
                 return;
             }
+            
             // Assuming a method that decides the action based on the ability and settings
-            var action = DecideAction(settings);
 
             // Execute the decided action
-            action?.Invoke(userEntity, settings);
+            
         }
 
         private static System.Action<Entity, Omnitool> DecideAction(Omnitool settings)

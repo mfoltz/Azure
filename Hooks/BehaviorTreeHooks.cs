@@ -100,10 +100,10 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                         {
                             if (buff.PrefabGuid.GuidHash == VCreate.Data.Prefabs.Buff_General_PvPProtected.GuidHash)
                             {
-                        BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
-                        behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
-                        entity.Write(behaviourTreeStateChangedEvent);
-                    }
+                                BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
+                                behaviourTreeStateChangedEvent.Value = GenericEnemyState.Follow;
+                                entity.Write(behaviourTreeStateChangedEvent);
+                            }
                         }
                         var alertBuffer = alertTarget.ReadBuffer<BuffBuffer>();
                         foreach (var buff in alertBuffer)
@@ -123,6 +123,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                 }
                 else if (Utilities.HasComponent<BehaviourTreeState>(entity) && (entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Villager_Cover || entity.Read<BehaviourTreeState>().Value == GenericEnemyState.Flee))
                 {
+                    
                     BehaviourTreeState behaviourTreeStateChangedEvent = entity.Read<BehaviourTreeState>();
                     behaviourTreeStateChangedEvent.Value = GenericEnemyState.Combat;
                     entity.Write(behaviourTreeStateChangedEvent);
@@ -137,6 +138,7 @@ public static class BehaviourTreeStateChangedEventSystemPatch
                         entity.Write(behaviourTreeStateChangedEvent);
                     }
                 }
+                
             }
         }
         catch (Exception e)

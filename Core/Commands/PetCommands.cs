@@ -23,7 +23,6 @@ namespace VCreate.Core.Commands
     internal class PetCommands
     {
         internal static Dictionary<ulong, FamiliarStasisState> PlayerFamiliarStasisMap = [];
-        
 
         [Command(name: "setUnlocked", shortHand: "set", adminOnly: false, usage: ".set [#]", description: "Sets familiar to attempt binding to from unlocked units.")]
         public static void MethodMinusOne(ChatCommandContext ctx, int choice)
@@ -76,7 +75,7 @@ namespace VCreate.Core.Commands
                         data.Remove(toRemove);
                         DataStructures.UnlockedPets[platformId] = data;
                         DataStructures.SaveUnlockedPets();
-                        
+
                         ctx.Reply($"Familiar removed from list of unlocked units.");
                     }
                     else
@@ -84,7 +83,6 @@ namespace VCreate.Core.Commands
                         ctx.Reply("Failed to remove unlocked unit.");
                         return;
                     }
-                 
                 }
                 else
                 {
@@ -170,7 +168,7 @@ namespace VCreate.Core.Commands
                 {
                     gem = new(PetSystem.UnitTokenSystem.UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)unitCategory.UnitCategory]);
                 }
-                
+
                 //Plugin.Log.LogInfo(gem.LookupName());
                 //Plugin.Log.LogInfo(gem.GuidHash.ToString());
                 UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(platformId);
@@ -189,13 +187,9 @@ namespace VCreate.Core.Commands
                     if (DataStructures.PlayerSettings.TryGetValue(platformId, out var Settings))
                     {
                         Settings.Binding = true;
-                        
-                        
+
                         OnHover.SummonFamiliar(ctx.Event.SenderCharacterEntity.Read<PlayerCharacter>().UserEntity, new(settings.Familiar));
-                        
-                        
                     }
-                    
                 }
                 else
                 {
@@ -207,7 +201,7 @@ namespace VCreate.Core.Commands
                 ctx.Reply("Couldn't find data to bind familiar.");
                 return;
             }
-            
+
             // check for correct gem to take away for binding to familiar
         }
 
@@ -407,8 +401,6 @@ namespace VCreate.Core.Commands
                     {
                         factionReference.FactionGuid._Value = player;
                     }
-                    
-
 
                     //familiar.Write(new Immortal { IsImmortal = !profile.Combat });
 
@@ -458,7 +450,7 @@ namespace VCreate.Core.Commands
                 IsInStasis = isInStasis;
             }
         }
-        
+
         public static Entity FindPlayerFamiliar(Entity characterEntity)
         {
             var followers = characterEntity.ReadBuffer<FollowerBuffer>();
@@ -475,7 +467,6 @@ namespace VCreate.Core.Commands
                     }
                 }
             }
-            
 
             return Entity.Null;
         }

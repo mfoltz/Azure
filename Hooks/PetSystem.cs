@@ -189,7 +189,16 @@ namespace VCreate.Hooks
             {
                 new PrefabGUID(-646796985),   // BloodBuff_Assault
                 new PrefabGUID(1536493953),    // BloodBuff_CriticalStrike
-                new PrefabGUID(1096233037)     // BloodBuff_Empower also do lightning weapon, etc.
+                new PrefabGUID(1096233037),     // BloodBuff_Empower also do lightning weapon, etc.
+                new PrefabGUID(348724578),   // ignite
+                new PrefabGUID(-1576512627),    // static 
+                new PrefabGUID(-1246704569),     // leech
+                new PrefabGUID(1723455773),   // phantasm
+                new PrefabGUID(27300215),    // chill
+                new PrefabGUID(325758519),      // condemn
+                new PrefabGUID(397097531)     //nulifyandempower
+
+
                 // Add more prefabs as needed
             };
 
@@ -395,6 +404,11 @@ namespace VCreate.Hooks
                                 DataStructures.UnlockedPets.Add(playerId, []);
                                 DataStructures.SaveUnlockedPets();
                             }
+                            if (!DataStructures.PetBuffMap.ContainsKey(playerId))
+                            {
+                                DataStructures.PetBuffMap.Add(playerId, []);
+                                DataStructures.SavePetBuffMap();
+                            }
                         }
 
                         UserModel userModel = VRising.GameData.GameData.Users.GetUserByCharacterName(killer.Read<PlayerCharacter>().Name.ToString());
@@ -403,6 +417,14 @@ namespace VCreate.Hooks
                             if (!DataStructures.UnlockedPets[playerId].Contains(died.Read<PrefabGUID>().GuidHash) && DataStructures.UnlockedPets[playerId].Count < 10)
                             {
                                 DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
+                                int randInt = UnitTokenSystem.Random.Next(0, 100);
+                                if (randInt < 20)
+                                {
+                                    DataStructures.PetBuffMap[playerId].Add(died.Read<PrefabGUID>().GuidHash, []);
+                                    PrefabGUID prefabGUID = DeathEventHandlers.GetRandomPrefab();
+                                    DataStructures.PetBuffMap[playerId][died.Read<PrefabGUID>().GuidHash].Add(prefabGUID.GuidHash);
+                                    DataStructures.SavePetBuffMap();
+                                }
                                 DataStructures.SaveUnlockedPets();
                             }
                             else

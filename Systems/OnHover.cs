@@ -66,6 +66,7 @@ namespace VCreate.Systems
         {
             if (VCreate.Core.DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out Omnitool data))
             {
+                
                 PrefabGUID buff = new(data.GetData("Buff"));
                 Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
 
@@ -93,7 +94,7 @@ namespace VCreate.Systems
                         {
                             Utilities.AddComponent<Buff_Persists_Through_Death>(buffEntity);
                         }
-
+                        
                         if (buffEntity.Has<LifeTime>())
                         {
                             var lifetime = buffEntity.Read<LifeTime>();
@@ -198,8 +199,6 @@ namespace VCreate.Systems
 
         public static void ConvertCharacter(Entity userEntity, Entity hoveredEntity)
         {
-            FirstPhase(userEntity, hoveredEntity);
-            SecondPhase(userEntity, hoveredEntity);
             ulong steamId = userEntity.Read<User>().PlatformId;
             if (DataStructures.PlayerSettings.TryGetValue(steamId, out Omnitool data) && data.Binding)
             {
@@ -208,13 +207,18 @@ namespace VCreate.Systems
             }
             else
             {
-                SystemPatchUtil.Destroy(hoveredEntity);
+                return;
             }
+            FirstPhase(userEntity, hoveredEntity);
+            SecondPhase(userEntity, hoveredEntity);
+            
+            
             ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Summoned familiar from soul gem.");
         }
 
         public static void FirstPhase(Entity userEntity, Entity familiar)
         {
+            EntityManager entityManager = VWorld.Server.EntityManager;
             Team userTeam = userEntity.Read<Team>();
             TeamReference teamReference = userEntity.Read<TeamReference>();
             //FactionReference factionReference = userEntity.Read<FactionReference>();
@@ -234,10 +238,12 @@ namespace VCreate.Systems
 
             AggroConsumer aggroConsumer = familiar.Read<AggroConsumer>();
             aggroConsumer.ProximityRadius = 15f;
-            aggroConsumer.MaxDistanceFromPreCombatPosition = 35f;
-            aggroConsumer.RemoveDelay = 8f;
+            aggroConsumer.MaxDistanceFromPreCombatPosition = 20f;
+            aggroConsumer.RemoveDelay = 6f;
             familiar.Write(aggroConsumer);
-
+            DisableAggroBuff disableAggroBuff = new DisableAggroBuff { Mode = DisableAggroBuffMode.None };
+            familiar.Write(disableAggroBuff);
+            
             DynamicCollision dynamicCollision = familiar.Read<DynamicCollision>();
             dynamicCollision.AgainstPlayers.RadiusOverride = -1f;
             dynamicCollision.AgainstUnits.RadiusOverride = 0.4f;

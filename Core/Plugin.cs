@@ -31,6 +31,7 @@ namespace VCreate.Core
         public static readonly string PlayerSettingsJson = Path.Combine(Plugin.ConfigPath, "player_settings.json");
         public static readonly string PetDataJson = Path.Combine(Plugin.ConfigPath, "pet_data.json");
         public static readonly string UnlockedPetsJson = Path.Combine(Plugin.ConfigPath, "unlocked_pets.json");
+        public static readonly string PetBuffMapJson = Path.Combine(Plugin.ConfigPath, "pet_buff_map.json");
 
         public override void Load()
         {
@@ -45,7 +46,6 @@ namespace VCreate.Core
             LoadData();
             Plugin.Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} is loaded!");
             var keys = DataStructures.PlayerPetsMap.Keys;
-            
         }
 
         private void GameDataOnInitialize(World world)
@@ -81,6 +81,7 @@ namespace VCreate.Core
             LoadPlayerSettings();
             LoadPetData();
             LoadUnlockedPets();
+            LoadPetBuffMap();
         }
 
         public static void LoadPlayerSettings()
@@ -152,6 +153,30 @@ namespace VCreate.Core
                 Plugin.Logger.LogInfo($"No data to deserialize yet: {ex}");
                 VCreate.Core.DataStructures.UnlockedPets = [];
                 Plugin.Logger.LogWarning("UnlockedPets Created");
+            }
+        }
+
+        public static void LoadPetBuffMap()
+        {
+            if (!File.Exists(Plugin.PetBuffMapJson))
+            {
+                var stream = File.Create(Plugin.PetBuffMapJson);
+                stream.Dispose();
+            }
+
+            string json = File.ReadAllText(Plugin.PetBuffMapJson);
+            Plugin.Logger.LogWarning($"PetBuffMap found: {json}");
+            try
+            {
+                var settings = JsonSerializer.Deserialize<Dictionary<ulong, Dictionary<int, List<int>>>>(json);
+                VCreate.Core.DataStructures.PetBuffMap = settings ?? [];
+                Plugin.Logger.LogWarning("PetBuffMap Populated");
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogInfo($"No data to deserialize yet: {ex}");
+                VCreate.Core.DataStructures.PetBuffMap = [];
+                Plugin.Logger.LogWarning("PetBuffMap Created");
             }
         }
     }
