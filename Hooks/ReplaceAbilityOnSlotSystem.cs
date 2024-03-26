@@ -137,11 +137,9 @@ namespace VPlus.Hooks
                 PrefabGUID prefabGUID = new PrefabGUID(data.RankSpell);
                 newItem.NewGroupId = prefabGUID;
 
-                newItem.Slot = 3; // Assuming slot 3 is where the rank spell should go
+                newItem.Slot = 3;
                 buffer.Add(newItem);
-                // spell rank * 6 cd in seconds
                 float cooldown =  data.SpellRank * 14;
-                //Plugin.Logger.LogInfo("Ability added, attempting to modify cooldown...");
                 try
                 {
                     Entity abilityEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[prefabGUID];
@@ -149,15 +147,17 @@ namespace VPlus.Hooks
 
                     AbilityGroupStartAbilitiesBuffer bufferItem = abilityEntity.ReadBuffer<AbilityGroupStartAbilitiesBuffer>()[0];
                     Entity castEntity = Helper.prefabCollectionSystem._PrefabGuidToEntityMap[bufferItem.PrefabGUID];
+
                     AbilityCooldownData abilityCooldownData = castEntity.Read<AbilityCooldownData>();
                     AbilityCooldownState abilityCooldownState = castEntity.Read<AbilityCooldownState>();
-                    abilityCooldownState.CurrentCooldown = cooldown; // Reset the last used time
+
+                    abilityCooldownState.CurrentCooldown = cooldown; 
                     castEntity.Write(abilityCooldownState);
 
-                    abilityCooldownData.Cooldown._Value = cooldown; // Set the cooldown to 30 seconds
+                    abilityCooldownData.Cooldown._Value = cooldown; 
                     castEntity.Write(abilityCooldownData);
+
                     Plugin.Logger.LogInfo("Cooldown modified.");
-                    // need to get the ability cast entity to modify the cooldown, so first get the cast for an ability group somehow
                 }
                 catch (System.Exception ex)
                 {
