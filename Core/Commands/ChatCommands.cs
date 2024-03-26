@@ -17,13 +17,42 @@ using VCreate.Core.Toolbox;
 using static VCreate.Core.Services.PlayerService;
 using VRising.GameData.Utils;
 using static VPlus.Augments.Ascension;
+using RPGMods.Utils;
+using VRising.GameData.Methods;
+using Helper = VCreate.Core.Toolbox.Helper;
 
 namespace VPlus.Core.Commands
 {
     public class ChatCommands
     {
+
+
         private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
 
+
+        [Command(name: "starterKit", shortHand: "start", adminOnly: false, usage: ".start", description: "Provides starting kit.")]
+
+        public static void KitMe(ChatCommandContext ctx)
+        {
+            EntityManager entityManager = VWorld.Server.EntityManager;
+            if (Databases.playerDivinity.TryGetValue(ctx.Event.User.PlatformId, out DivineData data) && !data.Spawned)
+            {
+                data.Spawned = true;
+                Databases.playerDivinity[ctx.Event.User.PlatformId] = data;
+                ChatCommands.SavePlayerDivinity();
+                UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(ctx.Event.User.PlatformId);
+                foreach (var item in VPlus.Hooks.ReplaceAbilityOnSlotSystem_Patch.keyValuePairs.Keys)
+                {
+                    userModel.TryGiveItem(item, VPlus.Hooks.ReplaceAbilityOnSlotSystem_Patch.keyValuePairs[item], out var _);
+                }
+                ServerChatUtils.SendSystemMessageToClient(entityManager, ctx.Event.User, "You've received a starting kit with blood essence, stone, wood, coins, and health potions!");
+            }
+            else
+            {
+                ctx.Reply("You've already received your starting kit.");
+            }
+            
+        }
         [Command(name: "resetVision", shortHand: "vision", adminOnly: false, usage: ".vision", description: "Removes farsight.")]
 
         public static void ResetVision(ChatCommandContext ctx)
@@ -399,7 +428,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        [Command(name: "getPlayerRank", shortHand: "getPlayerRank", adminOnly: true, usage: ".gpr [Player]", description: "Helps admins check player rank data.")]
+        [Command(name: "getPlayerRank", shortHand: "gpr", adminOnly: true, usage: ".gpr [Player]", description: "Helps admins check player rank data.")]
         public static void GetPlayerRankCommand(ChatCommandContext ctx, string playerName)
         {
             if (Plugin.PlayerRankUp == false)
