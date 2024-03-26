@@ -140,6 +140,22 @@ namespace VPlus.Hooks
                                 }
                                 ServerChatUtils.SendSystemMessageToClient(entityManager, spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>(), "You've received a starting kit with blood essence, stone, wood, coins, and health potions!");
                             }
+                            else
+                            {
+                                DivineData divineData = new DivineData(0, 0);
+                                VPlus.Data.Databases.playerDivinity.Add(spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId, divineData);
+                                ChatCommands.SavePlayerDivinity();
+                                var newdata = Databases.playerDivinity[spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId];
+                                newdata.Spawned = true;
+                                Databases.playerDivinity[spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId] = data;
+                                ChatCommands.SavePlayerDivinity();
+                                UserModel userModel = VRising.GameData.GameData.Users.GetUserByPlatformId(spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId);
+                                foreach (var item in VPlus.Hooks.ReplaceAbilityOnSlotSystem_Patch.keyValuePairs.Keys)
+                                {
+                                    userModel.TryGiveItem(item, VPlus.Hooks.ReplaceAbilityOnSlotSystem_Patch.keyValuePairs[item], out var _);
+                                }
+                                ServerChatUtils.SendSystemMessageToClient(entityManager, spawnCharacter.PostSpawn_Character.Read<PlayerCharacter>().UserEntity.Read<User>(), "You've received a starting kit with blood essence, stone, wood, coins, and health potions!");
+                            }
                         }
                     }
 
