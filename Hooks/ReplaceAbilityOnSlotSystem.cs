@@ -27,6 +27,7 @@ namespace VPlus.Hooks
                 { new(-1593377811), 2500 },
                 { new(429052660), 25 },
                 { new(28625845), 200 }
+
             };
 
         private static readonly PrefabGUID fishingPole = new(-1016182556); //as you might have guessed, this is -REDACTED-
