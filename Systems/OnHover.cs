@@ -10,6 +10,7 @@ using VCreate.Core;
 using VCreate.Core.Services;
 using VCreate.Core.Toolbox;
 using VCreate.Hooks;
+using Exception = System.Exception;
 using User = ProjectM.Network.User;
 
 namespace VCreate.Systems
@@ -209,11 +210,23 @@ namespace VCreate.Systems
             {
                 return;
             }
-            FirstPhase(userEntity, hoveredEntity);
-            SecondPhase(userEntity, hoveredEntity);
+            try
+            {
+                FirstPhase(userEntity, hoveredEntity);
+                SecondPhase(userEntity, hoveredEntity);
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Summoned familiar from soul gem.");
+            }
+            catch (Exception e)
+            {
+                Plugin.Log.LogError(e);
+                SystemPatchUtil.Destroy(hoveredEntity);
+                ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Failed to bind familiar.");
+            }
             
             
-            ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Summoned familiar from soul gem.");
+            
+            
+            
         }
 
         public static void FirstPhase(Entity userEntity, Entity familiar)
@@ -241,8 +254,7 @@ namespace VCreate.Systems
             aggroConsumer.MaxDistanceFromPreCombatPosition = 20f;
             aggroConsumer.RemoveDelay = 6f;
             familiar.Write(aggroConsumer);
-            DisableAggroBuff disableAggroBuff = new DisableAggroBuff { Mode = DisableAggroBuffMode.None };
-            familiar.Write(disableAggroBuff);
+            
             
             DynamicCollision dynamicCollision = familiar.Read<DynamicCollision>();
             dynamicCollision.AgainstPlayers.RadiusOverride = -1f;
