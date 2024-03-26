@@ -267,17 +267,24 @@ namespace VCreate.Systems
             familiar.Write(new UnitLevel { Level = 0 });
 
             Health healthUnit = familiar.Read<Health>();
-            healthUnit.MaxHealth = CreateModifiableFloat(familiar, entityManager, 250f);
+            //healthUnit.MaxHealth = CreateModifiableFloat(familiar, entityManager, 250f);
+            healthUnit.MaxHealth._Value = 250f;
             healthUnit.Value = 250f;
             familiar.Write(healthUnit);
 
             UnitStats unitStats = familiar.Read<UnitStats>();
-            unitStats.PhysicalPower = CreateModifiableFloat(familiar, entityManager, 10f);
-            unitStats.SpellPower = CreateModifiableFloat(familiar, entityManager, 10f);
-            unitStats.PhysicalCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f);
-            unitStats.SpellCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f);
-            unitStats.PhysicalCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f);
-            unitStats.SpellCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f);
+            //unitStats.PhysicalPower = CreateModifiableFloat(familiar, entityManager, 10f);
+            unitStats.PhysicalPower._Value = 10f;
+            //unitStats.SpellPower = CreateModifiableFloat(familiar, entityManager, 10f);
+            unitStats.SpellPower._Value = 10f;
+            //unitStats.PhysicalCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f);
+            unitStats.PhysicalCriticalStrikeChance._Value = 0.1f;
+            //unitStats.SpellCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f);
+            unitStats.SpellCriticalStrikeChance._Value = 0.1f;
+            //unitStats.PhysicalCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f);
+            unitStats.PhysicalCriticalStrikeDamage._Value = 1.5f;
+            //unitStats.SpellCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f);
+            unitStats.SpellCriticalStrikeDamage._Value = 1.5f;
             familiar.Write(unitStats);
 
             if (familiar.Has<DamageCategoryStats>())

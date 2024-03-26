@@ -370,7 +370,7 @@ namespace VCreate.Hooks
                 EntityCategory diedCategory = died.Read<EntityCategory>();
                 if (died.Read<PrefabGUID>().GuidHash.Equals(VCreate.Data.Prefabs.CHAR_Mount_Horse.GuidHash)) return;
                 PrefabGUID toCheck = died.Read<PrefabGUID>();
-                if (toCheck.LookupName().ToLower().Contains("unholy")) return;
+                if (toCheck.LookupName().ToLower().Contains("unholy") || toCheck.LookupName().ToLower().Contains("villager") || toCheck.LookupName().ToLower().Contains("deer")) return;
                 if ((int)diedCategory.UnitCategory < 5 && !died.Read<PrefabGUID>().LookupName().ToLower().Contains("vblood"))
                 {
                     gem = new(UnitToGemMapping.UnitCategoryToGemPrefab[(UnitToGemMapping.UnitType)diedCategory.UnitCategory]);
@@ -417,6 +417,7 @@ namespace VCreate.Hooks
                             if (!DataStructures.UnlockedPets[playerId].Contains(died.Read<PrefabGUID>().GuidHash) && DataStructures.UnlockedPets[playerId].Count < 10)
                             {
                                 DataStructures.UnlockedPets[playerId].Add(died.Read<PrefabGUID>().GuidHash);
+                                /*
                                 int randInt = UnitTokenSystem.Random.Next(0, 100);
                                 if (randInt < 20)
                                 {
@@ -425,6 +426,7 @@ namespace VCreate.Hooks
                                     DataStructures.PetBuffMap[playerId][died.Read<PrefabGUID>().GuidHash].Add(prefabGUID.GuidHash);
                                     DataStructures.SavePetBuffMap();
                                 }
+                                */
                                 DataStructures.SaveUnlockedPets();
                             }
                             else
