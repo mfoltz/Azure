@@ -21,6 +21,7 @@ namespace VPlus.Hooks
     internal class VBloodSystemPatch
     {
         private static int counter = 0;
+        private static HashSet<Entity> entities = [];
 
         [HarmonyPatch(typeof(VBloodSystem), nameof(VBloodSystem.OnUpdate))]
         [HarmonyPrefix]
@@ -34,6 +35,7 @@ namespace VPlus.Hooks
 
                 foreach (var _event in __instance.EventList)
                 {
+                    
                     if (!VWorld.Server.EntityManager.TryGetComponentData(_event.Target, out PlayerCharacter playerData)) continue;
 
                     Entity _vblood = __instance._PrefabCollectionSystem._PrefabGuidToEntityMap[_event.Source];
@@ -41,6 +43,10 @@ namespace VPlus.Hooks
 
                     string playerName = playerData.Name.ToString();
                     Entity user = playerData.UserEntity;
+                    if (entities.Contains(user))
+                    {
+                        continue;
+                    }
 
                     try
                     {
@@ -79,6 +85,7 @@ namespace VPlus.Hooks
                                 {
                                     if (Databases.playerRanks.TryGetValue(SteamID, out RankData data))
                                     {
+                                        // hashset
                                         // this is where max points is derived and checked. level 0 max is 1000, level 1 max is 2000, etc
                                         if (data.Points < data.Rank * 1000 + 1000)
                                         {
@@ -89,10 +96,12 @@ namespace VPlus.Hooks
                                                 data.Points = data.Rank * 1000 + 1000;
                                             }
                                             ChatCommands.SavePlayerRanks();
+                                            entities.Add(user);
                                         }
                                     }
                                     else
                                     {
+
                                         // create new data then add points
                                         RankData rankData = new(0, GetPoints(playerLevel, unitLevel, component), [], 0, [0, 0], "none", false);
                                         Databases.playerRanks.Add(SteamID, rankData);
@@ -107,6 +116,7 @@ namespace VPlus.Hooks
                         Plugin.Logger.LogError($"Error: {e}");
                     }
                 }
+                entities.Clear();
             }
         }
 
