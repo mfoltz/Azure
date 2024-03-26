@@ -1,10 +1,3 @@
-﻿#region Assembly AdminCommands, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-
-// C:\Users\mitch\Downloads\AdminCommands.dll
-// Decompiled with ICSharpCode.Decompiler 8.1.1.7464
-
-#endregion
-
 using ProjectM.Network;
 using Unity.Collections;
 using Unity.Entities;
