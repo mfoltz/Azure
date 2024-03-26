@@ -67,7 +67,6 @@ namespace VCreate.Systems
         {
             if (VCreate.Core.DataStructures.PlayerSettings.TryGetValue(userEntity.Read<User>().PlatformId, out Omnitool data))
             {
-                
                 PrefabGUID buff = new(data.GetData("Buff"));
                 Entity entity = userEntity.Read<EntityInput>().HoveredEntity;
 
@@ -95,7 +94,7 @@ namespace VCreate.Systems
                         {
                             Utilities.AddComponent<Buff_Persists_Through_Death>(buffEntity);
                         }
-                        
+
                         if (buffEntity.Has<LifeTime>())
                         {
                             var lifetime = buffEntity.Read<LifeTime>();
@@ -222,11 +221,6 @@ namespace VCreate.Systems
                 SystemPatchUtil.Destroy(hoveredEntity);
                 ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, userEntity.Read<User>(), "Failed to bind familiar.");
             }
-            
-            
-            
-            
-            
         }
 
         public static void FirstPhase(Entity userEntity, Entity familiar)
@@ -243,7 +237,7 @@ namespace VCreate.Systems
             ModifiableEntity modifiableEntity = ModifiableEntity.CreateFixed(character);
             Follower follower = familiar.Read<Follower>();
             follower.Followed = modifiableEntity;
-         
+
             Utilities.SetComponentData(familiar, follower);
             Utilities.SetComponentData(familiar, teamReference);
             ModifiablePrefabGUID modifiablePrefabGUID = ModifiablePrefabGUID.CreateFixed(VCreate.Data.Prefabs.Faction_Players);
@@ -254,8 +248,7 @@ namespace VCreate.Systems
             aggroConsumer.MaxDistanceFromPreCombatPosition = 20f;
             aggroConsumer.RemoveDelay = 6f;
             familiar.Write(aggroConsumer);
-            
-            
+
             DynamicCollision dynamicCollision = familiar.Read<DynamicCollision>();
             dynamicCollision.AgainstPlayers.RadiusOverride = -1f;
             dynamicCollision.AgainstUnits.RadiusOverride = 0.4f;
@@ -280,29 +273,23 @@ namespace VCreate.Systems
 
             Health healthUnit = familiar.Read<Health>();
             //healthUnit.MaxHealth = CreateModifiableFloat(familiar, entityManager, 250f);
-            healthUnit.MaxHealth._Value = 250f;
+            healthUnit.MaxHealth = ModifiableFloat.CreateFixed(250f);
             healthUnit.Value = 250f;
             familiar.Write(healthUnit);
 
             UnitStats unitStats = familiar.Read<UnitStats>();
-            //unitStats.PhysicalPower = CreateModifiableFloat(familiar, entityManager, 10f);
-            unitStats.PhysicalPower._Value = 10f;
-            //unitStats.SpellPower = CreateModifiableFloat(familiar, entityManager, 10f);
-            unitStats.SpellPower._Value = 10f;
-            //unitStats.PhysicalCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f);
+            unitStats.PhysicalPower = ModifiableFloat.CreateFixed(10f);
+            unitStats.SpellPower = ModifiableFloat.CreateFixed(10f);
             unitStats.PhysicalCriticalStrikeChance._Value = 0.1f;
-            //unitStats.SpellCriticalStrikeChance = CreateModifiableFloat(familiar, entityManager, 0.1f);
             unitStats.SpellCriticalStrikeChance._Value = 0.1f;
-            //unitStats.PhysicalCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f);
             unitStats.PhysicalCriticalStrikeDamage._Value = 1.5f;
-            //unitStats.SpellCriticalStrikeDamage = CreateModifiableFloat(familiar, entityManager, 1.5f);
             unitStats.SpellCriticalStrikeDamage._Value = 1.5f;
             familiar.Write(unitStats);
 
             if (familiar.Has<DamageCategoryStats>())
             {
                 DamageCategoryStats damageCategoryStats = familiar.Read<DamageCategoryStats>();
-                damageCategoryStats.DamageVsPlayerVampires = CreateModifiableFloat(familiar, entityManager, 0.1f);
+                damageCategoryStats.DamageVsPlayerVampires._Value = 0.1f;
                 familiar.Write(damageCategoryStats);
             }
 
@@ -326,53 +313,48 @@ namespace VCreate.Systems
             if (data.ContainsKey(familiarName))
             {
                 PetExperienceProfile profile = data[familiarName];
-                if (profile.Level == 0)
-                {
-                    profile.Active = true;
-                    float maxHealth = healthUnit.MaxHealth._Value;
-                    float attackSpeed = unitStats.AttackSpeed._Value;
-                    float primaryAttackSpeed = unitStats.PrimaryAttackSpeed._Value;
-                    float physicalPower = unitStats.PhysicalPower._Value;
-                    float spellPower = unitStats.SpellPower._Value;
-                    float physicalCrit = unitStats.PhysicalCriticalStrikeChance._Value;
-                    float physicalCritDmg = unitStats.PhysicalCriticalStrikeDamage._Value;
-                    float spellCrit = unitStats.SpellCriticalStrikeChance._Value;
-                    float spellCritDmg = unitStats.SpellCriticalStrikeDamage._Value;
 
-                    profile.Stats.Clear();
-                    profile.Stats.AddRange([maxHealth, attackSpeed, primaryAttackSpeed, physicalPower, spellPower, physicalCrit, physicalCritDmg, spellCrit, spellCritDmg]);
-                    data[familiarName] = profile;
-                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
-                    DataStructures.SavePetExperience();
-                }
-                else
-                {
-                    profile.Active = true;
-                    UnitStats stats = familiar.Read<UnitStats>();
-                    UnitLevel level = familiar.Read<UnitLevel>();
-                    Health health = familiar.Read<Health>();
-                    health.MaxHealth = CreateModifiableFloat(familiar, entityManager, profile.Stats[0]);
-                    health.Value = profile.Stats[0];
-                    stats.AttackSpeed._Value = profile.Stats[1];
-                    stats.PrimaryAttackSpeed._Value = profile.Stats[2];
-                    stats.PhysicalPower._Value = profile.Stats[3];
-                    stats.SpellPower._Value = profile.Stats[4];
-                    stats.PhysicalCriticalStrikeChance._Value = profile.Stats[5];
-                    stats.SpellCriticalStrikeChance._Value = profile.Stats[6];
-                    stats.PhysicalCriticalStrikeDamage._Value = profile.Stats[7];
-                    stats.SpellCriticalStrikeDamage._Value = profile.Stats[8];
-                    level.Level = profile.Level;
-                    familiar.Write(stats);
-                    familiar.Write(health);
-                    familiar.Write(level);
+                profile.Active = true;
+                UnitStats stats = familiar.Read<UnitStats>();
+                UnitLevel level = familiar.Read<UnitLevel>();
+                Health health = familiar.Read<Health>();
+                health.MaxHealth = ModifiableFloat.CreateFixed(profile.Stats[0]);
+                health.Value = profile.Stats[0];
+                stats.AttackSpeed._Value = profile.Stats[1];
+                stats.PrimaryAttackSpeed._Value = profile.Stats[2];
+                stats.PhysicalPower = ModifiableFloat.CreateFixed(profile.Stats[3]);
+                stats.SpellPower = ModifiableFloat.CreateFixed(profile.Stats[4]);
+                stats.PhysicalCriticalStrikeChance._Value = profile.Stats[5];
+                stats.SpellCriticalStrikeChance._Value = profile.Stats[6];
+                stats.PhysicalCriticalStrikeDamage._Value = profile.Stats[7];
+                stats.SpellCriticalStrikeDamage._Value = profile.Stats[8];
+                level.Level = profile.Level;
+                familiar.Write(stats);
+                familiar.Write(health);
+                familiar.Write(level);
 
-                    data[familiarName] = profile;
-                    DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
-                    DataStructures.SavePetExperience();
-                }
+                data[familiarName] = profile;
+                DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
+                DataStructures.SavePetExperience();
             }
             else
             {
+                petExperience.Active = true;
+                UnitStats stats = familiar.Read<UnitStats>();
+                UnitLevel level = familiar.Read<UnitLevel>();
+                Health health = familiar.Read<Health>();
+                float maxHealth = health.MaxHealth._Value;
+                float attackSpeed = stats.AttackSpeed._Value;
+                float primaryAttackSpeed = stats.PrimaryAttackSpeed._Value;
+                float physicalPower = stats.PhysicalPower._Value;
+                float spellPower = stats.SpellPower._Value;
+                float physicalCrit = stats.PhysicalCriticalStrikeChance._Value;
+                float physicalCritDmg = stats.PhysicalCriticalStrikeDamage._Value;
+                float spellCrit = stats.SpellCriticalStrikeChance._Value;
+                float spellCritDmg = stats.SpellCriticalStrikeDamage._Value;
+
+                petExperience.Stats.Clear();
+                petExperience.Stats.AddRange([maxHealth, attackSpeed, primaryAttackSpeed, physicalPower, spellPower, physicalCrit, physicalCritDmg, spellCrit, spellCritDmg]);
                 data[familiarName] = petExperience;
                 DataStructures.PlayerPetsMap[userEntity.Read<User>().PlatformId] = data;
                 DataStructures.SavePetExperience();
@@ -392,9 +374,7 @@ namespace VCreate.Systems
 
             PlayerService.TryGetCharacterFromName(user.CharacterName.ToString(), out Entity character);
             FromCharacter fromCharacter = new() { Character = character, User = userEntity };
-            
-            
-                
+
             var debugEvent = new SpawnCharmeableDebugEvent
             {
                 PrefabGuid = prefabGUID,
@@ -403,7 +383,6 @@ namespace VCreate.Systems
             Plugin.Log.LogInfo("Spawning familiar...");
             DebugEventsSystem debugEventsSystem = VWorld.Server.GetExistingSystem<DebugEventsSystem>();
             debugEventsSystem.SpawnCharmeableDebugEvent(index, ref debugEvent, entityCommandBuffer, ref fromCharacter);
-            
         }
 
         public static unsafe void SpawnCopy(Entity userEntity)
