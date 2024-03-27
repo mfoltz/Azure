@@ -409,7 +409,7 @@ namespace VPlus.Augments.Rank
                 }
             }
         }
-        [Command(name: "listClasses", shortHand: ".classes", adminOnly: false, usage: ".classes", description: "Lists classes available through ranking.")]
+        [Command(name: "listClasses", shortHand: "classes", adminOnly: false, usage: ".classes", description: "Lists classes available through ranking.")]
         public static void ListClasses(ChatCommandContext ctx)
         {
 

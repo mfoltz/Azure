@@ -20,18 +20,18 @@ using static VPlus.Augments.Ascension;
 using RPGMods.Utils;
 using VRising.GameData.Methods;
 using Helper = VCreate.Core.Toolbox.Helper;
+using Unity.Collections;
+using ProjectM.LightningStorm;
+using ProjectM.Gameplay.Scripting;
 
 namespace VPlus.Core.Commands
 {
     public class ChatCommands
     {
-
-
+        private static bool sunToggle = true;
         private static readonly string redV = VPlus.Core.Toolbox.FontColors.Red("V");
 
-
         [Command(name: "starterKit", shortHand: "start", adminOnly: false, usage: ".start", description: "Provides starting kit.")]
-
         public static void KitMe(ChatCommandContext ctx)
         {
             EntityManager entityManager = VWorld.Server.EntityManager;
@@ -51,10 +51,9 @@ namespace VPlus.Core.Commands
             {
                 ctx.Reply("You've already received your starting kit.");
             }
-            
         }
-        [Command(name: "resetVision", shortHand: "vision", adminOnly: false, usage: ".vision", description: "Removes farsight.")]
 
+        [Command(name: "resetVision", shortHand: "vision", adminOnly: false, usage: ".vision", description: "Removes farsight.")]
         public static void ResetVision(ChatCommandContext ctx)
         {
             Entity character = ctx.Event.SenderCharacterEntity;
@@ -562,8 +561,7 @@ namespace VPlus.Core.Commands
         [Command(name: "getTopPlayers", shortHand: "getranks", adminOnly: false, usage: ".getranks", description: "Shows the top 10 players by PvE rank and points.")]
         public static void GetTopPlayersCommand(ChatCommandContext ctx)
         {
-            
-            List<RankData> allRanks = [.. Databases.playerRanks.Values]; 
+            List<RankData> allRanks = [.. Databases.playerRanks.Values];
 
             if (allRanks == null || allRanks.Count == 0)
             {
@@ -883,16 +881,7 @@ namespace VPlus.Core.Commands
             }
         }
 
-        /*
-        [Command(name: "test", shortHand: "t", adminOnly: true, usage: "", description: "testing")]
-        public unsafe void TestCommand(ChatCommandContext ctx)
-        {
-            SpawnUIPrefabOnLoad spawnUIPrefabOnLoad = new SpawnUIPrefabOnLoad();
-            GameObject prefabInstance = GameObject.Instantiate(spawnUIPrefabOnLoad.ReferencePrefab);
-            Plugin.Logger.LogInfo($"{prefabInstance.name}");
-            Plugin.Logger.LogInfo($"Test complete.");
-        }
-        */
+      
 
         public static Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<UnityEngine.Object> FindAllObjects()
         {
