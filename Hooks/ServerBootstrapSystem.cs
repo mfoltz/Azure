@@ -99,7 +99,7 @@ namespace VPlus.Hooks
                 //VPlus.Core.Logger.Log(VPlus.Core.Logger.Level.Error, ex);
             }
         }
-        
+        /*
         [HarmonyPatch(typeof(SpawnCharacterSystem), nameof(SpawnCharacterSystem.OnUpdate))]
         [HarmonyPostfix]
         private static void SpawnKitPostfix(SpawnCharacterSystem __instance)
@@ -139,6 +139,7 @@ namespace VPlus.Hooks
                 entities.Dispose();
             }
         }
+        */
         
     }
 }

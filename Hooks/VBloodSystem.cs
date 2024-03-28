@@ -94,6 +94,7 @@ namespace VPlus.Hooks
                                             if (data.Points >= data.Rank * 1000 + 1000)
                                             {
                                                 data.Points = data.Rank * 1000 + 1000;
+                                                ServerChatUtils.SendSystemMessageToClient(entityManager, component, "You've reached the maximum points for this rank! Don't forget to use .rankup");
                                             }
                                             ChatCommands.SavePlayerRanks();
                                             entities.Add(user);

@@ -79,7 +79,7 @@ namespace VPlus.Hooks
             timer += 1; 
             EntityCommandBufferSystem entityCommandBufferSystem = VWorld.Server.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
             EntityCommandBuffer ecb = entityCommandBufferSystem.CreateCommandBuffer();
-            if (timer > 180)
+            if (timer > 1)
             {
                 timer = 0;
                 isRunning = true;
@@ -135,18 +135,32 @@ namespace VPlus.Hooks
                     void HandleCase1()
                     {
                         float3 center = new(-1549, -5, -56);
+                        float3 posdom = new(-1549, -5, -51);
+                        float3 pospur = new(-1554, -5, -51);
                         string greencursed = VPlus.Core.Toolbox.FontColors.Green("Cursed");
-                        string message1 = $"The {greencursed} Node at the Transcendum Mine is now active.";
+                        string message1 = $"The {greencursed} Node at the Transcendum Mine is now active. The Doctor sends his regards...";
+                        Entity domina = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.CHAR_Gloomrot_Voltage_VBlood];
+                        Entity purifier = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.CHAR_Gloomrot_Purifier_VBlood];
+                        entityManager.Instantiate(domina);
+                        entityManager.Instantiate(purifier);
+
                         Entity zone = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Cursed_Zone_Area01];
-                        Entity holyZone = VWorld.Server.EntityManager.Instantiate(zone);
+                        Entity cursedZone = VWorld.Server.EntityManager.Instantiate(zone);
                         Entity node1 = VWorld.Server.GetExistingSystem<PrefabCollectionSystem>()._PrefabGuidToEntityMap[VCreate.Data.Prefabs.TM_Crystal_01_Stage1_Resource];
                         Entity nodeEntity1 = entityManager.Instantiate(node1);
                         ModifyResourceBuffer(nodeEntity1);
                         nodeEntity1.Write<Translation>(new Translation { Value = center });
-                        holyZone.Write<Translation>(new Translation { Value = center });
+                        cursedZone.Write<Translation>(new Translation { Value = center });
+                        domina.Write<Translation>(new Translation { Value = posdom });
+                        purifier.Write<Translation>(new Translation { Value = pospur });
+                        UnitLevel unitLevel = new UnitLevel { Level = 80 };
+                        domina.Write(unitLevel);
+                        purifier.Write(unitLevel);
+                        zones.Add(domina);
+                        zones.Add(purifier);
                         SetupMapIcon(nodeEntity1, VCreate.Data.Prefabs.MapIcon_POI_Resource_IronVein);
                         zones.Add(nodeEntity1);
-                        zones.Add(holyZone);
+                        zones.Add(cursedZone);
                         ServerChatUtils.SendSystemMessageToAllClients(ecb, message1);
                     }
 
@@ -287,8 +301,8 @@ namespace VPlus.Hooks
             
             // Create a new buffer with modified Amount values
             Health health = entity.Read<Health>();
-            health.MaxHealth._Value *= 10f;
-            health.Value *= 10f;
+            health.MaxHealth._Value *= 20f;
+            health.Value *= 20f;
             entity.Write(health);
 
             

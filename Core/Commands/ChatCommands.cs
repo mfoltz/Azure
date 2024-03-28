@@ -58,9 +58,18 @@ namespace VPlus.Core.Commands
         {
             Entity character = ctx.Event.SenderCharacterEntity;
             Vision vision = character.Read<Vision>();
-            vision.Range._Value = 40f;
-            character.Write(vision);
-            ctx.Reply("Farsight removed.");
+            if (vision.Range._Value == 40f)
+            {
+                vision.Range._Value = 2000f;
+                character.Write(vision);
+                ctx.Reply("Farsight granted.");
+            }
+            else
+            {
+                vision.Range._Value = 40f;
+                character.Write(vision);
+                ctx.Reply("Farsight removed.");
+            }
         }
 
         [Command(name: "redeemPoints", shortHand: "redeem", adminOnly: false, usage: ".redeem", description: "Redeems all VTokens for the crystal equivalent, drops if inventory full.")]
